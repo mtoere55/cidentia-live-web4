@@ -1,12 +1,11 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../local_social_data.dart';
 
-const _bg = Color(0xFF09090B);
 const _panel = Color(0xFF101114);
 const _line = Color(0xFF262A33);
-const _textSoft = Color(0xFFA1A1AA);
 
 class OriginalInspiredReelsPage extends StatefulWidget {
   const OriginalInspiredReelsPage({super.key});
@@ -24,7 +23,7 @@ class _OriginalInspiredReelsPageState extends State<OriginalInspiredReelsPage> {
   void _go(int direction) {
     if (!_controller.hasClients) return;
 
-    final next = (_index + direction).clamp(0, 5);
+    final next = (_index + direction).clamp(0, 5).toInt();
     if (next == _index) return;
 
     _controller.animateToPage(
@@ -45,8 +44,30 @@ class _OriginalInspiredReelsPageState extends State<OriginalInspiredReelsPage> {
     _go(dy > 0 ? 1 : -1);
 
     Future<void>.delayed(const Duration(milliseconds: 430), () {
-      if (mounted) _wheelLocked = false;
+      if (mounted) {
+        _wheelLocked = false;
+      }
     });
+  }
+
+  KeyEventResult _onKeyEvent(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent) return KeyEventResult.ignored;
+
+    final key = event.logicalKey;
+
+    if (key == LogicalKeyboardKey.arrowDown ||
+        key == LogicalKeyboardKey.pageDown ||
+        key == LogicalKeyboardKey.space) {
+      _go(1);
+      return KeyEventResult.handled;
+    }
+
+    if (key == LogicalKeyboardKey.arrowUp || key == LogicalKeyboardKey.pageUp) {
+      _go(-1);
+      return KeyEventResult.handled;
+    }
+
+    return KeyEventResult.ignored;
   }
 
   @override
@@ -57,44 +78,65 @@ class _OriginalInspiredReelsPageState extends State<OriginalInspiredReelsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Listener(
-      onPointerSignal: _onPointerSignal,
-      child: Stack(
-        children: [
-          PageView.builder(
-            controller: _controller,
-            scrollDirection: Axis.vertical,
-            physics: const PageScrollPhysics(),
-            itemCount: 6,
-            onPageChanged: (value) => setState(() => _index = value),
-            itemBuilder: (context, index) {
-              final post = localPosts[index % localPosts.length];
-              return _ReelSlide(post: post, index: index);
-            },
-          ),
-          Positioned(right: 18, top: 24, child: _ReelCounter(index: _index)),
-          Positioned(
-            right: 18,
-            top: 92,
-            child: Column(
-              children: [
-                _RoundControl(
-                  icon: Icons.keyboard_arrow_up_rounded,
-                  onTap: () => _go(-1),
-                ),
-                const SizedBox(height: 10),
-                _RoundControl(
-                  icon: Icons.keyboard_arrow_down_rounded,
-                  onTap: () => _go(1),
-                ),
-              ],
+    return Focus(
+      autofocus: true,
+      onKeyEvent: _onKeyEvent,
+      child: Listener(
+        behavior: HitTestBehavior.opaque,
+        onPointerSignal: _onPointerSignal,
+        child: Stack(
+          children: [
+            ScrollConfiguration(
+              behavior: const _ReelsScrollBehavior(),
+              child: PageView.builder(
+                controller: _controller,
+                scrollDirection: Axis.vertical,
+                physics: const PageScrollPhysics(),
+                itemCount: 6,
+                onPageChanged: (value) => setState(() => _index = value),
+                itemBuilder: (context, index) {
+                  final post = localPosts[index % localPosts.length];
+                  return _ReelSlide(post: post, index: index);
+                },
+              ),
             ),
-          ),
-          const Positioned(left: 22, top: 24, child: _ReelsTitle()),
-        ],
+            Positioned(right: 18, top: 24, child: _ReelCounter(index: _index)),
+            Positioned(
+              right: 18,
+              top: 92,
+              child: Column(
+                children: [
+                  _RoundControl(
+                    icon: Icons.keyboard_arrow_up_rounded,
+                    onTap: () => _go(-1),
+                  ),
+                  const SizedBox(height: 10),
+                  _RoundControl(
+                    icon: Icons.keyboard_arrow_down_rounded,
+                    onTap: () => _go(1),
+                  ),
+                ],
+              ),
+            ),
+            const Positioned(left: 22, top: 24, child: _ReelsTitle()),
+          ],
+        ),
       ),
     );
   }
+}
+
+class _ReelsScrollBehavior extends MaterialScrollBehavior {
+  const _ReelsScrollBehavior();
+
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+    PointerDeviceKind.trackpad,
+    PointerDeviceKind.stylus,
+    PointerDeviceKind.invertedStylus,
+  };
 }
 
 class _ReelsTitle extends StatelessWidget {
@@ -247,7 +289,7 @@ class _ReelSlide extends StatelessWidget {
                 ],
               ),
             ),
-            Positioned(
+            const Positioned(
               left: 18,
               top: 18,
               child: _ReelBadge(label: 'Mouse wheel ready'),
