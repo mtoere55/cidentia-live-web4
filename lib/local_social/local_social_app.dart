@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'local_social_data.dart';
 import 'local_social_modules.dart';
+import 'widgets/local_post_card.dart';
 
 void main() {
   runApp(const LocalSocialApp());
@@ -295,7 +296,7 @@ class FeedPreviewPage extends StatelessWidget {
               itemCount: localPosts.length,
               separatorBuilder: (_, __) => const SizedBox(height: 18),
               itemBuilder: (context, index) {
-                return LocalPostCard(post: localPosts[index]);
+                return OriginalInspiredPostCard(post: localPosts[index]);
               },
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 60)),
