@@ -5,6 +5,7 @@ import 'local_social_modules.dart';
 import 'widgets/local_post_card.dart';
 import 'widgets/local_profile_grid.dart';
 import 'widgets/local_stories_bar.dart';
+import 'widgets/cidentia_brand_header.dart';
 
 void main() {
   runApp(const LocalSocialApp());
@@ -125,22 +126,8 @@ class _LocalShellState extends State<LocalShell> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Padding(
-                          padding: EdgeInsets.fromLTRB(24, 26, 24, 18),
-                          child: Text(
-                            'Cidentia.Live',
-                            style: TextStyle(
-                              fontSize: 26,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: -0.8,
-                            ),
-                          ),
-                        ),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 24),
-                          child: Text(
-                            'Web4 social preview',
-                            style: TextStyle(color: _textSoft),
-                          ),
+                          padding: EdgeInsets.fromLTRB(20, 24, 18, 18),
+                          child: CidentiaBrandHeader(),
                         ),
                         const SizedBox(height: 28),
                         for (final section in LocalSection.values)
@@ -465,7 +452,7 @@ class SearchPreviewPage extends StatelessWidget {
     return _PageFrame(
       title: 'Search',
       child: GridView.builder(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(14),
         itemCount: 24,
         gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
           maxCrossAxisExtent: 210,
@@ -574,7 +561,7 @@ class ChatsPreviewPage extends StatelessWidget {
     return _PageFrame(
       title: 'Chats',
       child: ListView.separated(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(14),
         itemCount: localChats.length,
         separatorBuilder: (_, __) => const Divider(color: _line),
         itemBuilder: (context, index) {
@@ -612,7 +599,7 @@ class ProfilePreviewPage extends StatelessWidget {
               padding: const EdgeInsets.all(18),
               child: Card(
                 child: Padding(
-                  padding: const EdgeInsets.all(22),
+                  padding: const EdgeInsets.fromLTRB(18, 22, 18, 22),
                   child: Row(
                     children: [
                       const CircleAvatar(
@@ -758,11 +745,11 @@ class RightPreviewPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(22),
+      padding: const EdgeInsets.fromLTRB(18, 22, 18, 22),
       children: [
         const Text(
           'Cidentia Center',
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
         ),
         const SizedBox(height: 6),
         const Text(
@@ -786,8 +773,8 @@ class _ModuleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: _panelSoft,
         borderRadius: BorderRadius.circular(22),
@@ -799,10 +786,10 @@ class _ModuleCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 44,
-                height: 44,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(14),
                   gradient: LinearGradient(colors: module.colors),
                 ),
                 child: Icon(module.icon, color: Colors.white),
@@ -813,7 +800,7 @@ class _ModuleCard extends StatelessWidget {
                   module.title,
                   style: const TextStyle(
                     fontWeight: FontWeight.w900,
-                    fontSize: 15,
+                    fontSize: 14,
                   ),
                 ),
               ),
@@ -824,9 +811,9 @@ class _ModuleCard extends StatelessWidget {
           Text(
             module.value,
             style: const TextStyle(
-              fontSize: 26,
+              fontSize: 23,
               fontWeight: FontWeight.w900,
-              letterSpacing: -0.8,
+              letterSpacing: -0.5,
             ),
           ),
           const SizedBox(height: 6),
