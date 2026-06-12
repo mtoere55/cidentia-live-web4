@@ -8,6 +8,7 @@ import 'widgets/local_stories_bar.dart';
 import 'widgets/cidentia_brand_header.dart';
 import 'widgets/local_chat_detail.dart';
 import 'widgets/local_reels_page.dart';
+import 'widgets/local_live_studio_page.dart';
 
 void main() {
   runApp(const LocalSocialApp());
@@ -48,7 +49,7 @@ class LocalSocialApp extends StatelessWidget {
   }
 }
 
-enum LocalSection { feed, search, reels, chats, profile }
+enum LocalSection { feed, search, reels, chats, liveStudio, profile }
 
 extension LocalSectionMeta on LocalSection {
   String get label {
@@ -61,6 +62,8 @@ extension LocalSectionMeta on LocalSection {
         return 'Reels';
       case LocalSection.chats:
         return 'Chats';
+      case LocalSection.liveStudio:
+        return 'Live Studio';
       case LocalSection.profile:
         return 'Profile';
     }
@@ -76,6 +79,8 @@ extension LocalSectionMeta on LocalSection {
         return Icons.movie_creation_outlined;
       case LocalSection.chats:
         return Icons.chat_bubble_outline_rounded;
+      case LocalSection.liveStudio:
+        return Icons.live_tv_rounded;
       case LocalSection.profile:
         return Icons.person_outline_rounded;
     }
@@ -102,6 +107,8 @@ class _LocalShellState extends State<LocalShell> {
         return const OriginalInspiredReelsPage();
       case LocalSection.chats:
         return const OriginalInspiredChatsPage();
+      case LocalSection.liveStudio:
+        return const OriginalInspiredLiveStudioPage();
       case LocalSection.profile:
         return const OriginalInspiredProfilePage();
     }
