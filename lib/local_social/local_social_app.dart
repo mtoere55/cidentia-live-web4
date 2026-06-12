@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'local_social_data.dart';
+import 'local_social_modules.dart';
 
 void main() {
   runApp(const LocalSocialApp());
@@ -755,30 +756,109 @@ class RightPreviewPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.all(22),
-      children: const [
-        Text(
-          'Today',
+      children: [
+        const Text(
+          'Command Center',
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
         ),
-        SizedBox(height: 14),
-        _InfoTile(
-          icon: Icons.check_circle_outline_rounded,
-          title: 'Local route active',
-          subtitle: 'main_local.dart backend olmadan Ã§alÄ±ÅŸÄ±r.',
+        const SizedBox(height: 6),
+        const Text(
+          'Bu alan ileride CID, wallet, trust ve proof mod?llerinin merkezi olacak.',
+          style: TextStyle(color: _textSoft, height: 1.35),
         ),
-        _InfoTile(
-          icon: Icons.storage_rounded,
-          title: 'Backend later',
-          subtitle: 'Supabase / PowerSync sonra baÄŸlanacak.',
-        ),
-        _InfoTile(
-          icon: Icons.account_balance_wallet_outlined,
-          title: 'Wallet placeholder',
-          subtitle: 'CÃ¼zdan alanÄ± sonraki aÅŸamada eklenecek.',
-        ),
-        SizedBox(height: 20),
-        _LocalStatusCard(),
+        const SizedBox(height: 18),
+        for (final module in localFutureModules) _ModuleCard(module: module),
+        const SizedBox(height: 12),
+        const _LocalStatusCard(),
       ],
+    );
+  }
+}
+
+class _ModuleCard extends StatelessWidget {
+  const _ModuleCard({required this.module});
+
+  final LocalFutureModule module;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: _panelSoft,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: _line),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  gradient: LinearGradient(colors: module.colors),
+                ),
+                child: Icon(module.icon, color: Colors.white),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  module.title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 15,
+                  ),
+                ),
+              ),
+              _MetricPill(label: module.status),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Text(
+            module.value,
+            style: const TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.w900,
+              letterSpacing: -0.8,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            module.subtitle,
+            style: const TextStyle(color: _textSoft, height: 1.35),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MetricPill extends StatelessWidget {
+  const _MetricPill({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white10,
+        borderRadius: BorderRadius.circular(99),
+        border: Border.all(color: Colors.white12),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+          color: Colors.white,
+        ),
+      ),
     );
   }
 }
