@@ -6,6 +6,8 @@ import 'widgets/local_post_card.dart';
 import 'widgets/local_profile_grid.dart';
 import 'widgets/local_stories_bar.dart';
 import 'widgets/cidentia_brand_header.dart';
+import 'widgets/local_chat_detail.dart';
+import 'widgets/local_reels_page.dart';
 
 void main() {
   runApp(const LocalSocialApp());
@@ -97,9 +99,9 @@ class _LocalShellState extends State<LocalShell> {
       case LocalSection.search:
         return const SearchPreviewPage();
       case LocalSection.reels:
-        return const ReelsPreviewPage();
+        return const OriginalInspiredReelsPage();
       case LocalSection.chats:
-        return const ChatsPreviewPage();
+        return const OriginalInspiredChatsPage();
       case LocalSection.profile:
         return const OriginalInspiredProfilePage();
     }
