@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 const _bg = Color(0xFF09090B);
@@ -7,7 +9,12 @@ const _line = Color(0xFF262A33);
 const _textSoft = Color(0xFFA1A1AA);
 
 class OriginalInspiredLiveStudioPage extends StatefulWidget {
-  const OriginalInspiredLiveStudioPage({super.key});
+  const OriginalInspiredLiveStudioPage({
+    super.key,
+    this.showStageChatOverlay = false,
+  });
+
+  final bool showStageChatOverlay;
 
   @override
   State<OriginalInspiredLiveStudioPage> createState() =>
@@ -50,6 +57,7 @@ class _OriginalInspiredLiveStudioPageState
             ),
             const SizedBox(height: 16),
             _DesktopStudioPreview(
+              showStageChatOverlay: widget.showStageChatOverlay,
               translateEnabled: translateEnabled,
               liveReady: liveReady,
               onToggleLive: () => setState(() => liveReady = !liveReady),
@@ -191,11 +199,13 @@ class _StatusCard extends StatelessWidget {
 
 class _DesktopStudioPreview extends StatelessWidget {
   const _DesktopStudioPreview({
+    this.showStageChatOverlay = false,
     required this.translateEnabled,
     required this.liveReady,
     required this.onToggleLive,
   });
 
+  final bool showStageChatOverlay;
   final bool translateEnabled;
   final bool liveReady;
   final VoidCallback onToggleLive;
@@ -221,6 +231,7 @@ class _DesktopStudioPreview extends StatelessWidget {
         child: Stack(
           children: [
             const Positioned.fill(child: _StudioVideoStage()),
+            if (showStageChatOverlay) const _StageInsideChatOverlay(),
             Positioned(
               left: 18,
               top: 18,
@@ -235,15 +246,21 @@ class _DesktopStudioPreview extends StatelessWidget {
                 ],
               ),
             ),
-            Positioned(
-              right: 18,
-              top: 18,
-              child: _TranslateChip(enabled: translateEnabled),
-            ),
             const Positioned(left: 18, bottom: 18, child: _HostOverlay()),
-            const Positioned(right: 22, bottom: 22, child: _SubtitleOverlay()),
+            if (showStageChatOverlay)
+              const Positioned(
+                left: 360,
+                bottom: 22,
+                child: _SubtitleOverlay(compact: true),
+              )
+            else
+              const Positioned(
+                right: 22,
+                bottom: 22,
+                child: _SubtitleOverlay(),
+              ),
             Positioned(
-              right: 18,
+              right: showStageChatOverlay ? 392 : 18,
               top: 78,
               child: _SmallIconButton(
                 icon: Icons.fullscreen_rounded,
@@ -251,7 +268,7 @@ class _DesktopStudioPreview extends StatelessWidget {
               ),
             ),
             Positioned(
-              right: 18,
+              right: showStageChatOverlay ? 392 : 18,
               bottom: 118,
               child: _GoLiveFloatingButton(
                 liveReady: liveReady,
@@ -261,6 +278,186 @@ class _DesktopStudioPreview extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _StageInsideChatOverlay extends StatelessWidget {
+  const _StageInsideChatOverlay();
+
+  @override
+  Widget build(BuildContext context) {
+    final messages = [
+      ('Selin', 'Great stream!', '12:45'),
+      ('Alex', 'Web4 tools look clean.', '12:45'),
+      ('Cem', 'TR EN DE translation is the key.', '12:46'),
+      ('Mira', 'Stage focus feels better.', '12:46'),
+      ('BuildTogether', 'CID proof for creators is strong.', '12:47'),
+      ('Nora', 'The stage feels bigger now.', '12:48'),
+      ('Leon', 'Glass chat is much cleaner.', '12:48'),
+    ];
+
+    return Positioned(
+      right: 18,
+      top: 84,
+      bottom: 18,
+      width: 360,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(28),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: const Color(0x40101724),
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(color: Colors.white24),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x66000000),
+                  blurRadius: 26,
+                  offset: Offset(0, 14),
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.chat_bubble_outline_rounded, size: 18),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Live Chat',
+                          style: TextStyle(fontWeight: FontWeight.w900),
+                        ),
+                      ),
+                      Text(
+                        '1.2K',
+                        style: TextStyle(
+                          color: Color(0xFF4ADE80),
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Stage overlay. It stays inside the video frame.',
+                    style: TextStyle(color: _textSoft, fontSize: 12),
+                  ),
+                  const SizedBox(height: 14),
+                  Expanded(
+                    child: ListView.separated(
+                      padding: EdgeInsets.zero,
+                      itemCount: messages.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 10),
+                      itemBuilder: (context, index) {
+                        final msg = messages[index];
+                        return _StageChatMessage(
+                          name: msg.$1,
+                          text: msg.$2,
+                          time: msg.$3,
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0x33FFFFFF),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: Colors.white12),
+                    ),
+                    child: const Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Type a message...',
+                            style: TextStyle(color: _textSoft, fontSize: 12),
+                          ),
+                        ),
+                        Icon(Icons.send_rounded, size: 17),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StageChatMessage extends StatelessWidget {
+  const _StageChatMessage({
+    required this.name,
+    required this.text,
+    required this.time,
+  });
+
+  final String name;
+  final String text;
+  final String time;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CircleAvatar(
+          radius: 14,
+          backgroundColor: const Color(0x6627272A),
+          child: Text(
+            name.characters.first,
+            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900),
+          ),
+        ),
+        const SizedBox(width: 9),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    time,
+                    style: const TextStyle(color: _textSoft, fontSize: 10),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 2),
+              Text(
+                text,
+                style: const TextStyle(
+                  color: Color(0xFFE4E4E7),
+                  fontSize: 12,
+                  height: 1.25,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -510,27 +707,108 @@ class _HostOverlay extends StatelessWidget {
 }
 
 class _SubtitleOverlay extends StatelessWidget {
-  const _SubtitleOverlay();
+  const _SubtitleOverlay({this.compact = false});
+
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
+    final bars = compact
+        ? [5.0, 8.0, 4.0, 10.0, 6.0, 12.0, 7.0, 5.0, 9.0, 6.0, 11.0, 5.0]
+        : [7.0, 11.0, 5.0, 14.0, 8.0, 16.0, 10.0, 6.0, 12.0, 8.0, 15.0, 7.0];
+
     return Container(
-      width: 360,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.black54,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white12),
+      width: compact ? 520 : 360,
+      padding: EdgeInsets.symmetric(
+        horizontal: compact ? 16 : 14,
+        vertical: compact ? 11 : 12,
       ),
-      child: const Column(
+      decoration: BoxDecoration(
+        color: const Color(0x38101724),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white12),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x44000000),
+            blurRadius: 18,
+            offset: Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'EN  Building in Web4 is about ownership, identity and real connections.',
-            style: TextStyle(height: 1.35),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                decoration: BoxDecoration(
+                  color: const Color(0x3322C55E),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(color: const Color(0x5522C55E)),
+                ),
+                child: const Text(
+                  'EN',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFFBBF7D0),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Building in Web4 is about ownership, identity and real connections.',
+                  maxLines: compact ? 1 : 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xFFF4F4F5),
+                    fontSize: 13,
+                    height: 1.25,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
           ),
-          SizedBox(height: 10),
-          _WaveLine(),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Icon(
+                Icons.graphic_eq_rounded,
+                size: 15,
+                color: Color(0xFFA78BFA),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: SizedBox(
+                  height: 16,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      for (final h in bars) ...[
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.bottomCenter,
+                            child: Container(
+                              height: h,
+                              decoration: BoxDecoration(
+                                color: const Color(0xCCA78BFA),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );

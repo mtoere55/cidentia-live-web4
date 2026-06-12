@@ -152,7 +152,9 @@ class _LocalShellState extends State<LocalShell> {
       case LocalSection.chats:
         return const OriginalInspiredChatsPage();
       case LocalSection.liveStudio:
-        return const OriginalInspiredLiveStudioPage();
+        return OriginalInspiredLiveStudioPage(
+          showStageChatOverlay: studioPanelMode == StudioPanelMode.focus,
+        );
       case LocalSection.profile:
         return const OriginalInspiredProfilePage();
     }
