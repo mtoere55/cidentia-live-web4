@@ -1,0 +1,1037 @@
+=== KEY UI CANDIDATES ===
+--- .\lib\feed\post\view\post_view.dart ---
+import 'package:app_ui/app_ui.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_instagram_offline_first_clone/app/app.dart';
+import 'package:flutter_instagram_offline_first_clone/comments/comments.dart';
+import 'package:flutter_instagram_offline_first_clone/feed/feed.dart';
+import 'package:flutter_instagram_offline_first_clone/feed/post/post.dart';
+import 'package:flutter_instagram_offline_first_clone/feed/post/video/video.dart';
+import 'package:flutter_instagram_offline_first_clone/stories/stories.dart';
+import 'package:flutter_instagram_offline_first_clone/user_profile/user_profile.dart';
+import 'package:go_router/go_router.dart';
+import 'package:instagram_blocks_ui/instagram_blocks_ui.dart' hide VideoPlayer;
+import 'package:posts_repository/posts_repository.dart';
+import 'package:shared/shared.dart';
+import 'package:user_repository/user_repository.dart';
+
+class PostView extends StatelessWidget {
+  const PostView({
+    required this.block,
+    this.builder,
+    this.postIndex,
+    this.withInViewNotifier = true,
+    this.withCustomVideoPlayer = true,
+    this.videoPlayerType = VideoPlayerType.feed,
+    super.key,
+  });
+
+  final PostBlock block;
+  final WidgetBuilder? builder;
+  final int? postIndex;
+  final bool withInViewNotifier;
+  final bool withCustomVideoPlayer;
+  final VideoPlayerType videoPlayerType;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => PostBloc(
+        postId: block.id,
+        userRepository: context.read<UserRepository>(),
+        postsRepository: context.read<PostsRepository>(),
+      ),
+      child:
+          builder?.call(context) ??
+          PostLargeView(
+            block: block,
+            postIndex: postIndex,
+            withInViewNotifier: withInViewNotifier,
+            withCustomVideoPlayer: withCustomVideoPlayer,
+            videoPlayerType: videoPlayerType,
+          ),
+    );
+  }
+}
+
+class PostLargeView extends StatefulWidget {
+  const PostLargeView({
+    required this.block,
+    required this.postIndex,
+    required this.withInViewNotifier,
+    required this.withCustomVideoPlayer,
+    required this.videoPlayerType,
+    super.key,
+  });
+
+  final PostBlock block;
+  final int? postIndex;
+  final bool withInViewNotifier;
+  final bool withCustomVideoPlayer;
+  final VideoPlayerType videoPlayerType;
+
+  @override
+  State<PostLargeView> createState() => _PostLargeViewState();
+}
+
+class _PostLargeViewState extends State<PostLargeView> {
+  void _navigateToPostAuthor(
+    BuildContext context, {
+    required String id,
+    UserProfileProps? props,
+
+--- .\lib\feed\post\widgets\post_preview.dart ---
+import 'package:app_ui/app_ui.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_instagram_offline_first_clone/feed/feed.dart';
+import 'package:flutter_instagram_offline_first_clone/feed/post/post.dart';
+import 'package:flutter_instagram_offline_first_clone/l10n/l10n.dart';
+import 'package:shared/shared.dart';
+import 'package:sliver_tools/sliver_tools.dart';
+
+class PostPreviewPage extends StatelessWidget {
+  const PostPreviewPage({required this.id, super.key});
+
+  final String id;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppScaffold(
+      appBar: const PostPreviewAppBar(),
+      body: PostPreviewDetails(id: id),
+    );
+  }
+}
+
+class PostPreviewAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const PostPreviewAppBar({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(title: const AppLogo(), centerTitle: false);
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+}
+
+class PostPreviewNotFound extends StatelessWidget {
+  const PostPreviewNotFound({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverFillRemaining(
+      hasScrollBody: false,
+      child: Center(
+        child: Text(context.l10n.noPostFoundText, style: context.headlineSmall),
+      ),
+    );
+  }
+}
+
+class PostPreviewDetails extends StatefulWidget {
+  const PostPreviewDetails({required this.id, super.key});
+
+  final String id;
+
+  @override
+  State<PostPreviewDetails> createState() => _PostPreviewDetailsState();
+}
+
+class _PostPreviewDetailsState extends State<PostPreviewDetails> {
+  PostBlock? _block;
+  bool _hasData = true;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    setState(() => _isLoading = true);
+    context
+        .read<FeedBloc>()
+        .getPostBy(widget.id)
+        .then(
+          (value) => setState(() {
+            _block = value;
+            _hasData = value != null;
+            _isLoading = false;
+          }),
+        );
+  }
+
+  @override
+
+--- .\lib\feed\view\feed_page.dart ---
+import 'package:app_ui/app_ui.dart';
+import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_instagram_offline_first_clone/feed/feed.dart';
+import 'package:flutter_instagram_offline_first_clone/feed/post/post.dart';
+import 'package:flutter_instagram_offline_first_clone/l10n/l10n.dart';
+import 'package:flutter_instagram_offline_first_clone/stories/stories.dart';
+import 'package:flutter_instagram_offline_first_clone/user_profile/user_profile.dart';
+import 'package:inview_notifier_list/inview_notifier_list.dart';
+import 'package:shared/shared.dart';
+import 'package:sliver_tools/sliver_tools.dart';
+import 'package:stories_repository/stories_repository.dart';
+import 'package:user_repository/user_repository.dart';
+
+class FeedPage extends StatefulWidget {
+  const FeedPage({super.key, this.initialPage = 1});
+
+  final int initialPage;
+
+  @override
+  State<FeedPage> createState() => FeedPageState();
+}
+
+class FeedPageState extends State<FeedPage> with RouteAware {
+  late PageController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = PageController(initialPage: widget.initialPage);
+    context.read<UserProfileBloc>().add(
+      const UserProfileFetchFollowingsRequested(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => StoriesBloc(
+        storiesRepository: context.read<StoriesRepository>(),
+        userRepository: context.read<UserRepository>(),
+      )..add(const StoriesFetchUserFollowingsStories()),
+      child: const FeedView(),
+    );
+  }
+}
+
+/// {@template feed_view}
+/// The main FeedView widget that builds the UI for the feed screen.
+/// {@endtemplate}
+class FeedView extends StatefulWidget {
+  const FeedView({super.key});
+
+  @override
+  State<FeedView> createState() => _FeedViewState();
+}
+
+class _FeedViewState extends State<FeedView> {
+  late ScrollController _nestedScrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<FeedBloc>().add(const FeedPageRequested(page: 0));
+
+    _nestedScrollController = ScrollController();
+    FeedPageController().init(
+      nestedScrollController: _nestedScrollController,
+      context: context,
+    );
+  }
+
+  @override
+
+--- .\lib\reels\view\reels_view.dart ---
+import 'dart:async';
+
+import 'package:app_ui/app_ui.dart';
+import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_instagram_offline_first_clone/app/app.dart';
+import 'package:flutter_instagram_offline_first_clone/feed/feed.dart';
+import 'package:flutter_instagram_offline_first_clone/feed/post/video/video.dart';
+import 'package:flutter_instagram_offline_first_clone/l10n/l10n.dart';
+import 'package:flutter_instagram_offline_first_clone/reels/reel/reel.dart';
+import 'package:go_router/go_router.dart';
+import 'package:instagram_blocks_ui/instagram_blocks_ui.dart';
+import 'package:shared/shared.dart';
+
+class ReelsView extends StatefulWidget {
+  const ReelsView({super.key});
+
+  @override
+  State<ReelsView> createState() => _ReelsViewState();
+}
+
+class _ReelsViewState extends State<ReelsView> {
+  late PageController _pageController;
+
+  late ValueNotifier<int> _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<FeedBloc>().add(const FeedReelsPageRequested());
+    _pageController = PageController(keepPage: false);
+
+    _currentIndex = ValueNotifier(0);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    _currentIndex.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final videoPlayerState = VideoPlayerInheritedWidget.of(
+      context,
+    ).videoPlayerState;
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        AppScaffold(
+          body: BlocBuilder<FeedBloc, FeedState>(
+            buildWhen: (previous, current) {
+              return previous.status != current.status ||
+                  !const ListEquality<InstaBlock>().equals(
+                    previous.feed.reelsPage.blocks,
+                    current.feed.reelsPage.blocks,
+                  );
+            },
+            builder: (context, state) {
+              final blocks = state.feed.reelsPage.blocks;
+
+              if (blocks.isEmpty) {
+                return const NoReelsFound();
+              }
+              return RefreshIndicator.adaptive(
+                onRefresh: () async {
+                  context.read<FeedBloc>().add(
+                    const FeedReelsRefreshRequested(),
+                  );
+                  unawaited(
+                    _pageController.animateToPage(
+                      0,
+                      duration: 150.ms,
+                      curve: Curves.easeIn,
+                    ),
+                  );
+                },
+
+--- .\lib\reels\reel\view\reel_view.dart ---
+import 'dart:async';
+
+import 'package:app_ui/app_ui.dart';
+import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_instagram_offline_first_clone/app/app.dart';
+import 'package:flutter_instagram_offline_first_clone/comments/comments.dart';
+import 'package:flutter_instagram_offline_first_clone/feed/feed.dart';
+import 'package:flutter_instagram_offline_first_clone/feed/post/post.dart';
+import 'package:flutter_instagram_offline_first_clone/feed/post/video/video.dart';
+import 'package:flutter_instagram_offline_first_clone/l10n/l10n.dart';
+import 'package:flutter_instagram_offline_first_clone/reels/reel/reel.dart';
+import 'package:flutter_instagram_offline_first_clone/stories/stories.dart';
+import 'package:go_router/go_router.dart';
+import 'package:instagram_blocks_ui/instagram_blocks_ui.dart';
+import 'package:shared/shared.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:user_repository/user_repository.dart';
+
+class ReelView extends StatelessWidget {
+  const ReelView({
+    required this.block,
+    required this.withSound,
+    required this.play,
+    super.key,
+  });
+
+  final PostReelBlock block;
+  final bool withSound;
+  final bool play;
+
+  @override
+  Widget build(BuildContext context) {
+    return PostView(
+      key: ValueKey(block.id),
+      block: block,
+      videoPlayerType: VideoPlayerType.reels,
+      builder: (context) =>
+          Reel(block: block, withSound: withSound, play: play),
+    );
+  }
+}
+
+class Reel extends StatefulWidget {
+  const Reel({
+    required this.block,
+    required this.play,
+    required this.withSound,
+    super.key,
+  });
+
+  final PostReelBlock block;
+  final bool withSound;
+  final bool play;
+
+  @override
+  State<Reel> createState() => _ReelState();
+}
+
+class _ReelState extends State<Reel> {
+  late VideoPlayerController _videoController;
+  late ValueNotifier<bool> _isPaused;
+  late ValueNotifier<bool> _isLiked;
+
+  late StreamSubscription<PostState> _postStateSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _videoController = VideoPlayerController.networkUrl(
+      Uri.parse(widget.block.reel.url),
+    );
+    _isPaused = ValueNotifier(false)..addListener(_isPausedListener);
+    _isLiked = ValueNotifier(false);
+
+    _postStateSubscription = _isLikedListener();
+
+    context.read<PostBloc>()
+      ..add(const PostLikesCountSubscriptionRequested())
+
+--- .\lib\chats\view\chats_page.dart ---
+// ignore_for_file: deprecated_member_use
+
+import 'package:app_ui/app_ui.dart';
+import 'package:chats_repository/chats_repository.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_instagram_offline_first_clone/app/bloc/app_bloc.dart';
+import 'package:flutter_instagram_offline_first_clone/chats/bloc/chats_bloc.dart';
+import 'package:flutter_instagram_offline_first_clone/chats/widgets/chat_inbox_tile.dart';
+import 'package:flutter_instagram_offline_first_clone/home/home.dart';
+import 'package:flutter_instagram_offline_first_clone/l10n/l10n.dart';
+import 'package:go_router/go_router.dart';
+
+class ChatsPage extends StatelessWidget {
+  const ChatsPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final user = context.select((AppBloc bloc) => bloc.state.user);
+    return BlocProvider(
+      create: (context) =>
+          ChatsBloc(chatsRepository: context.read<ChatsRepository>())
+            ..add(ChatsSubscriptionRequested(userId: user.id)),
+      child: const ChatsView(),
+    );
+  }
+}
+
+class ChatsView extends StatelessWidget {
+  const ChatsView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const AppScaffold(
+      body: CustomScrollView(slivers: [ChatsAppBar(), ChatsListView()]),
+    );
+  }
+}
+
+class ChatsAppBar extends StatelessWidget {
+  const ChatsAppBar({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final user = context.select((AppBloc bloc) => bloc.state.user);
+
+    return SliverAppBar(
+      leading: IconButton(
+        onPressed: () => HomeProvider().animateToPage(1),
+        icon: Icon(Icons.adaptive.arrow_back, size: AppSize.iconSizeMedium),
+      ),
+      centerTitle: false,
+      pinned: true,
+      title: Text(
+        user.displayUsername,
+        style: context.titleLarge?.copyWith(fontWeight: AppFontWeight.bold),
+      ),
+      actions: [
+        Tappable.faded(
+          onTap: () async {
+            void createChat(String participantId) =>
+                context.read<ChatsBloc>().add(
+                  ChatsCreateChatRequested(
+                    userId: user.id,
+                    participantId: participantId,
+                  ),
+                );
+
+            final participantId =
+                await context.push('/timeline/search', extra: true) as String?;
+            if (participantId == null) return;
+            createChat(participantId);
+          },
+          child: const Icon(Icons.add, size: AppSize.iconSize),
+        ),
+      ],
+    );
+  }
+}
+
+
+--- .\lib\chats\chat\view\chat_page.dart ---
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'dart:async';
+
+import 'package:app_ui/app_ui.dart';
+import 'package:chats_repository/chats_repository.dart';
+import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_instagram_offline_first_clone/app/app.dart';
+import 'package:flutter_instagram_offline_first_clone/chats/chat/chat.dart';
+import 'package:flutter_instagram_offline_first_clone/l10n/l10n.dart';
+import 'package:flutter_instagram_offline_first_clone/stories/stories.dart';
+import 'package:inview_notifier_list/inview_notifier_list.dart';
+import 'package:scroll_to_index/scroll_to_index.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:shared/shared.dart';
+import 'package:user_repository/user_repository.dart';
+
+class ChatPage extends StatelessWidget {
+  const ChatPage({required this.chatId, required this.chat, super.key});
+
+  final ChatInbox chat;
+  final String chatId;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => ChatBloc(
+        chatId: chatId,
+        chatsRepository: context.read<ChatsRepository>(),
+      )..add(const ChatMessagesFetchRequested()),
+      child: ChatView(chat: chat),
+    );
+  }
+}
+
+class ChatView extends StatefulWidget {
+  const ChatView({required this.chat, super.key});
+
+  final ChatInbox chat;
+
+  @override
+  State<ChatView> createState() => _ChatViewState();
+}
+
+class _ChatViewState extends State<ChatView> {
+  late MessageInputController _messageInputController;
+  late FocusNode _focusNode;
+
+  late ItemScrollController _itemScrollController;
+  late ItemPositionsListener _itemPositionsListener;
+  late ScrollOffsetController _scrollOffsetController;
+  late ScrollOffsetListener _scrollOffsetListener;
+
+  Future<void> _reply(Message message) async {
+    _messageInputController.setReplyingMessage(message);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _focusNode.requestFocus();
+    });
+  }
+
+  Future<void> _edit(Message message) async {
+    _messageInputController.setEditingMessage(message);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _focusNode.requestFocus();
+    });
+  }
+
+  void _delete(Message message) {
+    context.read<ChatBloc>().add(ChatMessageDeleteRequested(message.id));
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _messageInputController = MessageInputController();
+    _focusNode = FocusNode();
+
+    _itemScrollController = ItemScrollController();
+    _itemPositionsListener = ItemPositionsListener.create();
+
+--- .\lib\chats\widgets\chat_inbox_tile.dart ---
+import 'package:app_ui/app_ui.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_instagram_offline_first_clone/app/app.dart';
+import 'package:flutter_instagram_offline_first_clone/chats/chat/chat.dart';
+import 'package:flutter_instagram_offline_first_clone/chats/chats.dart';
+import 'package:flutter_instagram_offline_first_clone/l10n/l10n.dart';
+import 'package:flutter_instagram_offline_first_clone/stories/stories.dart';
+import 'package:go_router/go_router.dart';
+import 'package:shared/shared.dart';
+
+class ChatInboxTile extends StatelessWidget {
+  const ChatInboxTile({required this.chat, super.key});
+
+  final ChatInbox chat;
+
+  @override
+  Widget build(BuildContext context) {
+    final participant = chat.participant;
+    final user = context.select((AppBloc bloc) => bloc.state.user);
+
+    return ListTile(
+      horizontalTitleGap: AppSpacing.md,
+      contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+      onTap: () => context.pushNamed(
+        AppRoutes.chat.name,
+        pathParameters: {'chat_id': chat.id},
+        extra: ChatProps(chat: chat),
+      ),
+      onLongPress: () => context.confirmAction(
+        title: context.l10n.deleteChatText,
+        content: context.l10n.chatDeleteConfirmationText,
+        yesText: context.l10n.deleteText,
+        noText: context.l10n.cancelText,
+        fn: () => context.read<ChatsBloc>().add(
+          ChatsDeleteChatRequested(chatId: chat.id, userId: user.id),
+        ),
+      ),
+      leading: UserStoriesAvatar(
+        resizeHeight: 156,
+        author: participant,
+        enableInactiveBorder: false,
+        withAdaptiveBorder: false,
+        radius: 26,
+      ),
+      title: Text(participant.displayFullName),
+      subtitle: Text(chat.lastMessage ?? context.l10n.noLastMessagesText),
+    );
+  }
+}
+
+--- .\lib\user_profile\view\user_profile_page.dart ---
+// ignore_for_file: lines_longer_than_80_chars
+
+import 'dart:math';
+
+import 'package:app_ui/app_ui.dart';
+import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_instagram_offline_first_clone/app/app.dart';
+import 'package:flutter_instagram_offline_first_clone/feed/post/post.dart';
+import 'package:flutter_instagram_offline_first_clone/l10n/l10n.dart';
+import 'package:flutter_instagram_offline_first_clone/selector/selector.dart';
+import 'package:flutter_instagram_offline_first_clone/stories/stories.dart';
+import 'package:flutter_instagram_offline_first_clone/user_profile/user_profile.dart';
+import 'package:go_router/go_router.dart';
+import 'package:instagram_blocks_ui/instagram_blocks_ui.dart';
+import 'package:posts_repository/posts_repository.dart';
+import 'package:shared/shared.dart';
+import 'package:sliver_tools/sliver_tools.dart';
+import 'package:user_repository/user_repository.dart';
+
+class UserProfilePage extends StatelessWidget {
+  const UserProfilePage({
+    required this.userId,
+    this.props = const UserProfileProps.build(),
+    super.key,
+  });
+
+  final String userId;
+  final UserProfileProps props;
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) =>
+              UserProfileBloc(
+                  userId: userId,
+                  postsRepository: context.read<PostsRepository>(),
+                  userRepository: context.read<UserRepository>(),
+                )
+                ..add(const UserProfileSubscriptionRequested())
+                ..add(const UserProfilePostsCountSubscriptionRequested())
+                ..add(const UserProfileFollowingsCountSubscriptionRequested())
+                ..add(const UserProfileFollowersCountSubscriptionRequested()),
+        ),
+      ],
+      child: UserProfileView(userId: userId, props: props),
+    );
+  }
+}
+
+class UserProfileView extends StatefulWidget {
+  const UserProfileView({required this.props, required this.userId, super.key});
+
+  final String userId;
+  final UserProfileProps props;
+
+  @override
+  State<UserProfileView> createState() => _UserProfileViewState();
+}
+
+class _UserProfileViewState extends State<UserProfileView>
+    with SingleTickerProviderStateMixin {
+  late ScrollController _controller;
+
+  UserProfileProps get props => widget.props;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = ScrollController();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final promoAction =
+        props.promoBlockAction as NavigateToSponsoredPostAuthorProfileAction?;
+    final user = context.select((UserProfileBloc bloc) => bloc.state.user);
+
+--- .\lib\user_profile\widgets\user_profile_header.dart ---
+import 'package:app_ui/app_ui.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_instagram_offline_first_clone/app/app.dart';
+import 'package:flutter_instagram_offline_first_clone/l10n/l10n.dart';
+import 'package:flutter_instagram_offline_first_clone/stories/stories.dart';
+import 'package:flutter_instagram_offline_first_clone/user_profile/user_profile.dart';
+import 'package:go_router/go_router.dart';
+import 'package:instagram_blocks_ui/instagram_blocks_ui.dart';
+import 'package:shared/shared.dart' hide Switch;
+import 'package:user_repository/user_repository.dart';
+
+class UserProfileHeader extends StatelessWidget {
+  const UserProfileHeader({
+    required this.userId,
+    this.sponsoredPost,
+    super.key,
+  });
+
+  final String userId;
+  final PostSponsoredBlock? sponsoredPost;
+
+  void _pushToUserStatistics(BuildContext context, {required int tabIndex}) =>
+      context.pushNamed(
+        AppRoutes.userStatistics.name,
+        extra: tabIndex,
+        queryParameters: {'user_id': userId},
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    final isOwner = context.select((UserProfileBloc b) => b.isOwner);
+    final user$ = context.select((UserProfileBloc b) => b.state.user);
+    final user = sponsoredPost == null
+        ? user$
+        : user$.isAnonymous
+        ? sponsoredPost!.author.toUser
+        : user$;
+    final canCreateStories = context.select(
+      (CreateStoriesBloc bloc) => bloc.state.isAvailable,
+    );
+
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.md,
+      ),
+      sliver: SliverToBoxAdapter(
+        child: Column(
+          children: [
+            Row(
+              children: [
+                UserStoriesAvatar(
+                  resizeHeight: 252,
+                  author: user,
+                  onLongPress: (avatarUrl) => avatarUrl == null
+                      ? null
+                      : context.showImagePreview(avatarUrl),
+                  onAvatarTap: (imageUrl) {
+                    if (imageUrl == null) return;
+                    if (!isOwner) context.showImagePreview(imageUrl);
+                    if (isOwner) {
+                      if (!canCreateStories) return;
+                      context.pushNamed(
+                        AppRoutes.createStories.name,
+                        extra: (String path) {
+                          context.read<CreateStoriesBloc>().add(
+                            CreateStoriesStoryCreateRequested(
+                              author: user,
+                              contentType: StoryContentType.image,
+                              filePath: path,
+                              onError: (_, _) {
+                                toggleLoadingIndeterminate(enable: false);
+                                openSnackbar(
+                                  SnackbarMessage.error(
+                                    title: context.l10n.somethingWentWrongText,
+                                    description:
+                                        context.l10n.failedToCreateStoryText,
+                                  ),
+                                );
+
+--- .\lib\user_profile\widgets\user_profile_posts.dart ---
+import 'package:app_ui/app_ui.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_instagram_offline_first_clone/feed/post/post.dart';
+import 'package:flutter_instagram_offline_first_clone/l10n/l10n.dart';
+import 'package:flutter_instagram_offline_first_clone/user_profile/user_profile.dart';
+import 'package:instagram_blocks_ui/instagram_blocks_ui.dart';
+import 'package:inview_notifier_list/inview_notifier_list.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:shared/shared.dart';
+
+class UserProfilePosts extends StatefulWidget {
+  const UserProfilePosts({
+    required this.userId,
+    required this.index,
+    super.key,
+  });
+
+  final String userId;
+  final int index;
+
+  @override
+  State<UserProfilePosts> createState() => _UserProfilePostsState();
+}
+
+class _UserProfilePostsState extends State<UserProfilePosts> {
+  late ItemScrollController _itemScrollController;
+  late ItemPositionsListener _itemPositionsListener;
+  late ScrollOffsetController _scrollOffsetController;
+  late ScrollOffsetListener _scrollOffsetListener;
+
+  @override
+  void initState() {
+    super.initState();
+    _itemScrollController = ItemScrollController();
+    _itemPositionsListener = ItemPositionsListener.create();
+    _scrollOffsetController = ScrollOffsetController();
+    _scrollOffsetListener = ScrollOffsetListener.create();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AppScaffold(
+      body: InViewNotifierCustomScrollView(
+        initialInViewIds: [widget.index.toString()],
+        isInViewPortCondition: (deltaTop, deltaBottom, vpHeight) {
+          return deltaTop < (0.5 * vpHeight) + 80.0 &&
+              deltaBottom > (0.5 * vpHeight) - 80.0;
+        },
+        slivers: [
+          UserProfilePostsAppBar(userId: widget.userId),
+          StreamBuilder<List<PostBlock>>(
+            stream: context.read<UserProfileBloc>().userPosts(small: false),
+            builder: (context, snapshot) {
+              final blocks = snapshot.data;
+
+              return PostsListView(
+                postBuilder: (_, index, block) => PostView(
+                  key: ValueKey(block.id),
+                  block: block,
+                  postIndex: index,
+                  withCustomVideoPlayer: false,
+                ),
+                withItemController: true,
+                blocks: blocks,
+                withLoading: false,
+                itemScrollController: _itemScrollController,
+                itemPositionsListener: _itemPositionsListener,
+                scrollOffsetController: _scrollOffsetController,
+                scrollOffsetListener: _scrollOffsetListener,
+                index: widget.index,
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+--- .\lib\stories\widgets\stories_carousel.dart ---
+import 'package:app_ui/app_ui.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_instagram_offline_first_clone/app/app.dart';
+import 'package:flutter_instagram_offline_first_clone/l10n/l10n.dart';
+import 'package:flutter_instagram_offline_first_clone/stories/stories.dart';
+import 'package:go_router/go_router.dart';
+import 'package:shared/shared.dart';
+
+class StoriesCarousel extends StatelessWidget {
+  const StoriesCarousel({super.key});
+
+  static const _storiesCarouselHeight = 124.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final canCreateStory = context.select(
+      (CreateStoriesBloc bloc) => bloc.state.isAvailable,
+    );
+    final user = context.select((AppBloc bloc) => bloc.state.user);
+
+    return SliverPadding(
+      padding: const EdgeInsets.only(
+        top: AppSpacing.xxs,
+        bottom: AppSpacing.xxs,
+      ),
+      sliver: SliverToBoxAdapter(
+        child: SizedBox(
+          height: _storiesCarouselHeight,
+          child: BlocBuilder<StoriesBloc, StoriesState>(
+            builder: (context, state) {
+              final followings = state.users;
+              return ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: followings.length + 1,
+                separatorBuilder: (context, index) =>
+                    const Gap.h(AppSpacing.lg),
+                itemBuilder: (context, index) {
+                  final following = index == 0 ? null : followings[index - 1];
+                  final isMine = index == 0;
+
+                  return Padding(
+                    padding: EdgeInsets.only(left: isMine ? AppSpacing.md : 0),
+                    child: StoryAvatar(
+                      key: ValueKey(following?.id ?? user.id),
+                      author: following ?? user,
+                      isMine: isMine,
+                      username: following?.displayUsername ?? '',
+                      onTap: (_) {
+                        if (!canCreateStory) return;
+                        context.pushNamed(
+                          AppRoutes.createStories.name,
+                          extra: (String path) {
+                            context.read<CreateStoriesBloc>().add(
+                              CreateStoriesStoryCreateRequested(
+                                author: user,
+                                contentType: StoryContentType.image,
+                                filePath: path,
+                                onError: (_, _) {
+                                  toggleLoadingIndeterminate(enable: false);
+                                  openSnackbar(
+                                    SnackbarMessage.error(
+                                      title:
+                                          context.l10n.somethingWentWrongText,
+                                      description:
+                                          context.l10n.failedToCreateStoryText,
+                                    ),
+                                  );
+                                },
+                                onLoading: toggleLoadingIndeterminate,
+                                onStoryCreated: () {
+                                  toggleLoadingIndeterminate(enable: false);
+                                  openSnackbar(
+                                    SnackbarMessage.success(
+                                      title: context
+                                          .l10n
+                                          .successfullyCreatedStoryText,
+                                    ),
+                                    clearIfQueue: true,
+                                  );
+
+--- .\lib\stories\widgets\story_avatar.dart ---
+// ignore_for_file: avoid_positional_boolean_parameters
+
+import 'package:app_ui/app_ui.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_instagram_offline_first_clone/app/app.dart';
+import 'package:flutter_instagram_offline_first_clone/l10n/l10n.dart';
+import 'package:flutter_instagram_offline_first_clone/stories/stories.dart';
+import 'package:instagram_blocks_ui/instagram_blocks_ui.dart';
+import 'package:shared/shared.dart';
+import 'package:stories_repository/stories_repository.dart';
+import 'package:user_repository/user_repository.dart';
+
+typedef StoryAvatarBuilder =
+    Widget Function(
+      BuildContext context,
+      User author,
+      OnAvatarTapCallback onAvatarTap,
+      bool isMine,
+      List<Story> stories,
+      VoidCallback? onLongPress,
+    );
+
+class StoryAvatar extends StatelessWidget {
+  const StoryAvatar({
+    required this.author,
+    required this.isMine,
+    required this.username,
+    required this.onTap,
+    super.key,
+    this.onLongPress,
+    this.avatarBuilder,
+  });
+
+  final User author;
+  final bool isMine;
+  final String username;
+  final OnAvatarTapCallback onTap;
+  final VoidCallback? onLongPress;
+  final StoryAvatarBuilder? avatarBuilder;
+
+  @override
+  Widget build(BuildContext context) {
+    final user = context.select((AppBloc bloc) => bloc.state.user);
+
+    return BlocProvider(
+      create: (context) => UserStoriesBloc(
+        author: author,
+        storiesRepository: context.read<StoriesRepository>(),
+      )..add(UserStoriesSubscriptionRequested(user.id)),
+      child: AvatarView(
+        author: author,
+        isMine: isMine,
+        username: username,
+        onTap: onTap,
+        avatarBuilder: avatarBuilder,
+      ),
+    );
+  }
+}
+
+class AvatarView extends StatelessWidget {
+  const AvatarView({
+    required this.author,
+    required this.isMine,
+    required this.username,
+    required this.onTap,
+    this.onLongPress,
+    super.key,
+    this.avatarBuilder,
+  });
+
+  final User author;
+  final bool isMine;
+  final String username;
+  final OnAvatarTapCallback onTap;
+  final VoidCallback? onLongPress;
+  final StoryAvatarBuilder? avatarBuilder;
+
+  @override
+
