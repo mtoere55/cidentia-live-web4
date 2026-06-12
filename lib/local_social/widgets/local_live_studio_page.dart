@@ -427,16 +427,19 @@ class _TranslateChip extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('TR'),
+            const Icon(Icons.translate_rounded, size: 16),
             const SizedBox(width: 8),
-            const Icon(Icons.swap_horiz_rounded, size: 16),
-            const SizedBox(width: 8),
-            const Text('EN'),
-            const SizedBox(width: 12),
-            const Text(
-              'Live Translate',
-              style: TextStyle(fontWeight: FontWeight.w900),
-            ),
+            const Text('TR', style: TextStyle(fontWeight: FontWeight.w900)),
+            const SizedBox(width: 6),
+            const Icon(Icons.swap_horiz_rounded, size: 15),
+            const SizedBox(width: 6),
+            const Text('EN', style: TextStyle(fontWeight: FontWeight.w900)),
+            const SizedBox(width: 6),
+            const Icon(Icons.swap_horiz_rounded, size: 15),
+            const SizedBox(width: 6),
+            const Text('DE', style: TextStyle(fontWeight: FontWeight.w900)),
+            const SizedBox(width: 10),
+            const Text('Hub', style: TextStyle(fontWeight: FontWeight.w900)),
             const SizedBox(width: 8),
             CircleAvatar(
               radius: 4,
@@ -1977,6 +1980,447 @@ class _DestinationSafetyNote extends StatelessWidget {
             child: Text(
               'No real stream key is stored here. Real RTMP credentials will be encrypted later on the server side.',
               style: TextStyle(color: Color(0xFFFDE68A), height: 1.35),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+void _openLiveTranslationHub(BuildContext context) {
+  final compact = MediaQuery.sizeOf(context).width < 720;
+
+  if (compact) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const _LiveTranslationHubSheet(),
+    );
+    return;
+  }
+
+  showDialog<void>(
+    context: context,
+    builder: (context) => const _LiveTranslationHubDialog(),
+  );
+}
+
+class _LiveTranslationHubDialog extends StatelessWidget {
+  const _LiveTranslationHubDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      insetPadding: const EdgeInsets.all(18),
+      backgroundColor: _panel,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(28),
+        side: const BorderSide(color: _line),
+      ),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: 580),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(18),
+          child: _LiveTranslationHubContent(),
+        ),
+      ),
+    );
+  }
+}
+
+class _LiveTranslationHubSheet extends StatelessWidget {
+  const _LiveTranslationHubSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * 0.78,
+        ),
+        decoration: BoxDecoration(
+          color: _panel,
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(color: _line),
+          boxShadow: const [
+            BoxShadow(
+              blurRadius: 34,
+              offset: Offset(0, 16),
+              color: Color(0xAA000000),
+            ),
+          ],
+        ),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(18),
+          child: _LiveTranslationHubContent(),
+        ),
+      ),
+    );
+  }
+}
+
+class _LiveTranslationHubContent extends StatefulWidget {
+  const _LiveTranslationHubContent();
+
+  @override
+  State<_LiveTranslationHubContent> createState() =>
+      _LiveTranslationHubContentState();
+}
+
+class _LiveTranslationHubContentState
+    extends State<_LiveTranslationHubContent> {
+  String speakerLanguage = 'Auto';
+  String hearingLanguage = 'Turkish';
+  String subtitleMode = 'Dual';
+  bool subtitlesEnabled = true;
+  bool voicePreviewEnabled = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final speakerOptions = ['Auto', 'Turkish', 'English', 'German'];
+    final languageOptions = ['Turkish', 'English', 'German'];
+    final subtitleOptions = ['Off', 'Single', 'Dual'];
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 48,
+          height: 5,
+          decoration: BoxDecoration(
+            color: Colors.white24,
+            borderRadius: BorderRadius.circular(99),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                ),
+              ),
+              child: const Icon(Icons.translate_rounded),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Live Translation Hub',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+                  ),
+                  SizedBox(height: 3),
+                  Text(
+                    'Compact TR / EN / DE studio translation control.',
+                    style: TextStyle(color: _textSoft, height: 1.3),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              onPressed: () => Navigator.of(context).pop(),
+              icon: const Icon(Icons.close_rounded),
+            ),
+          ],
+        ),
+        const SizedBox(height: 18),
+        _HubSection(
+          title: 'Speaker Language',
+          child: _HubChoiceWrap(
+            values: speakerOptions,
+            selected: speakerLanguage,
+            onSelected: (value) => setState(() => speakerLanguage = value),
+          ),
+        ),
+        const SizedBox(height: 12),
+        _HubSection(
+          title: 'I want to hear',
+          child: _HubChoiceWrap(
+            values: languageOptions,
+            selected: hearingLanguage,
+            onSelected: (value) => setState(() => hearingLanguage = value),
+          ),
+        ),
+        const SizedBox(height: 12),
+        _HubSection(
+          title: 'Subtitle Mode',
+          child: _HubChoiceWrap(
+            values: subtitleOptions,
+            selected: subtitleMode,
+            onSelected: (value) => setState(() => subtitleMode = value),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          decoration: BoxDecoration(
+            color: _panelSoft,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: _line),
+          ),
+          child: Column(
+            children: [
+              SwitchListTile(
+                value: subtitlesEnabled,
+                onChanged: (value) => setState(() => subtitlesEnabled = value),
+                title: const Text(
+                  'Subtitles',
+                  style: TextStyle(fontWeight: FontWeight.w900),
+                ),
+                subtitle: const Text(
+                  'Show translated captions over the live preview.',
+                  style: TextStyle(color: _textSoft),
+                ),
+              ),
+              const Divider(height: 1, color: _line),
+              SwitchListTile(
+                value: voicePreviewEnabled,
+                onChanged: (value) =>
+                    setState(() => voicePreviewEnabled = value),
+                title: const Text(
+                  'Voice Translation Preview',
+                  style: TextStyle(fontWeight: FontWeight.w900),
+                ),
+                subtitle: const Text(
+                  'Local UI placeholder. Real voice engine will be connected later.',
+                  style: TextStyle(color: _textSoft),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        const _HubPreviewCard(),
+        const SizedBox(height: 12),
+        const _HubStatsRow(),
+        const SizedBox(height: 14),
+        const _HubSafetyNote(),
+        const SizedBox(height: 18),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: null,
+                icon: const Icon(Icons.hearing_rounded),
+                label: const Text('Test Voice'),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: FilledButton.icon(
+                onPressed: () => Navigator.of(context).pop(),
+                icon: const Icon(Icons.check_rounded),
+                label: const Text('Save Local'),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _HubSection extends StatelessWidget {
+  const _HubSection({required this.title, required this.child});
+
+  final String title;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: _panelSoft,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _line),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
+          const SizedBox(height: 10),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+class _HubChoiceWrap extends StatelessWidget {
+  const _HubChoiceWrap({
+    required this.values,
+    required this.selected,
+    required this.onSelected,
+  });
+
+  final List<String> values;
+  final String selected;
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: values
+          .map(
+            (value) => ChoiceChip(
+              label: Text(value),
+              selected: selected == value,
+              onSelected: (_) => onSelected(value),
+              selectedColor: const Color(0xFF7C3AED),
+              backgroundColor: Colors.black26,
+              side: const BorderSide(color: _line),
+              labelStyle: const TextStyle(fontWeight: FontWeight.w900),
+            ),
+          )
+          .toList(),
+    );
+  }
+}
+
+class _HubPreviewCard extends StatelessWidget {
+  const _HubPreviewCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.black26,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _line),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: const [
+          Text(
+            'Live Caption Preview',
+            style: TextStyle(fontWeight: FontWeight.w900),
+          ),
+          SizedBox(height: 10),
+          _CaptionLine(label: 'TR Original', text: 'Ben Turkce konusuyorum.'),
+          SizedBox(height: 8),
+          _CaptionLine(
+            label: 'EN Translation',
+            text: 'I am speaking in Turkish.',
+          ),
+          SizedBox(height: 8),
+          _CaptionLine(label: 'DE Translation', text: 'Ich spreche Turkisch.'),
+        ],
+      ),
+    );
+  }
+}
+
+class _CaptionLine extends StatelessWidget {
+  const _CaptionLine({required this.label, required this.text});
+
+  final String label;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 118,
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: _textSoft,
+              fontWeight: FontWeight.w900,
+              fontSize: 12,
+            ),
+          ),
+        ),
+        Expanded(child: Text(text, style: const TextStyle(height: 1.35))),
+      ],
+    );
+  }
+}
+
+class _HubStatsRow extends StatelessWidget {
+  const _HubStatsRow();
+
+  @override
+  Widget build(BuildContext context) {
+    const stats = [
+      ('Latency', '0.8s demo', Color(0xFF4ADE80)),
+      ('Confidence', '94%', Color(0xFF60A5FA)),
+      ('Mode', 'Local UI', Color(0xFFFBBF24)),
+    ];
+
+    return Row(
+      children: stats
+          .map(
+            (stat) => Expanded(
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: _panelSoft,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: _line),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      stat.$1,
+                      style: const TextStyle(color: _textSoft, fontSize: 11),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      stat.$2,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: stat.$3,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          )
+          .toList(),
+    );
+  }
+}
+
+class _HubSafetyNote extends StatelessWidget {
+  const _HubSafetyNote();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFF111827),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFF334155)),
+      ),
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.info_outline_rounded, color: Color(0xFF93C5FD)),
+          SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'This is a local product shell. Real speech-to-text, translation and voice output will be connected in a later engine step.',
+              style: TextStyle(color: Color(0xFFBFDBFE), height: 1.35),
             ),
           ),
         ],
