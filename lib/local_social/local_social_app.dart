@@ -51,6 +51,49 @@ class LocalSocialApp extends StatelessWidget {
 
 enum LocalSection { feed, search, reels, chats, liveStudio, profile }
 
+enum StudioPanelMode { chat, destinations, status, focus }
+
+extension StudioPanelModeMeta on StudioPanelMode {
+  String get label {
+    switch (this) {
+      case StudioPanelMode.chat:
+        return 'Chat';
+      case StudioPanelMode.destinations:
+        return 'Destinations';
+      case StudioPanelMode.status:
+        return 'Status';
+      case StudioPanelMode.focus:
+        return 'Focus';
+    }
+  }
+
+  IconData get icon {
+    switch (this) {
+      case StudioPanelMode.chat:
+        return Icons.chat_bubble_outline_rounded;
+      case StudioPanelMode.destinations:
+        return Icons.wifi_tethering_rounded;
+      case StudioPanelMode.status:
+        return Icons.speed_rounded;
+      case StudioPanelMode.focus:
+        return Icons.center_focus_strong_rounded;
+    }
+  }
+
+  String get description {
+    switch (this) {
+      case StudioPanelMode.chat:
+        return 'Expand live chat and audience messages.';
+      case StudioPanelMode.destinations:
+        return 'Expand stream destinations and routing controls.';
+      case StudioPanelMode.status:
+        return 'Expand stream health and quality status.';
+      case StudioPanelMode.focus:
+        return 'Collapse the right panel and give the stage more space.';
+    }
+  }
+}
+
 extension LocalSectionMeta on LocalSection {
   String get label {
     switch (this) {
@@ -96,6 +139,7 @@ class LocalShell extends StatefulWidget {
 
 class _LocalShellState extends State<LocalShell> {
   LocalSection selected = LocalSection.feed;
+  StudioPanelMode studioPanelMode = StudioPanelMode.chat;
 
   Widget get page {
     switch (selected) {
@@ -119,6 +163,9 @@ class _LocalShellState extends State<LocalShell> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isDesktop = constraints.maxWidth >= 900;
+        final liveStudioFocus =
+            selected == LocalSection.liveStudio &&
+            studioPanelMode == StudioPanelMode.focus;
 
         if (isDesktop) {
           return Scaffold(
@@ -155,18 +202,38 @@ class _LocalShellState extends State<LocalShell> {
                   ),
                 ),
                 Expanded(child: page),
-                Container(
-                  width: 320,
-                  decoration: const BoxDecoration(
-                    color: _panel,
-                    border: Border(left: BorderSide(color: _line)),
+                if (liveStudioFocus)
+                  Container(
+                    width: 84,
+                    decoration: const BoxDecoration(
+                      color: _panel,
+                      border: Border(left: BorderSide(color: _line)),
+                    ),
+                    child: SafeArea(
+                      child: _LiveStudioFocusRail(
+                        onExitFocus: () => setState(
+                          () => studioPanelMode = StudioPanelMode.chat,
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  Container(
+                    width: 320,
+                    decoration: const BoxDecoration(
+                      color: _panel,
+                      border: Border(left: BorderSide(color: _line)),
+                    ),
+                    child: SafeArea(
+                      child: selected == LocalSection.liveStudio
+                          ? LiveStudioRightPanel(
+                              mode: studioPanelMode,
+                              onModeChanged: (mode) =>
+                                  setState(() => studioPanelMode = mode),
+                            )
+                          : const RightPreviewPanel(),
+                    ),
                   ),
-                  child: SafeArea(
-                    child: selected == LocalSection.liveStudio
-                        ? const LiveStudioRightPanel()
-                        : const RightPreviewPanel(),
-                  ),
-                ),
               ],
             ),
           );
@@ -921,29 +988,185 @@ class _GridGlowPainter extends CustomPainter {
 }
 
 class LiveStudioRightPanel extends StatelessWidget {
-  const LiveStudioRightPanel({super.key});
+  const LiveStudioRightPanel({
+    super.key,
+    required this.mode,
+    required this.onModeChanged,
+  });
+
+  final StudioPanelMode mode;
+  final ValueChanged<StudioPanelMode> onModeChanged;
 
   @override
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.fromLTRB(18, 22, 18, 22),
-      children: const [
-        Text(
+      children: [
+        const Text(
           'Studio Panel',
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
         ),
-        SizedBox(height: 6),
+        const SizedBox(height: 6),
         Text(
-          'Live chat, destinations and stream status for Cidentia.Live Studio.',
-          style: TextStyle(color: _textSoft, height: 1.35),
+          mode.description,
+          style: const TextStyle(color: _textSoft, height: 1.35),
         ),
-        SizedBox(height: 18),
-        _StudioChatPanelCard(),
-        SizedBox(height: 12),
-        _StudioDestinationsPanelCard(),
-        SizedBox(height: 12),
-        _StudioStreamStatusPanelCard(),
+        const SizedBox(height: 16),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final item in StudioPanelMode.values)
+              _StudioPanelModeChip(
+                mode: item,
+                selected: mode == item,
+                onTap: () => onModeChanged(item),
+              ),
+          ],
+        ),
+        const SizedBox(height: 18),
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 220),
+          child: KeyedSubtree(key: ValueKey(mode), child: _activePanel()),
+        ),
       ],
+    );
+  }
+
+  Widget _activePanel() {
+    switch (mode) {
+      case StudioPanelMode.chat:
+        return const _StudioChatPanelCard();
+      case StudioPanelMode.destinations:
+        return const _StudioDestinationsPanelCard();
+      case StudioPanelMode.status:
+        return const _StudioStreamStatusPanelCard();
+      case StudioPanelMode.focus:
+        return const _StudioFocusPanelCard();
+    }
+  }
+}
+
+class _StudioPanelModeChip extends StatelessWidget {
+  const _StudioPanelModeChip({
+    required this.mode,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final StudioPanelMode mode;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(999),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected ? Colors.white : _panelSoft,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: selected ? Colors.white : _line),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              mode.icon,
+              size: 15,
+              color: selected ? Colors.black : Colors.white,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              mode.label,
+              style: TextStyle(
+                color: selected ? Colors.black : Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StudioFocusPanelCard extends StatelessWidget {
+  const _StudioFocusPanelCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: _panelSoft,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: _line),
+      ),
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.center_focus_strong_rounded, size: 18),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Stage Focus',
+                  style: TextStyle(fontWeight: FontWeight.w900),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 12),
+          Text(
+            'The right panel becomes a narrow focus rail so the studio stage can grow.',
+            style: TextStyle(color: _textSoft, height: 1.35),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LiveStudioFocusRail extends StatelessWidget {
+  const _LiveStudioFocusRail({required this.onExitFocus});
+
+  final VoidCallback onExitFocus;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 18, 10, 18),
+      child: Column(
+        children: [
+          IconButton(
+            tooltip: 'Exit Focus',
+            onPressed: onExitFocus,
+            icon: const Icon(Icons.keyboard_double_arrow_left_rounded),
+          ),
+          const SizedBox(height: 16),
+          const RotatedBox(
+            quarterTurns: 3,
+            child: Text(
+              'Stage Focus',
+              maxLines: 1,
+              style: TextStyle(
+                color: _textSoft,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0.6,
+              ),
+            ),
+          ),
+          const Spacer(),
+          const Icon(Icons.center_focus_strong_rounded, color: Colors.white),
+          const SizedBox(height: 10),
+          const CircleAvatar(radius: 4, backgroundColor: Color(0xFF4ADE80)),
+        ],
+      ),
     );
   }
 }
