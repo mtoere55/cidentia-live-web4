@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 3.14)
+﻿cmake_minimum_required(VERSION 3.14)
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING "Allow older dependency CMake minimums" FORCE)
 project(flutter_instagram_offline_first_clone LANGUAGES CXX)
 
 set(BINARY_NAME "flutter_instagram_offline_first_clone")
@@ -93,3 +94,4 @@ install(DIRECTORY "${PROJECT_BUILD_DIR}/${FLUTTER_ASSET_DIR_NAME}"
 install(FILES "${AOT_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}"
   CONFIGURATIONS Profile;Release
   COMPONENT Runtime)
+
