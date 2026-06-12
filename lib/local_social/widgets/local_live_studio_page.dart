@@ -1020,11 +1020,31 @@ class _MobileLiveStudio extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        Positioned.fill(
-          child: _DesktopStudioPreview(
+        const Positioned.fill(child: _MobileVideoPreview()),
+        Positioned(
+          left: 14,
+          top: 14,
+          child: Row(
+            children: [
+              _LiveBadge(liveReady: liveReady),
+              const SizedBox(width: 8),
+              const _GlassBadge(icon: Icons.visibility_rounded, label: '1.2K'),
+            ],
+          ),
+        ),
+        Positioned(
+          right: 14,
+          top: 14,
+          child: _TranslateChip(enabled: translateEnabled),
+        ),
+        const Positioned(left: 14, top: 72, child: _MobileHostBadge()),
+        Positioned(
+          right: 14,
+          top: 104,
+          child: _MobileQuickRail(
             translateEnabled: translateEnabled,
-            liveReady: liveReady,
-            onToggleLive: onToggleLive,
+            onToggleTranslate: onToggleTranslate,
+            onToggleDestinations: onToggleDestinations,
           ),
         ),
         Positioned(
@@ -1032,15 +1052,18 @@ class _MobileLiveStudio extends StatelessWidget {
           right: 14,
           bottom: 14,
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              _MobileControlDock(
-                liveReady: liveReady,
-                onToggleLive: onToggleLive,
-              ),
-              const SizedBox(height: 10),
-              _DestinationsPanel(
+              _MobileDestinationsSheet(
                 expanded: destinationsExpanded,
                 onToggle: onToggleDestinations,
+              ),
+              const SizedBox(height: 10),
+              _MobileControlDock(
+                liveReady: liveReady,
+                destinationsExpanded: destinationsExpanded,
+                onToggleLive: onToggleLive,
+                onToggleDestinations: onToggleDestinations,
               ),
             ],
           ),
@@ -1053,40 +1076,61 @@ class _MobileLiveStudio extends StatelessWidget {
 class _MobileControlDock extends StatelessWidget {
   const _MobileControlDock({
     required this.liveReady,
+    required this.destinationsExpanded,
     required this.onToggleLive,
+    required this.onToggleDestinations,
   });
 
   final bool liveReady;
+  final bool destinationsExpanded;
   final VoidCallback onToggleLive;
+  final VoidCallback onToggleDestinations;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.black87,
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(30),
         border: Border.all(color: Colors.white12),
+        boxShadow: const [
+          BoxShadow(
+            blurRadius: 28,
+            offset: Offset(0, 12),
+            color: Color(0xAA000000),
+          ),
+        ],
       ),
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
       child: Row(
         children: [
           const Expanded(
-            child: _MiniControl(icon: Icons.mic_rounded, label: 'Mic'),
+            child: _MiniControl(icon: Icons.mic_rounded, label: 'Mute'),
           ),
           const Expanded(
-            child: _MiniControl(icon: Icons.videocam_rounded, label: 'Cam'),
+            child: _MiniControl(icon: Icons.videocam_rounded, label: 'Camera'),
           ),
           Expanded(
             child: InkWell(
               borderRadius: BorderRadius.circular(99),
               onTap: onToggleLive,
-              child: CircleAvatar(
-                radius: 31,
-                backgroundColor: liveReady
-                    ? const Color(0xFFEF4444)
-                    : const Color(0xFFEC4899),
+              child: Container(
+                width: 68,
+                height: 68,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: liveReady
+                        ? const [Color(0xFFEF4444), Color(0xFFB91C1C)]
+                        : const [Color(0xFFEC4899), Color(0xFFF97316)],
+                  ),
+                  boxShadow: const [
+                    BoxShadow(blurRadius: 24, color: Color(0x66EC4899)),
+                  ],
+                ),
                 child: Icon(
                   liveReady ? Icons.stop_rounded : Icons.wifi_tethering_rounded,
+                  size: 30,
                 ),
               ),
             ),
@@ -1097,8 +1141,17 @@ class _MobileControlDock extends StatelessWidget {
               label: 'Chat',
             ),
           ),
-          const Expanded(
-            child: _MiniControl(icon: Icons.more_horiz_rounded, label: 'More'),
+          Expanded(
+            child: InkWell(
+              borderRadius: BorderRadius.circular(18),
+              onTap: onToggleDestinations,
+              child: _MiniControl(
+                icon: destinationsExpanded
+                    ? Icons.keyboard_arrow_down_rounded
+                    : Icons.more_horiz_rounded,
+                label: destinationsExpanded ? 'Close' : 'More',
+              ),
+            ),
           ),
         ],
       ),
@@ -1184,6 +1237,459 @@ class _GoLiveFloatingButton extends StatelessWidget {
             style: const TextStyle(height: 1.0, fontWeight: FontWeight.w900),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _MobileVideoPreview extends StatelessWidget {
+  const _MobileVideoPreview();
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        gradient: RadialGradient(
+          center: Alignment(0.2, -0.25),
+          radius: 1.25,
+          colors: [Color(0xFF7C3AED), Color(0xFF111827), Color(0xFF030712)],
+        ),
+      ),
+      child: CustomPaint(
+        painter: _StudioPatternPainter(),
+        child: Stack(
+          children: [
+            Center(
+              child: Container(
+                width: 210,
+                height: 210,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFE879F9), Color(0xFFF97316)],
+                  ),
+                  border: Border.all(color: Colors.white24, width: 2),
+                  boxShadow: const [
+                    BoxShadow(blurRadius: 70, color: Color(0x66EC4899)),
+                  ],
+                ),
+                child: const Center(
+                  child: Text(
+                    'LIVE\nHOST',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 30,
+                      height: 1.0,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -1.1,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const Positioned(
+              left: 18,
+              right: 18,
+              bottom: 250,
+              child: _MobileSubtitleBubble(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MobileHostBadge extends StatelessWidget {
+  const _MobileHostBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 218,
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.black45,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white12),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [Color(0xFFE879F9), Color(0xFFF97316)],
+              ),
+            ),
+            child: const Center(
+              child: Text('W4', style: TextStyle(fontWeight: FontWeight.w900)),
+            ),
+          ),
+          const SizedBox(width: 10),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'web4.creator',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontWeight: FontWeight.w900),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  'CID Verified Host',
+                  style: TextStyle(color: _textSoft, fontSize: 11),
+                ),
+              ],
+            ),
+          ),
+          const Icon(
+            Icons.verified_rounded,
+            color: Color(0xFF60A5FA),
+            size: 18,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MobileQuickRail extends StatelessWidget {
+  const _MobileQuickRail({
+    required this.translateEnabled,
+    required this.onToggleTranslate,
+    required this.onToggleDestinations,
+  });
+
+  final bool translateEnabled;
+  final VoidCallback onToggleTranslate;
+  final VoidCallback onToggleDestinations;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        const _MobileRailButton(icon: Icons.mic_rounded, active: true),
+        const SizedBox(height: 10),
+        const _MobileRailButton(icon: Icons.videocam_rounded, active: true),
+        const SizedBox(height: 10),
+        const _MobileRailButton(icon: Icons.flip_camera_ios_rounded),
+        const SizedBox(height: 10),
+        const _MobileRailButton(
+          icon: Icons.chat_bubble_outline_rounded,
+          badge: '12',
+        ),
+        const SizedBox(height: 10),
+        InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: onToggleTranslate,
+          child: _MobileRailButton(
+            icon: Icons.translate_rounded,
+            active: translateEnabled,
+          ),
+        ),
+        const SizedBox(height: 10),
+        InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: onToggleDestinations,
+          child: const _MobileRailButton(icon: Icons.tune_rounded),
+        ),
+      ],
+    );
+  }
+}
+
+class _MobileRailButton extends StatelessWidget {
+  const _MobileRailButton({
+    required this.icon,
+    this.active = false,
+    this.badge,
+  });
+
+  final IconData icon;
+  final bool active;
+  final String? badge;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: Colors.black54,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: active ? const Color(0xFF22C55E) : Colors.white12,
+            ),
+          ),
+          child: Icon(icon),
+        ),
+        if (badge != null)
+          Positioned(
+            right: -4,
+            top: -5,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEF4444),
+                borderRadius: BorderRadius.circular(99),
+              ),
+              child: Text(
+                badge!,
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _MobileSubtitleBubble extends StatelessWidget {
+  const _MobileSubtitleBubble();
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerRight,
+      child: Container(
+        width: 260,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.black54,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: Colors.white12),
+        ),
+        child: const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'EN  Building in Web4 is about ownership and real connections.',
+              style: TextStyle(fontSize: 12, height: 1.35),
+            ),
+            SizedBox(height: 8),
+            _WaveLine(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MobileDestinationsSheet extends StatelessWidget {
+  const _MobileDestinationsSheet({
+    required this.expanded,
+    required this.onToggle,
+  });
+
+  final bool expanded;
+  final VoidCallback onToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 240),
+      curve: Curves.easeOutCubic,
+      height: expanded ? 320 : 72,
+      decoration: BoxDecoration(
+        color: Colors.black87,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: Colors.white12),
+        boxShadow: const [
+          BoxShadow(
+            blurRadius: 32,
+            offset: Offset(0, 16),
+            color: Color(0xAA000000),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          InkWell(
+            onTap: onToggle,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+              child: Column(
+                children: [
+                  Container(
+                    width: 46,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: Colors.white24,
+                      borderRadius: BorderRadius.circular(99),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'Destinations',
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                      const Text(
+                        '6 / 6 Connected',
+                        style: TextStyle(
+                          color: Color(0xFF4ADE80),
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Icon(
+                        expanded
+                            ? Icons.keyboard_arrow_down_rounded
+                            : Icons.keyboard_arrow_up_rounded,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (expanded) ...[
+            SizedBox(
+              height: 118,
+              child: ListView.separated(
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                scrollDirection: Axis.horizontal,
+                itemCount: _destinations.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 10),
+                itemBuilder: (context, index) {
+                  final item = _destinations[index];
+                  return _MobileDestinationChip(item: item);
+                },
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 14),
+              child: _MobileQuickToolsGrid(),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _MobileDestinationChip extends StatelessWidget {
+  const _MobileDestinationChip({required this.item});
+
+  final _Destination item;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 104,
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: _panelSoft,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _line),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              gradient: LinearGradient(colors: item.colors),
+            ),
+            child: Icon(item.icon, size: 18),
+          ),
+          const Spacer(),
+          Text(
+            item.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
+          ),
+          const SizedBox(height: 3),
+          const Text(
+            'LIVE',
+            style: TextStyle(
+              color: Color(0xFF4ADE80),
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MobileQuickToolsGrid extends StatelessWidget {
+  const _MobileQuickToolsGrid();
+
+  @override
+  Widget build(BuildContext context) {
+    const tools = [
+      (Icons.group_rounded, 'Guests', '1 / 4'),
+      (Icons.verified_user_outlined, 'Proof', 'Active'),
+      (Icons.fiber_manual_record_rounded, 'Record', 'Off'),
+      (Icons.account_balance_wallet_outlined, 'Wallet', 'EUR 0.00'),
+      (Icons.translate_rounded, 'Translate', 'TR <> EN'),
+    ];
+
+    return SizedBox(
+      height: 82,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: tools.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        itemBuilder: (context, index) {
+          final tool = tools[index];
+
+          return Container(
+            width: 104,
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: _panelSoft,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: _line),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(tool.$1, size: 20),
+                const Spacer(),
+                Text(
+                  tool.$2,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 12,
+                  ),
+                ),
+                Text(
+                  tool.$3,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: _textSoft, fontSize: 11),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
