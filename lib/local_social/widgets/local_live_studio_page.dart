@@ -888,56 +888,60 @@ class _DestinationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 156,
-      padding: const EdgeInsets.all(13),
-      decoration: BoxDecoration(
-        color: _panelSoft,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _line),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(14),
-              gradient: LinearGradient(colors: item.colors),
+    return InkWell(
+      borderRadius: BorderRadius.circular(20),
+      onTap: () => _openDestinationManager(context, item),
+      child: Container(
+        width: 156,
+        padding: const EdgeInsets.all(13),
+        decoration: BoxDecoration(
+          color: _panelSoft,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: _line),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                gradient: LinearGradient(colors: item.colors),
+              ),
+              child: Icon(item.icon),
             ),
-            child: Icon(item.icon),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontWeight: FontWeight.w900),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  item.handle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: _textSoft, fontSize: 11),
-                ),
-                const SizedBox(height: 5),
-                const Text(
-                  'LIVE',
-                  style: TextStyle(
-                    color: Color(0xFF4ADE80),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w900,
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.w900),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 2),
+                  Text(
+                    item.handle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: _textSoft, fontSize: 11),
+                  ),
+                  const SizedBox(height: 5),
+                  const Text(
+                    'MANAGE',
+                    style: TextStyle(
+                      color: Color(0xFF4ADE80),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -1594,43 +1598,47 @@ class _MobileDestinationChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 104,
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: _panelSoft,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _line),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              gradient: LinearGradient(colors: item.colors),
+    return InkWell(
+      borderRadius: BorderRadius.circular(20),
+      onTap: () => _openDestinationManager(context, item),
+      child: Container(
+        width: 104,
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: _panelSoft,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: _line),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                gradient: LinearGradient(colors: item.colors),
+              ),
+              child: Icon(item.icon, size: 18),
             ),
-            child: Icon(item.icon, size: 18),
-          ),
-          const Spacer(),
-          Text(
-            item.name,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
-          ),
-          const SizedBox(height: 3),
-          const Text(
-            'LIVE',
-            style: TextStyle(
-              color: Color(0xFF4ADE80),
-              fontSize: 11,
-              fontWeight: FontWeight.w900,
+            const Spacer(),
+            Text(
+              item.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
             ),
-          ),
-        ],
+            const SizedBox(height: 3),
+            const Text(
+              'MANAGE',
+              style: TextStyle(
+                color: Color(0xFF4ADE80),
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1690,6 +1698,288 @@ class _MobileQuickToolsGrid extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+void _openDestinationManager(BuildContext context, _Destination item) {
+  showDialog<void>(
+    context: context,
+    builder: (context) => _DestinationManagerDialog(item: item),
+  );
+}
+
+class _DestinationManagerDialog extends StatefulWidget {
+  const _DestinationManagerDialog({required this.item});
+
+  final _Destination item;
+
+  @override
+  State<_DestinationManagerDialog> createState() =>
+      _DestinationManagerDialogState();
+}
+
+class _DestinationManagerDialogState extends State<_DestinationManagerDialog> {
+  bool enabled = true;
+  bool revealKey = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final item = widget.item;
+    final rtmpValue = item.name == 'Custom RTMP'
+        ? 'rtmp://custom.server/live'
+        : 'rtmp://studio.cidentia.live/${item.name.toLowerCase()}';
+    final streamKeyValue = revealKey
+        ? 'demo-local-stream-key-locked'
+        : '????????????????';
+
+    return Dialog(
+      insetPadding: const EdgeInsets.all(18),
+      backgroundColor: _panel,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(28),
+        side: const BorderSide(color: _line),
+      ),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 520),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      gradient: LinearGradient(colors: item.colors),
+                    ),
+                    child: Icon(item.icon),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${item.name} Destination',
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          item.handle,
+                          style: const TextStyle(color: _textSoft),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close_rounded),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: _panelSoft,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: _line),
+                ),
+                child: Column(
+                  children: [
+                    SwitchListTile(
+                      value: enabled,
+                      onChanged: (value) => setState(() => enabled = value),
+                      title: const Text(
+                        'Destination Enabled',
+                        style: TextStyle(fontWeight: FontWeight.w900),
+                      ),
+                      subtitle: Text(
+                        enabled ? 'Ready for local studio routing' : 'Disabled',
+                        style: const TextStyle(color: _textSoft),
+                      ),
+                    ),
+                    const Divider(color: _line),
+                    _ManagerField(
+                      icon: Icons.link_rounded,
+                      label: 'RTMP URL',
+                      value: rtmpValue,
+                    ),
+                    const SizedBox(height: 12),
+                    _ManagerField(
+                      icon: Icons.key_rounded,
+                      label: 'Stream Key',
+                      value: streamKeyValue,
+                      trailing: IconButton(
+                        onPressed: () => setState(() => revealKey = !revealKey),
+                        icon: Icon(
+                          revealKey
+                              ? Icons.visibility_off_rounded
+                              : Icons.visibility_rounded,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    const _ManagerStatusRow(
+                      label: 'Mode',
+                      value: 'Local placeholder only',
+                      color: Color(0xFFFBBF24),
+                    ),
+                    const SizedBox(height: 8),
+                    _ManagerStatusRow(
+                      label: 'Status',
+                      value: enabled ? 'Ready' : 'Disabled',
+                      color: enabled
+                          ? const Color(0xFF4ADE80)
+                          : const Color(0xFFA1A1AA),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+              const _DestinationSafetyNote(),
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: null,
+                      icon: const Icon(Icons.settings_ethernet_rounded),
+                      label: const Text('Test Connection'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.check_rounded),
+                      label: const Text('Save Local'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ManagerField extends StatelessWidget {
+  const _ManagerField({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.trailing,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
+      decoration: BoxDecoration(
+        color: Colors.black26,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _line),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 18),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: _textSoft,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                SelectableText(
+                  value,
+                  style: const TextStyle(fontWeight: FontWeight.w900),
+                ),
+              ],
+            ),
+          ),
+          if (trailing != null) trailing!,
+        ],
+      ),
+    );
+  }
+}
+
+class _ManagerStatusRow extends StatelessWidget {
+  const _ManagerStatusRow({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  final String label;
+  final String value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(label, style: const TextStyle(color: _textSoft)),
+        ),
+        Text(
+          value,
+          style: TextStyle(color: color, fontWeight: FontWeight.w900),
+        ),
+        const SizedBox(width: 8),
+        CircleAvatar(radius: 4, backgroundColor: color),
+      ],
+    );
+  }
+}
+
+class _DestinationSafetyNote extends StatelessWidget {
+  const _DestinationSafetyNote();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1F1B12),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFF854D0E)),
+      ),
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.lock_rounded, color: Color(0xFFFBBF24)),
+          SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'No real stream key is stored here. Real RTMP credentials will be encrypted later on the server side.',
+              style: TextStyle(color: Color(0xFFFDE68A), height: 1.35),
+            ),
+          ),
+        ],
       ),
     );
   }
