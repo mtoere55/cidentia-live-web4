@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'local_social_data.dart';
 import 'local_social_modules.dart';
 import 'widgets/local_post_card.dart';
+import 'widgets/local_profile_grid.dart';
 
 void main() {
   runApp(const LocalSocialApp());
@@ -98,7 +99,7 @@ class _LocalShellState extends State<LocalShell> {
       case LocalSection.chats:
         return const ChatsPreviewPage();
       case LocalSection.profile:
-        return const ProfilePreviewPage();
+        return const OriginalInspiredProfilePage();
     }
   }
 
@@ -270,7 +271,7 @@ class _LocalStatusCard extends StatelessWidget {
           Text('Backend-free', style: TextStyle(fontWeight: FontWeight.w900)),
           SizedBox(height: 8),
           Text(
-            'Firebase, Supabase ve PowerSync kapalÄ±. Bu ekran sadece saÄŸlam local geliÅŸtirme yoludur.',
+            'Firebase, Supabase ve PowerSync kapal\u{0131}. Bu ekran sadece sa\u{011F}lam local geli\u{015F}tirme yoludur.',
             style: TextStyle(color: _textSoft, height: 1.35),
           ),
         ],
@@ -632,7 +633,7 @@ class ProfilePreviewPage extends StatelessWidget {
                             ),
                             SizedBox(height: 8),
                             Text(
-                              'Sosyal uygulama local Ã§alÄ±ÅŸma profili. GerÃ§ek CID ve wallet sonra baÄŸlanacak.',
+                              'Sosyal uygulama local Ã§alÄ±ÅŸma profili. GerÃ§ek CID ve wallet sonra ba\u{011F}lanacak.',
                               style: TextStyle(color: _textSoft, height: 1.35),
                             ),
                           ],
@@ -764,7 +765,7 @@ class RightPreviewPanel extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         const Text(
-          'Bu alan ileride CID, wallet, trust ve proof mod?llerinin merkezi olacak.',
+          'Bu alan ileride CID, wallet, trust ve proof mod\u{00FC}llerinin merkezi olacak.',
           style: TextStyle(color: _textSoft, height: 1.35),
         ),
         const SizedBox(height: 18),
