@@ -127,7 +127,7 @@ class _LocalShellState extends State<LocalShell> {
                         const Padding(
                           padding: EdgeInsets.fromLTRB(24, 26, 24, 18),
                           child: Text(
-                            'Social Preview',
+                            'Cidentia.Live',
                             style: TextStyle(
                               fontSize: 26,
                               fontWeight: FontWeight.w900,
@@ -138,7 +138,7 @@ class _LocalShellState extends State<LocalShell> {
                         const Padding(
                           padding: EdgeInsets.symmetric(horizontal: 24),
                           child: Text(
-                            'Local dev mode',
+                            'Web4 social preview',
                             style: TextStyle(color: _textSoft),
                           ),
                         ),
@@ -177,7 +177,7 @@ class _LocalShellState extends State<LocalShell> {
             backgroundColor: _bg,
             surfaceTintColor: Colors.transparent,
             title: Text(
-              selected == LocalSection.feed ? 'Social Preview' : selected.label,
+              selected == LocalSection.feed ? 'Cidentia.Live' : selected.label,
               style: const TextStyle(fontWeight: FontWeight.w800),
             ),
             actions: const [
@@ -761,7 +761,7 @@ class RightPreviewPanel extends StatelessWidget {
       padding: const EdgeInsets.all(22),
       children: [
         const Text(
-          'Command Center',
+          'Cidentia Center',
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
         ),
         const SizedBox(height: 6),

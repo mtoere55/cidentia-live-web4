@@ -22,7 +22,7 @@ const localFutureModules = [
   LocalFutureModule(
     title: 'CID Identity',
     subtitle: 'CidenDB verified social identity placeholder',
-    value: 'CID-LOCAL',
+    value: 'CID Local',
     status: 'Planned',
     icon: Icons.badge_outlined,
     colors: [Color(0xFF60A5FA), Color(0xFF2563EB)],
