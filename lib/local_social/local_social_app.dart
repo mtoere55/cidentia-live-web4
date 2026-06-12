@@ -4,6 +4,7 @@ import 'local_social_data.dart';
 import 'local_social_modules.dart';
 import 'widgets/local_post_card.dart';
 import 'widgets/local_profile_grid.dart';
+import 'widgets/local_stories_bar.dart';
 
 void main() {
   runApp(const LocalSocialApp());
@@ -291,7 +292,7 @@ class FeedPreviewPage extends StatelessWidget {
         child: CustomScrollView(
           slivers: [
             const SliverToBoxAdapter(child: SizedBox(height: 18)),
-            const SliverToBoxAdapter(child: StoriesStrip()),
+            const SliverToBoxAdapter(child: OriginalInspiredStoriesBar()),
             const SliverToBoxAdapter(child: SizedBox(height: 16)),
             SliverList.separated(
               itemCount: localPosts.length,
