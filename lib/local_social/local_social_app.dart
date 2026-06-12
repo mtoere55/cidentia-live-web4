@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'local_social_data.dart';
+
 void main() {
   runApp(const LocalSocialApp());
 }
@@ -266,7 +268,7 @@ class _LocalStatusCard extends StatelessWidget {
           Text('Backend-free', style: TextStyle(fontWeight: FontWeight.w900)),
           SizedBox(height: 8),
           Text(
-            'Firebase, Supabase ve PowerSync kapalı. Bu ekran sadece sağlam local geliştirme yoludur.',
+            'Firebase, Supabase ve PowerSync kapalÄ±. Bu ekran sadece saÄŸlam local geliÅŸtirme yoludur.',
             style: TextStyle(color: _textSoft, height: 1.35),
           ),
         ],
@@ -274,59 +276,6 @@ class _LocalStatusCard extends StatelessWidget {
     );
   }
 }
-
-class LocalPost {
-  const LocalPost({
-    required this.author,
-    required this.handle,
-    required this.time,
-    required this.caption,
-    required this.accent,
-    required this.likes,
-    required this.comments,
-  });
-
-  final String author;
-  final String handle;
-  final String time;
-  final String caption;
-  final List<Color> accent;
-  final String likes;
-  final String comments;
-}
-
-const _posts = [
-  LocalPost(
-    author: 'Mira Studio',
-    handle: '@mira.studio',
-    time: '18m',
-    caption:
-        'Offline-first sosyal akış hazır. Önce sağlam çalışan gövde, sonra gerçek kimlik ve wallet katmanı.',
-    accent: [Color(0xFFE879F9), Color(0xFFEC4899), Color(0xFFF97316)],
-    likes: '12.8K',
-    comments: '384',
-  ),
-  LocalPost(
-    author: 'Web4 Lab',
-    handle: '@web4.lab',
-    time: '2h',
-    caption:
-        'Feed, reels, chat ve profil alanları local veriyle açılıyor. Backend bağlanınca aynı gövde büyüyecek.',
-    accent: [Color(0xFF60A5FA), Color(0xFF06B6D4), Color(0xFF14B8A6)],
-    likes: '8.1K',
-    comments: '211',
-  ),
-  LocalPost(
-    author: 'Creator Node',
-    handle: '@creator.node',
-    time: '1d',
-    caption:
-        'Bu aşama tasarım finali değil. Sadece bozuk sistem üstüne kurmamak için güvenli çalışma tabanı.',
-    accent: [Color(0xFFA78BFA), Color(0xFF6366F1), Color(0xFF0EA5E9)],
-    likes: '4.6K',
-    comments: '97',
-  ),
-];
 
 class FeedPreviewPage extends StatelessWidget {
   const FeedPreviewPage({super.key});
@@ -342,10 +291,10 @@ class FeedPreviewPage extends StatelessWidget {
             const SliverToBoxAdapter(child: StoriesStrip()),
             const SliverToBoxAdapter(child: SizedBox(height: 16)),
             SliverList.separated(
-              itemCount: _posts.length,
+              itemCount: localPosts.length,
               separatorBuilder: (_, __) => const SizedBox(height: 18),
               itemBuilder: (context, index) {
-                return LocalPostCard(post: _posts[index]);
+                return LocalPostCard(post: localPosts[index]);
               },
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 60)),
@@ -361,23 +310,12 @@ class StoriesStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final names = ['You', 'Mira', 'Web4', 'Node', 'Live', 'Market', 'Truth'];
-    final colors = [
-      Colors.pinkAccent,
-      Colors.orangeAccent,
-      Colors.cyanAccent,
-      Colors.purpleAccent,
-      Colors.lightGreenAccent,
-      Colors.amberAccent,
-      Colors.blueAccent,
-    ];
-
     return SizedBox(
       height: 112,
       child: ListView.separated(
         padding: const EdgeInsets.symmetric(horizontal: 14),
         scrollDirection: Axis.horizontal,
-        itemCount: names.length,
+        itemCount: localStories.length,
         separatorBuilder: (_, __) => const SizedBox(width: 14),
         itemBuilder: (context, index) {
           return Column(
@@ -389,7 +327,7 @@ class StoriesStrip extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: LinearGradient(
-                    colors: [colors[index], Colors.pinkAccent],
+                    colors: [localStories[index].color, Colors.pinkAccent],
                   ),
                 ),
                 child: Container(
@@ -398,13 +336,18 @@ class StoriesStrip extends StatelessWidget {
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
-                    index == 0 ? Icons.add_rounded : Icons.person_rounded,
+                    localStories[index].isCreate
+                        ? Icons.add_rounded
+                        : Icons.person_rounded,
                     color: Colors.white,
                   ),
                 ),
               ),
               const SizedBox(height: 8),
-              Text(names[index], style: const TextStyle(fontSize: 12)),
+              Text(
+                localStories[index].label,
+                style: const TextStyle(fontSize: 12),
+              ),
             ],
           );
         },
@@ -434,7 +377,7 @@ class LocalPostCard extends StatelessWidget {
               post.author,
               style: const TextStyle(fontWeight: FontWeight.w800),
             ),
-            subtitle: Text('${post.handle} · ${post.time}'),
+            subtitle: Text('${post.handle} Â· ${post.time}'),
             trailing: const Icon(Icons.more_horiz_rounded),
           ),
           AspectRatio(
@@ -526,7 +469,7 @@ class SearchPreviewPage extends StatelessWidget {
           crossAxisSpacing: 12,
         ),
         itemBuilder: (context, index) {
-          final colors = _posts[index % _posts.length].accent;
+          final colors = localPosts[index % localPosts.length].accent;
           return Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
@@ -559,7 +502,7 @@ class ReelsPreviewPage extends StatelessWidget {
         scrollDirection: Axis.vertical,
         itemCount: 5,
         itemBuilder: (context, index) {
-          final post = _posts[index % _posts.length];
+          final post = localPosts[index % localPosts.length];
           return Padding(
             padding: const EdgeInsets.all(18),
             child: Container(
@@ -624,33 +567,26 @@ class ChatsPreviewPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final chats = [
-      ('Mira Studio', 'Local preview hazır mı?', '2m'),
-      ('Web4 Lab', 'Backend sonra bağlanacak.', '21m'),
-      ('Creator Node', 'Profil ekranı demo veride.', '1h'),
-      ('Market Intel', 'Wallet alanı sonra gelecek.', '4h'),
-      ('Truth Scanner', 'Proof katmanı planlandı.', '1d'),
-    ];
-
     return _PageFrame(
       title: 'Chats',
       child: ListView.separated(
         padding: const EdgeInsets.all(16),
-        itemCount: chats.length,
+        itemCount: localChats.length,
         separatorBuilder: (_, __) => const Divider(color: _line),
         itemBuilder: (context, index) {
-          final chat = chats[index];
+          final chat = localChats[index];
           return ListTile(
             leading: CircleAvatar(
-              backgroundColor: _posts[index % _posts.length].accent.first,
-              child: Text(chat.$1.characters.first),
+              backgroundColor:
+                  localPosts[index % localPosts.length].accent.first,
+              child: Text(chat.name.characters.first),
             ),
             title: Text(
-              chat.$1,
+              chat.name,
               style: const TextStyle(fontWeight: FontWeight.w800),
             ),
-            subtitle: Text(chat.$2),
-            trailing: Text(chat.$3, style: const TextStyle(color: _textSoft)),
+            subtitle: Text(chat.message),
+            trailing: Text(chat.time, style: const TextStyle(color: _textSoft)),
           );
         },
       ),
@@ -694,7 +630,7 @@ class ProfilePreviewPage extends StatelessWidget {
                             ),
                             SizedBox(height: 8),
                             Text(
-                              'Sosyal uygulama local çalışma profili. Gerçek CID ve wallet sonra bağlanacak.',
+                              'Sosyal uygulama local Ã§alÄ±ÅŸma profili. GerÃ§ek CID ve wallet sonra baÄŸlanacak.',
                               style: TextStyle(color: _textSoft, height: 1.35),
                             ),
                           ],
@@ -735,7 +671,7 @@ class ProfilePreviewPage extends StatelessWidget {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
                     gradient: LinearGradient(
-                      colors: _posts[index % _posts.length].accent,
+                      colors: localPosts[index % localPosts.length].accent,
                     ),
                   ),
                 );
@@ -828,17 +764,17 @@ class RightPreviewPanel extends StatelessWidget {
         _InfoTile(
           icon: Icons.check_circle_outline_rounded,
           title: 'Local route active',
-          subtitle: 'main_local.dart backend olmadan çalışır.',
+          subtitle: 'main_local.dart backend olmadan Ã§alÄ±ÅŸÄ±r.',
         ),
         _InfoTile(
           icon: Icons.storage_rounded,
           title: 'Backend later',
-          subtitle: 'Supabase / PowerSync sonra bağlanacak.',
+          subtitle: 'Supabase / PowerSync sonra baÄŸlanacak.',
         ),
         _InfoTile(
           icon: Icons.account_balance_wallet_outlined,
           title: 'Wallet placeholder',
-          subtitle: 'Cüzdan alanı sonraki aşamada eklenecek.',
+          subtitle: 'CÃ¼zdan alanÄ± sonraki aÅŸamada eklenecek.',
         ),
         SizedBox(height: 20),
         _LocalStatusCard(),
