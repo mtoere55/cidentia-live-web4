@@ -161,7 +161,11 @@ class _LocalShellState extends State<LocalShell> {
                     color: _panel,
                     border: Border(left: BorderSide(color: _line)),
                   ),
-                  child: const SafeArea(child: RightPreviewPanel()),
+                  child: SafeArea(
+                    child: selected == LocalSection.liveStudio
+                        ? const LiveStudioRightPanel()
+                        : const RightPreviewPanel(),
+                  ),
                 ),
               ],
             ),
@@ -914,4 +918,356 @@ class _GridGlowPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class LiveStudioRightPanel extends StatelessWidget {
+  const LiveStudioRightPanel({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(18, 22, 18, 22),
+      children: const [
+        Text(
+          'Studio Panel',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+        ),
+        SizedBox(height: 6),
+        Text(
+          'Live chat, destinations and stream status for Cidentia.Live Studio.',
+          style: TextStyle(color: _textSoft, height: 1.35),
+        ),
+        SizedBox(height: 18),
+        _StudioChatPanelCard(),
+        SizedBox(height: 12),
+        _StudioDestinationsPanelCard(),
+        SizedBox(height: 12),
+        _StudioStreamStatusPanelCard(),
+      ],
+    );
+  }
+}
+
+class _StudioChatPanelCard extends StatelessWidget {
+  const _StudioChatPanelCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final messages = [
+      ('Selin Kaya', 'Great stream!', '12:45'),
+      ('Alex M.', 'Love the new Web4 tools.', '12:45'),
+      ('CryptoNomad', 'Proof is the future.', '12:46'),
+      ('BuildTogether', 'CID is leveling up creators.', '12:46'),
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: _panelSoft,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: _line),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.chat_bubble_outline_rounded, size: 18),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Live Chat',
+                  style: TextStyle(fontWeight: FontWeight.w900),
+                ),
+              ),
+              Text(
+                '1.2K',
+                style: TextStyle(color: _textSoft, fontWeight: FontWeight.w800),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          for (final msg in messages)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    radius: 15,
+                    backgroundColor: const Color(0xFF27272A),
+                    child: Text(
+                      msg.$1.characters.first,
+                      style: const TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                  ),
+                  const SizedBox(width: 9),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                msg.$1,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              msg.$3,
+                              style: const TextStyle(
+                                color: _textSoft,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          msg.$2,
+                          style: const TextStyle(
+                            color: _textSoft,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          const SizedBox(height: 4),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.black26,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: _line),
+            ),
+            child: const Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Type a message...',
+                    style: TextStyle(color: _textSoft, fontSize: 12),
+                  ),
+                ),
+                Icon(Icons.send_rounded, size: 17),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StudioDestinationsPanelCard extends StatelessWidget {
+  const _StudioDestinationsPanelCard();
+
+  @override
+  Widget build(BuildContext context) {
+    const items = [
+      ('YouTube', '@CidentiaLive', Color(0xFFFF0000), Icons.play_arrow_rounded),
+      ('Twitch', '/cidentialive', Color(0xFF9146FF), Icons.chat_bubble_rounded),
+      (
+        'Instagram',
+        '@cidentia.live',
+        Color(0xFFEC4899),
+        Icons.camera_alt_rounded,
+      ),
+      ('Facebook', 'Cidentia.Live', Color(0xFF3B82F6), Icons.facebook_rounded),
+      ('TikTok', '@cidentia.live', Color(0xFF111827), Icons.music_note_rounded),
+      ('Custom RTMP', 'rtmp://custom', Color(0xFF334155), Icons.public_rounded),
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: _panelSoft,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: _line),
+      ),
+      child: Column(
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.wifi_tethering_rounded, size: 18),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Destinations',
+                  style: TextStyle(fontWeight: FontWeight.w900),
+                ),
+              ),
+              Text(
+                '6 / 6',
+                style: TextStyle(
+                  color: Color(0xFF4ADE80),
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          for (final item in items)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 9),
+              child: _StudioDestinationRow(
+                name: item.$1,
+                handle: item.$2,
+                color: item.$3,
+                icon: item.$4,
+              ),
+            ),
+          const SizedBox(height: 4),
+          OutlinedButton.icon(
+            onPressed: null,
+            icon: const Icon(Icons.add_rounded),
+            label: const Text('Add Destination'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StudioDestinationRow extends StatelessWidget {
+  const _StudioDestinationRow({
+    required this.name,
+    required this.handle,
+    required this.color,
+    required this.icon,
+  });
+
+  final String name;
+  final String handle;
+  final Color color;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.black26,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _line),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, size: 18),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name, style: const TextStyle(fontWeight: FontWeight.w900)),
+                Text(
+                  handle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: _textSoft, fontSize: 11),
+                ),
+              ],
+            ),
+          ),
+          const Text(
+            'LIVE',
+            style: TextStyle(
+              color: Color(0xFF4ADE80),
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(width: 8),
+          const Icon(Icons.toggle_on_rounded, color: Color(0xFF4ADE80)),
+        ],
+      ),
+    );
+  }
+}
+
+class _StudioStreamStatusPanelCard extends StatelessWidget {
+  const _StudioStreamStatusPanelCard();
+
+  @override
+  Widget build(BuildContext context) {
+    const stats = [
+      ('Video', '1080p60'),
+      ('Audio', '48 kHz'),
+      ('Bitrate', '6.2 Mbps'),
+      ('Dropped Frames', '0'),
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: _panelSoft,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: _line),
+      ),
+      child: Column(
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.speed_rounded, size: 18),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Stream Status',
+                  style: TextStyle(fontWeight: FontWeight.w900),
+                ),
+              ),
+              Text(
+                'Excellent',
+                style: TextStyle(
+                  color: Color(0xFF4ADE80),
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          for (final stat in stats)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 9),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      stat.$1,
+                      style: const TextStyle(color: _textSoft),
+                    ),
+                  ),
+                  Text(
+                    stat.$2,
+                    style: const TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                  const SizedBox(width: 8),
+                  const CircleAvatar(
+                    radius: 4,
+                    backgroundColor: Color(0xFF4ADE80),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 }
