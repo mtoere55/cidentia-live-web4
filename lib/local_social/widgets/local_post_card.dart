@@ -7,13 +7,44 @@ const _cardSoft = Color(0xFF181A20);
 const _line = Color(0xFF262A33);
 const _textSoft = Color(0xFFA1A1AA);
 
-class OriginalInspiredPostCard extends StatelessWidget {
+class OriginalInspiredPostCard extends StatefulWidget {
   const OriginalInspiredPostCard({required this.post, super.key});
 
   final LocalPost post;
 
   @override
+  State<OriginalInspiredPostCard> createState() =>
+      _OriginalInspiredPostCardState();
+}
+
+class _OriginalInspiredPostCardState extends State<OriginalInspiredPostCard> {
+  bool isFollowing = false;
+  bool isLiked = false;
+  bool isSaved = false;
+
+  void _toggleFollow() {
+    setState(() => isFollowing = !isFollowing);
+    _showLocalActionSnack(
+      context,
+      isFollowing ? 'Following ${widget.post.author}' : 'Unfollowed preview',
+    );
+  }
+
+  void _toggleLike() {
+    setState(() => isLiked = !isLiked);
+  }
+
+  void _toggleSave() {
+    setState(() => isSaved = !isSaved);
+    _showLocalActionSnack(
+      context,
+      isSaved ? 'Saved to local preview' : 'Removed from saved preview',
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final post = widget.post;
     final firstLetter = post.author.isEmpty
         ? '?'
         : post.author.characters.first;
@@ -36,10 +67,24 @@ class OriginalInspiredPostCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _PostHeader(post: post, firstLetter: firstLetter),
+          _PostHeader(
+            post: post,
+            firstLetter: firstLetter,
+            isFollowing: isFollowing,
+            onToggleFollow: _toggleFollow,
+            onMoreOptions: () => _showPostOptionsSheet(context, post),
+          ),
           _PostMedia(post: post),
-          _PostActions(post: post),
-          _PostCaption(post: post),
+          _PostActions(
+            post: post,
+            isLiked: isLiked,
+            isSaved: isSaved,
+            onToggleLike: _toggleLike,
+            onComment: () => _showCommentsSheet(context, post),
+            onShare: () => _showShareSheet(context, post),
+            onToggleSave: _toggleSave,
+          ),
+          _PostCaption(post: post, isLiked: isLiked),
         ],
       ),
     );
@@ -47,10 +92,19 @@ class OriginalInspiredPostCard extends StatelessWidget {
 }
 
 class _PostHeader extends StatelessWidget {
-  const _PostHeader({required this.post, required this.firstLetter});
+  const _PostHeader({
+    required this.post,
+    required this.firstLetter,
+    required this.isFollowing,
+    required this.onToggleFollow,
+    required this.onMoreOptions,
+  });
 
   final LocalPost post;
   final String firstLetter;
+  final bool isFollowing;
+  final VoidCallback onToggleFollow;
+  final VoidCallback onMoreOptions;
 
   @override
   Widget build(BuildContext context) {
@@ -96,23 +150,34 @@ class _PostHeader extends StatelessWidget {
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(99),
-            ),
-            child: const Text(
-              'Follow',
-              style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.w900,
-                fontSize: 12,
+          GestureDetector(
+            onTap: onToggleFollow,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: isFollowing ? _cardSoft : Colors.white,
+                borderRadius: BorderRadius.circular(99),
+                border: Border.all(
+                  color: isFollowing ? const Color(0xFF22C55E) : Colors.white,
+                ),
+              ),
+              child: Text(
+                isFollowing ? 'Following' : 'Follow',
+                style: TextStyle(
+                  color: isFollowing ? const Color(0xFF86EFAC) : Colors.black,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 12,
+                ),
               ),
             ),
           ),
           const SizedBox(width: 8),
-          const Icon(Icons.more_horiz_rounded, color: Colors.white70),
+          IconButton(
+            onPressed: onMoreOptions,
+            icon: const Icon(Icons.more_horiz_rounded, color: Colors.white70),
+            tooltip: 'Post options',
+          ),
         ],
       ),
     );
@@ -194,17 +259,45 @@ class _PostMedia extends StatelessWidget {
 }
 
 class _PostActions extends StatelessWidget {
-  const _PostActions({required this.post});
+  const _PostActions({
+    required this.post,
+    required this.isLiked,
+    required this.isSaved,
+    required this.onToggleLike,
+    required this.onComment,
+    required this.onShare,
+    required this.onToggleSave,
+  });
 
   final LocalPost post;
+  final bool isLiked;
+  final bool isSaved;
+  final VoidCallback onToggleLike;
+  final VoidCallback onComment;
+  final VoidCallback onShare;
+  final VoidCallback onToggleSave;
 
   @override
   Widget build(BuildContext context) {
     final actions = <Widget>[
-      _ActionButton(icon: Icons.favorite_border_rounded, label: post.likes),
-      _ActionButton(icon: Icons.mode_comment_outlined, label: post.comments),
-      const _ActionButton(icon: Icons.send_outlined, label: 'Share'),
-      const _ActionButton(icon: Icons.bookmark_border_rounded, label: 'Save'),
+      _ActionButton(
+        icon: isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+        label: isLiked ? 'Liked' : post.likes,
+        active: isLiked,
+        onTap: onToggleLike,
+      ),
+      _ActionButton(
+        icon: Icons.mode_comment_outlined,
+        label: post.comments,
+        onTap: onComment,
+      ),
+      _ActionButton(icon: Icons.send_outlined, label: 'Share', onTap: onShare),
+      _ActionButton(
+        icon: isSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+        label: isSaved ? 'Saved' : 'Save',
+        active: isSaved,
+        onTap: onToggleSave,
+      ),
     ];
 
     return Padding(
@@ -238,21 +331,23 @@ class _PostActions extends StatelessWidget {
 }
 
 class _PostCaption extends StatelessWidget {
-  const _PostCaption({required this.post});
+  const _PostCaption({required this.post, required this.isLiked});
 
   final LocalPost post;
+  final bool isLiked;
 
   @override
   Widget build(BuildContext context) {
+    final likeText = isLiked
+        ? 'You and ${post.likes} others liked this'
+        : '${post.likes} likes';
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '${post.likes} likes',
-            style: const TextStyle(fontWeight: FontWeight.w900),
-          ),
+          Text(likeText, style: const TextStyle(fontWeight: FontWeight.w900)),
           const SizedBox(height: 8),
           RichText(
             text: TextSpan(
@@ -277,30 +372,353 @@ class _PostCaption extends StatelessWidget {
   }
 }
 
-class _ActionButton extends StatelessWidget {
-  const _ActionButton({required this.icon, required this.label});
+void _showLocalActionSnack(BuildContext context, String message) {
+  ScaffoldMessenger.of(context)
+    ..clearSnackBars()
+    ..showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(milliseconds: 1200),
+      ),
+    );
+}
 
-  final IconData icon;
-  final String label;
+void _showPostOptionsSheet(BuildContext context, LocalPost post) {
+  showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: Colors.transparent,
+    useSafeArea: true,
+    builder: (context) {
+      return _LocalPreviewSheet(
+        title: 'Post options',
+        subtitle: '${post.author} - local preview only',
+        children: [
+          _LocalSheetAction(
+            icon: Icons.visibility_rounded,
+            title: 'View post details',
+            subtitle: 'Open a local detail preview later.',
+            onTap: () {
+              Navigator.of(context).pop();
+              _showLocalActionSnack(context, 'Post detail preview');
+            },
+          ),
+          _LocalSheetAction(
+            icon: Icons.person_add_alt_1_rounded,
+            title: 'Creator actions',
+            subtitle: 'Follow, mute, report and proof actions later.',
+            onTap: () {
+              Navigator.of(context).pop();
+              _showLocalActionSnack(context, 'Creator options preview');
+            },
+          ),
+          _LocalSheetAction(
+            icon: Icons.info_outline_rounded,
+            title: 'CID proof note',
+            subtitle: 'Real CID verification will be connected later.',
+            onTap: () => Navigator.of(context).pop(),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+void _showCommentsSheet(BuildContext context, LocalPost post) {
+  showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: Colors.transparent,
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (context) {
+      return _LocalPreviewSheet(
+        title: 'Comments',
+        subtitle: '${post.comments} comments - local preview',
+        children: [
+          const _PreviewComment(
+            name: 'Selin',
+            text: 'This Web4 creator flow feels clean.',
+          ),
+          const _PreviewComment(
+            name: 'Alex',
+            text: 'The CID proof layer can become powerful.',
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: _cardSoft,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: _line),
+            ),
+            child: const Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Add a local preview comment...',
+                    style: TextStyle(color: _textSoft),
+                  ),
+                ),
+                Icon(Icons.send_rounded, size: 18),
+              ],
+            ),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+void _showShareSheet(BuildContext context, LocalPost post) {
+  showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: Colors.transparent,
+    useSafeArea: true,
+    builder: (context) {
+      return _LocalPreviewSheet(
+        title: 'Share',
+        subtitle: 'Local share paths for ${post.author}',
+        children: [
+          _LocalSheetAction(
+            icon: Icons.link_rounded,
+            title: 'Copy local link',
+            subtitle: 'Preview only. No backend link is created.',
+            onTap: () {
+              Navigator.of(context).pop();
+              _showLocalActionSnack(context, 'Local link copied preview');
+            },
+          ),
+          _LocalSheetAction(
+            icon: Icons.send_outlined,
+            title: 'Send to chat',
+            subtitle: 'Chat share path will be connected later.',
+            onTap: () {
+              Navigator.of(context).pop();
+              _showLocalActionSnack(context, 'Chat share preview');
+            },
+          ),
+          _LocalSheetAction(
+            icon: Icons.qr_code_2_rounded,
+            title: 'CID share proof',
+            subtitle: 'Proof-backed share is planned for later.',
+            onTap: () => Navigator.of(context).pop(),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+class _LocalPreviewSheet extends StatelessWidget {
+  const _LocalPreviewSheet({
+    required this.title,
+    required this.subtitle,
+    required this.children,
+  });
+
+  final String title;
+  final String subtitle;
+  final List<Widget> children;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
+      margin: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: _cardSoft,
-        borderRadius: BorderRadius.circular(99),
+        color: _cardBg,
+        borderRadius: BorderRadius.circular(28),
         border: Border.all(color: _line),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 19),
-          const SizedBox(width: 7),
-          Text(
-            label,
-            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x77000000),
+            blurRadius: 28,
+            offset: Offset(0, 16),
           ),
         ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.close_rounded),
+                ),
+              ],
+            ),
+            Text(subtitle, style: const TextStyle(color: _textSoft)),
+            const SizedBox(height: 16),
+            ...children,
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LocalSheetAction extends StatelessWidget {
+  const _LocalSheetAction({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: _cardSoft,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: _line),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, color: const Color(0xFFA78BFA)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(color: _textSoft, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PreviewComment extends StatelessWidget {
+  const _PreviewComment({required this.name, required this.text});
+
+  final String name;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CircleAvatar(
+            radius: 15,
+            backgroundColor: const Color(0xFF27272A),
+            child: Text(
+              name.characters.first,
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: _cardSoft,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: _line),
+              ),
+              child: RichText(
+                text: TextSpan(
+                  style: const TextStyle(color: Colors.white, height: 1.3),
+                  children: [
+                    TextSpan(
+                      text: '$name ',
+                      style: const TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                    TextSpan(text: text),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  const _ActionButton({
+    required this.icon,
+    required this.label,
+    this.active = false,
+    this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool active;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(99),
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
+        decoration: BoxDecoration(
+          color: active ? const Color(0x3322C55E) : _cardSoft,
+          borderRadius: BorderRadius.circular(99),
+          border: Border.all(color: active ? const Color(0xFF22C55E) : _line),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 19,
+              color: active ? const Color(0xFF86EFAC) : Colors.white,
+            ),
+            const SizedBox(width: 7),
+            Text(
+              label,
+              style: TextStyle(
+                color: active ? const Color(0xFFBBF7D0) : Colors.white,
+                fontWeight: FontWeight.w800,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
