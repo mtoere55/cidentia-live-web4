@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'auth/cidentia_auth_gate_contract.dart';
 import 'auth/cidentia_protected_action_dialog.dart';
+import 'auth/cidentia_session_scope.dart';
 
 import 'local_social_data.dart';
 import 'local_social_modules.dart';
@@ -166,7 +167,10 @@ class _LocalShellState extends State<LocalShell> {
   }
 
   void _selectSection(LocalSection section) {
-    if (_requiresCidForSection(section)) {
+    final session = CidentiaSessionScope.maybeOf(context);
+    final hasVerifiedCid = session?.hasVerifiedCid ?? false;
+
+    if (_requiresCidForSection(section) && !hasVerifiedCid) {
       CidentiaProtectedActionDialog.show(
         context,
         action: _protectedActionForSection(section),
@@ -236,6 +240,22 @@ class _LocalShellState extends State<LocalShell> {
                   ),
                 ),
                 Expanded(child: page),
+                if (selected == LocalSection.liveStudio)
+                  Container(
+                    width: 380,
+                    decoration: const BoxDecoration(
+                      color: _panel,
+                      border: Border(left: BorderSide(color: _line)),
+                    ),
+                    child: SafeArea(
+                      child: LiveStudioRightPanel(
+                        mode: studioPanelMode,
+                        onModeChanged: (mode) {
+                          setState(() => studioPanelMode = mode);
+                        },
+                      ),
+                    ),
+                  ),
               ],
             ),
           );
@@ -292,27 +312,34 @@ class _SideNavTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final foreground = selected ? Colors.white : _textSoft;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
       child: InkWell(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
         onTap: onTap,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 160),
+          duration: const Duration(milliseconds: 180),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: selected ? Colors.white10 : Colors.transparent,
-            borderRadius: BorderRadius.circular(18),
+            color: selected ? Colors.white.withValues(alpha: 0.12) : null,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: selected ? Colors.white.withValues(alpha: 0.08) : _line,
+            ),
           ),
           child: Row(
             children: [
-              Icon(section.icon, size: 25),
+              Icon(section.icon, color: foreground),
               const SizedBox(width: 14),
-              Text(
-                section.label,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: selected ? FontWeight.w800 : FontWeight.w500,
+              Expanded(
+                child: Text(
+                  section.label,
+                  style: TextStyle(
+                    color: foreground,
+                    fontWeight: selected ? FontWeight.w900 : FontWeight.w700,
+                  ),
                 ),
               ),
             ],
