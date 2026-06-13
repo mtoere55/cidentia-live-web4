@@ -200,31 +200,38 @@ class _PostActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final actions = <Widget>[
+      _ActionButton(icon: Icons.favorite_border_rounded, label: post.likes),
+      _ActionButton(icon: Icons.mode_comment_outlined, label: post.comments),
+      const _ActionButton(icon: Icons.send_outlined, label: 'Share'),
+      const _ActionButton(icon: Icons.bookmark_border_rounded, label: 'Save'),
+    ];
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 6),
-      child: Column(
-        children: [
-          Row(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth < 360) {
+            return Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.spaceBetween,
+              children: actions,
+            );
+          }
+
+          return Row(
             children: [
-              _ActionButton(
-                icon: Icons.favorite_border_rounded,
-                label: post.likes,
-              ),
+              actions[0],
               const SizedBox(width: 8),
-              _ActionButton(
-                icon: Icons.mode_comment_outlined,
-                label: post.comments,
-              ),
+              actions[1],
               const SizedBox(width: 8),
-              const _ActionButton(icon: Icons.send_outlined, label: 'Share'),
+              actions[2],
               const Spacer(),
-              const _ActionButton(
-                icon: Icons.bookmark_border_rounded,
-                label: 'Save',
-              ),
+              actions[3],
             ],
-          ),
-        ],
+          );
+        },
       ),
     );
   }
