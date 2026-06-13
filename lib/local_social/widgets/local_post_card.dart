@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'package:flutter_instagram_offline_first_clone/local_social/auth/cidentia_auth_gate_contract.dart';
+import 'package:flutter_instagram_offline_first_clone/local_social/auth/cidentia_protected_action_dialog.dart';
+
 import '../local_social_data.dart';
 
 const _cardBg = Color(0xFF101114);
@@ -201,10 +204,38 @@ class _PostActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final actions = <Widget>[
-      _ActionButton(icon: Icons.favorite_border_rounded, label: post.likes),
-      _ActionButton(icon: Icons.mode_comment_outlined, label: post.comments),
-      const _ActionButton(icon: Icons.send_outlined, label: 'Share'),
-      const _ActionButton(icon: Icons.bookmark_border_rounded, label: 'Save'),
+      _ActionButton(
+        icon: Icons.favorite_border_rounded,
+        label: post.likes,
+        onTap: () => CidentiaProtectedActionDialog.show(
+          context,
+          action: CidentiaProtectedAction.likePost,
+        ),
+      ),
+      _ActionButton(
+        icon: Icons.mode_comment_outlined,
+        label: post.comments,
+        onTap: () => CidentiaProtectedActionDialog.show(
+          context,
+          action: CidentiaProtectedAction.commentPost,
+        ),
+      ),
+      _ActionButton(
+        icon: Icons.send_outlined,
+        label: 'Share',
+        onTap: () => CidentiaProtectedActionDialog.show(
+          context,
+          action: CidentiaProtectedAction.sharePost,
+        ),
+      ),
+      _ActionButton(
+        icon: Icons.bookmark_border_rounded,
+        label: 'Save',
+        onTap: () => CidentiaProtectedActionDialog.show(
+          context,
+          action: CidentiaProtectedAction.savePost,
+        ),
+      ),
     ];
 
     return Padding(
@@ -278,29 +309,45 @@ class _PostCaption extends StatelessWidget {
 }
 
 class _ActionButton extends StatelessWidget {
-  const _ActionButton({required this.icon, required this.label});
+  const _ActionButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
 
   final IconData icon;
   final String label;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
-      decoration: BoxDecoration(
-        color: _cardSoft,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
         borderRadius: BorderRadius.circular(99),
-        border: Border.all(color: _line),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 19),
-          const SizedBox(width: 7),
-          Text(
-            label,
-            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
+          decoration: BoxDecoration(
+            color: _cardSoft,
+            borderRadius: BorderRadius.circular(99),
+            border: Border.all(color: _line),
           ),
-        ],
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 19),
+              const SizedBox(width: 7),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

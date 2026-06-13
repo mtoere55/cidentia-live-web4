@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'auth/cidentia_auth_gate_contract.dart';
+import 'auth/cidentia_protected_action_dialog.dart';
+
 import 'local_social_data.dart';
 import 'local_social_modules.dart';
 import 'widgets/local_post_card.dart';
@@ -142,6 +145,38 @@ class _LocalShellState extends State<LocalShell> {
   LocalSection selected = LocalSection.feed;
   StudioPanelMode studioPanelMode = StudioPanelMode.chat;
 
+  bool _requiresCidForSection(LocalSection section) {
+    return switch (section) {
+      LocalSection.feed || LocalSection.search || LocalSection.reels => false,
+      LocalSection.chats ||
+      LocalSection.liveStudio ||
+      LocalSection.profile => true,
+    };
+  }
+
+  CidentiaProtectedAction _protectedActionForSection(LocalSection section) {
+    return switch (section) {
+      LocalSection.chats => CidentiaProtectedAction.sendMessage,
+      LocalSection.liveStudio => CidentiaProtectedAction.startLive,
+      LocalSection.profile => CidentiaProtectedAction.editProfile,
+      LocalSection.feed ||
+      LocalSection.search ||
+      LocalSection.reels => CidentiaProtectedAction.likePost,
+    };
+  }
+
+  void _selectSection(LocalSection section) {
+    if (_requiresCidForSection(section)) {
+      CidentiaProtectedActionDialog.show(
+        context,
+        action: _protectedActionForSection(section),
+      );
+      return;
+    }
+
+    setState(() => selected = section);
+  }
+
   Widget get page {
     switch (selected) {
       case LocalSection.feed:
@@ -166,10 +201,6 @@ class _LocalShellState extends State<LocalShell> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isDesktop = constraints.maxWidth >= 900;
-        final liveStudioFocus =
-            selected == LocalSection.liveStudio &&
-            studioPanelMode == StudioPanelMode.focus;
-
         if (isDesktop) {
           return Scaffold(
             body: Row(
@@ -193,7 +224,7 @@ class _LocalShellState extends State<LocalShell> {
                           _SideNavTile(
                             section: section,
                             selected: selected == section,
-                            onTap: () => setState(() => selected = section),
+                            onTap: () => _selectSection(section),
                           ),
                         const Spacer(),
                         const Padding(
@@ -205,38 +236,6 @@ class _LocalShellState extends State<LocalShell> {
                   ),
                 ),
                 Expanded(child: page),
-                if (liveStudioFocus)
-                  Container(
-                    width: 84,
-                    decoration: const BoxDecoration(
-                      color: _panel,
-                      border: Border(left: BorderSide(color: _line)),
-                    ),
-                    child: SafeArea(
-                      child: _LiveStudioFocusRail(
-                        onExitFocus: () => setState(
-                          () => studioPanelMode = StudioPanelMode.chat,
-                        ),
-                      ),
-                    ),
-                  )
-                else
-                  Container(
-                    width: 320,
-                    decoration: const BoxDecoration(
-                      color: _panel,
-                      border: Border(left: BorderSide(color: _line)),
-                    ),
-                    child: SafeArea(
-                      child: selected == LocalSection.liveStudio
-                          ? LiveStudioRightPanel(
-                              mode: studioPanelMode,
-                              onModeChanged: (mode) =>
-                                  setState(() => studioPanelMode = mode),
-                            )
-                          : const RightPreviewPanel(),
-                    ),
-                  ),
               ],
             ),
           );
@@ -263,7 +262,7 @@ class _LocalShellState extends State<LocalShell> {
             indicatorColor: Colors.white10,
             selectedIndex: selected.index,
             onDestinationSelected: (index) {
-              setState(() => selected = LocalSection.values[index]);
+              _selectSection(LocalSection.values[index]);
             },
             destinations: [
               for (final section in LocalSection.values)
@@ -936,30 +935,6 @@ class _MetricPill extends StatelessWidget {
   }
 }
 
-class _InfoTile extends StatelessWidget {
-  const _InfoTile({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
-        leading: Icon(icon),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
-        subtitle: Text(subtitle),
-      ),
-    );
-  }
-}
-
 class _GridGlowPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
@@ -1263,45 +1238,6 @@ class _StudioFocusPanelCard extends StatelessWidget {
             'The right panel becomes a narrow focus rail so the studio stage can grow.',
             style: TextStyle(color: _textSoft, height: 1.35),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _LiveStudioFocusRail extends StatelessWidget {
-  const _LiveStudioFocusRail({required this.onExitFocus});
-
-  final VoidCallback onExitFocus;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 18, 10, 18),
-      child: Column(
-        children: [
-          IconButton(
-            tooltip: 'Exit Focus',
-            onPressed: onExitFocus,
-            icon: const Icon(Icons.keyboard_double_arrow_left_rounded),
-          ),
-          const SizedBox(height: 16),
-          const RotatedBox(
-            quarterTurns: 3,
-            child: Text(
-              'Stage Focus',
-              maxLines: 1,
-              style: TextStyle(
-                color: _textSoft,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 0.6,
-              ),
-            ),
-          ),
-          const Spacer(),
-          const Icon(Icons.center_focus_strong_rounded, color: Colors.white),
-          const SizedBox(height: 10),
-          const CircleAvatar(radius: 4, backgroundColor: Color(0xFF4ADE80)),
         ],
       ),
     );
