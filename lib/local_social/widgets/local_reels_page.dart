@@ -16,38 +16,45 @@ class OriginalInspiredReelsPage extends StatefulWidget {
 }
 
 class _OriginalInspiredReelsPageState extends State<OriginalInspiredReelsPage> {
-  final PageController _controller = PageController();
+  static const int _reelCount = 6;
+
+  final ScrollController _controller = ScrollController();
   int _index = 0;
-  bool _wheelLocked = false;
 
   void _go(int direction) {
     if (!_controller.hasClients) return;
 
-    final next = (_index + direction).clamp(0, 5).toInt();
+    final next = (_index + direction).clamp(0, _reelCount - 1).toInt();
     if (next == _index) return;
 
-    _controller.animateToPage(
-      next,
+    final viewport = _controller.position.viewportDimension;
+    final target = next * viewport;
+
+    _controller.animateTo(
+      target.clamp(
+        _controller.position.minScrollExtent,
+        _controller.position.maxScrollExtent,
+      ),
       duration: const Duration(milliseconds: 360),
       curve: Curves.easeOutCubic,
     );
   }
 
-  void _onPointerSignal(PointerSignalEvent event) {
-    if (event is! PointerScrollEvent) return;
-    if (_wheelLocked) return;
+  bool _onScrollNotification(ScrollNotification notification) {
+    final metrics = notification.metrics;
+    if (metrics.axis != Axis.vertical) return false;
+    if (metrics.viewportDimension <= 0) return false;
 
-    final dy = event.scrollDelta.dy;
-    if (dy.abs() < 8) return;
+    final next = (metrics.pixels / metrics.viewportDimension)
+        .round()
+        .clamp(0, _reelCount - 1)
+        .toInt();
 
-    _wheelLocked = true;
-    _go(dy > 0 ? 1 : -1);
+    if (next != _index) {
+      setState(() => _index = next);
+    }
 
-    Future<void>.delayed(const Duration(milliseconds: 430), () {
-      if (mounted) {
-        _wheelLocked = false;
-      }
-    });
+    return false;
   }
 
   KeyEventResult _onKeyEvent(FocusNode node, KeyEvent event) {
@@ -81,46 +88,46 @@ class _OriginalInspiredReelsPageState extends State<OriginalInspiredReelsPage> {
     return Focus(
       autofocus: true,
       onKeyEvent: _onKeyEvent,
-      child: Listener(
-        behavior: HitTestBehavior.opaque,
-        onPointerSignal: _onPointerSignal,
-        child: Stack(
-          children: [
-            ScrollConfiguration(
-              behavior: const _ReelsScrollBehavior(),
-              child: PageView.builder(
+      child: Stack(
+        children: [
+          ScrollConfiguration(
+            behavior: const _ReelsScrollBehavior(),
+            child: NotificationListener<ScrollNotification>(
+              onNotification: _onScrollNotification,
+              child: CustomScrollView(
                 controller: _controller,
-                scrollDirection: Axis.vertical,
-                physics: const PageScrollPhysics(),
-                itemCount: 6,
-                onPageChanged: (value) => setState(() => _index = value),
-                itemBuilder: (context, index) {
-                  final post = localPosts[index % localPosts.length];
-                  return _ReelSlide(post: post, index: index);
-                },
-              ),
-            ),
-            Positioned(right: 18, top: 24, child: _ReelCounter(index: _index)),
-            Positioned(
-              right: 18,
-              top: 92,
-              child: Column(
-                children: [
-                  _RoundControl(
-                    icon: Icons.keyboard_arrow_up_rounded,
-                    onTap: () => _go(-1),
-                  ),
-                  const SizedBox(height: 10),
-                  _RoundControl(
-                    icon: Icons.keyboard_arrow_down_rounded,
-                    onTap: () => _go(1),
+                physics: const ClampingScrollPhysics(),
+                slivers: [
+                  SliverFillViewport(
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      final post = localPosts[index % localPosts.length];
+                      return _ReelSlide(post: post, index: index);
+                    }, childCount: _reelCount),
                   ),
                 ],
               ),
             ),
-            const Positioned(left: 22, top: 24, child: _ReelsTitle()),
-          ],
-        ),
+          ),
+          Positioned(right: 18, top: 24, child: _ReelCounter(index: _index)),
+          Positioned(
+            right: 18,
+            top: 92,
+            child: Column(
+              children: [
+                _RoundControl(
+                  icon: Icons.keyboard_arrow_up_rounded,
+                  onTap: () => _go(-1),
+                ),
+                const SizedBox(height: 10),
+                _RoundControl(
+                  icon: Icons.keyboard_arrow_down_rounded,
+                  onTap: () => _go(1),
+                ),
+              ],
+            ),
+          ),
+          const Positioned(left: 22, top: 24, child: _ReelsTitle()),
+        ],
       ),
     );
   }
