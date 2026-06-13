@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 import 'local_social_data.dart';
 import 'local_social_modules.dart';
@@ -6,6 +6,7 @@ import 'widgets/local_post_card.dart';
 import 'widgets/local_profile_grid.dart';
 import 'widgets/local_stories_bar.dart';
 import 'widgets/cidentia_brand_header.dart';
+import 'widgets/cidentia_ecosystem_entry_page.dart';
 import 'widgets/local_chat_detail.dart';
 import 'widgets/local_reels_page.dart';
 import 'widgets/local_live_studio_page.dart';
@@ -44,7 +45,7 @@ class LocalSocialApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const LocalShell(),
+      home: const CidentiaEcosystemEntryHost(child: LocalShell()),
     );
   }
 }

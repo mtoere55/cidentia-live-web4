@@ -1,4 +1,4 @@
-name: flutter_instagram_offline_first_clone
+﻿name: flutter_instagram_offline_first_clone
 description: A complete offline-first Flutter Instagram clone with Supabase and PowerSync.
 version: 1.0.0+1
 publish_to: none
@@ -113,3 +113,6 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   generate: true
+  assets:
+    - assets/images/cidentia_ecosystem_entry.png
+
