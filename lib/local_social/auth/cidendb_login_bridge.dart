@@ -34,12 +34,11 @@ class CidenDbLoginBridge {
       );
     }
 
-    await Future<void>.delayed(const Duration(milliseconds: 350));
-
     return CidenDbOtpRequestResult(
-      ok: true,
+      ok: false,
       message:
-          'OTP request prepared for $clean. Real CidenDB send endpoint will be connected in the backend bridge.',
+          'CidenDB OTP send is reserved for the safe backend bridge. '
+          'No OTP is generated or sent by the Flutter client.',
     );
   }
 
@@ -66,24 +65,12 @@ class CidenDbLoginBridge {
       );
     }
 
-    await Future<void>.delayed(const Duration(milliseconds: 450));
-
-    final cid = cleanIdentifier.toUpperCase().startsWith('CID')
-        ? cleanIdentifier
-        : 'CID-PREVIEW-VERIFIED';
-
-    return CidenDbOtpVerifyResult(
-      ok: true,
-      session: CidentiaSessionState(
-        status: CidentiaSessionStatus.signedIn,
-        identifier: cleanIdentifier,
-        cid: cid,
-        displayName: 'Cidentia Preview User',
-        message:
-            'Verified CID session prepared locally. Real CidenDB verify endpoint will replace this bridge body.',
-      ),
+    return const CidenDbOtpVerifyResult(
+      ok: false,
+      session: CidentiaSessionState.signedOut(),
       message:
-          'Verified CID session prepared locally. Real CidenDB verify endpoint will replace this bridge body.',
+          'CidenDB OTP verify is reserved for the safe backend bridge. '
+          'Flutter does not create a fake verified CID session.',
     );
   }
 }
