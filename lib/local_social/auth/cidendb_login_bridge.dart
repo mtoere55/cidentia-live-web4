@@ -26,6 +26,10 @@ class CidenDbOtpVerifyResult {
 class CidenDbLoginBridge {
   const CidenDbLoginBridge();
 
+  // Default stays local and safe for desktop/dev runs.
+  // Production web builds may pass:
+  // --dart-define=CIDENTIA_CIDENDB_BRIDGE_ORIGIN=same-origin
+  // to use /api/cidendb/otp/* on the same backend host.
   static const _bridgeOrigin = String.fromEnvironment(
     'CIDENTIA_CIDENDB_BRIDGE_ORIGIN',
     defaultValue: 'http://127.0.0.1:8787',
@@ -45,7 +49,7 @@ class CidenDbLoginBridge {
 
     try {
       final response = await http.post(
-        Uri.parse('$_bridgeOrigin/api/cidendb/otp/send'),
+        _bridgeUri('/api/cidendb/otp/send'),
         headers: const {'content-type': 'application/json'},
         body: jsonEncode({'identifier': clean}),
       );
@@ -63,8 +67,7 @@ class CidenDbLoginBridge {
     } catch (_) {
       return const CidenDbOtpRequestResult(
         ok: false,
-        message:
-            'CidenDB bridge is not reachable. Start the secure local bridge and try again.',
+        message: 'CidenDB backend bridge is not reachable. Try again later.',
       );
     }
   }
@@ -94,7 +97,7 @@ class CidenDbLoginBridge {
 
     try {
       final response = await http.post(
-        Uri.parse('$_bridgeOrigin/api/cidendb/otp/verify'),
+        _bridgeUri('/api/cidendb/otp/verify'),
         headers: const {'content-type': 'application/json'},
         body: jsonEncode({'identifier': cleanIdentifier, 'otp': cleanOtp}),
       );
@@ -119,10 +122,24 @@ class CidenDbLoginBridge {
       return const CidenDbOtpVerifyResult(
         ok: false,
         session: CidentiaSessionState.signedOut(),
-        message:
-            'CidenDB bridge is not reachable. Start the secure local bridge and try again.',
+        message: 'CidenDB backend bridge is not reachable. Try again later.',
       );
     }
+  }
+
+  static Uri _bridgeUri(String path) {
+    final cleanPath = path.startsWith('/') ? path : '/$path';
+    final origin = _bridgeOrigin.trim();
+
+    if (origin == 'same-origin') {
+      return Uri.parse(cleanPath);
+    }
+
+    final normalizedOrigin = origin.endsWith('/')
+        ? origin.substring(0, origin.length - 1)
+        : origin;
+
+    return Uri.parse('$normalizedOrigin$cleanPath');
   }
 
   static Map<String, dynamic> _decode(String body) {
