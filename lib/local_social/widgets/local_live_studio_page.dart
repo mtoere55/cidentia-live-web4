@@ -259,14 +259,15 @@ class _DesktopStudioPreview extends StatelessWidget {
                 bottom: 22,
                 child: _SubtitleOverlay(),
               ),
-            Positioned(
-              right: showStageChatOverlay ? 392 : 18,
-              top: 78,
-              child: _SmallIconButton(
-                icon: Icons.fullscreen_rounded,
-                onTap: () {},
+            if (!showStageChatOverlay)
+              Positioned(
+                right: 18,
+                top: 78,
+                child: _SmallIconButton(
+                  icon: Icons.fullscreen_rounded,
+                  onTap: () {},
+                ),
               ),
-            ),
             Positioned(
               right: showStageChatOverlay ? 392 : 18,
               bottom: 118,
@@ -282,8 +283,16 @@ class _DesktopStudioPreview extends StatelessWidget {
   }
 }
 
-class _StageInsideChatOverlay extends StatelessWidget {
+class _StageInsideChatOverlay extends StatefulWidget {
   const _StageInsideChatOverlay();
+
+  @override
+  State<_StageInsideChatOverlay> createState() =>
+      _StageInsideChatOverlayState();
+}
+
+class _StageInsideChatOverlayState extends State<_StageInsideChatOverlay> {
+  bool minimized = false;
 
   @override
   Widget build(BuildContext context) {
@@ -297,6 +306,75 @@ class _StageInsideChatOverlay extends StatelessWidget {
       ('Leon', 'Glass chat is much cleaner.', '12:48'),
     ];
 
+    if (minimized) {
+      return Positioned(
+        right: 18,
+        top: 84,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(22),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+            child: Container(
+              width: 236,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: const Color(0x99101114),
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+                boxShadow: const [
+                  BoxShadow(
+                    blurRadius: 30,
+                    offset: Offset(0, 18),
+                    color: Color(0x66000000),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.chat_bubble_outline_rounded, size: 18),
+                  const SizedBox(width: 10),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Live Chat',
+                          style: TextStyle(fontWeight: FontWeight.w900),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          'Minimized',
+                          style: TextStyle(
+                            color: _textSoft,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Text(
+                    '1.2K',
+                    style: TextStyle(
+                      color: Color(0xFF4ADE80),
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  _StageChatOverlayButton(
+                    icon: Icons.open_in_full_rounded,
+                    tooltip: 'Expand chat',
+                    onTap: () => setState(() => minimized = false),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     return Positioned(
       right: 18,
       top: 84,
@@ -306,91 +384,139 @@ class _StageInsideChatOverlay extends StatelessWidget {
         borderRadius: BorderRadius.circular(28),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-          child: DecoratedBox(
+          child: Container(
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0x40101724),
+              color: const Color(0x88101114),
               borderRadius: BorderRadius.circular(28),
-              border: Border.all(color: Colors.white24),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
               boxShadow: const [
                 BoxShadow(
+                  blurRadius: 36,
+                  offset: Offset(0, 24),
                   color: Color(0x66000000),
-                  blurRadius: 26,
-                  offset: Offset(0, 14),
                 ),
               ],
             ),
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.chat_bubble_outline_rounded, size: 18),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        'Live Chat',
+                        style: TextStyle(fontWeight: FontWeight.w900),
+                      ),
+                    ),
+                    const Text(
+                      '1.2K',
+                      style: TextStyle(
+                        color: Color(0xFF4ADE80),
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    _StageChatOverlayButton(
+                      icon: Icons.close_fullscreen_rounded,
+                      tooltip: 'Minimize chat',
+                      onTap: () => setState(() => minimized = true),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Stage Focus keeps chat close to the video without shrinking the stage.',
+                  style: TextStyle(
+                    color: _textSoft,
+                    fontSize: 12,
+                    height: 1.35,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Expanded(
+                  child: ListView.separated(
+                    padding: EdgeInsets.zero,
+                    itemCount: messages.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 10),
+                    itemBuilder: (context, index) {
+                      final msg = messages[index];
+                      return _StageChatMessage(
+                        name: msg.$1,
+                        text: msg.$2,
+                        time: msg.$3,
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.06),
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.08),
+                    ),
+                  ),
+                  child: const Row(
                     children: [
-                      Icon(Icons.chat_bubble_outline_rounded, size: 18),
+                      Icon(Icons.lock_outline_rounded, size: 15),
                       SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Live Chat',
-                          style: TextStyle(fontWeight: FontWeight.w900),
-                        ),
-                      ),
-                      Text(
-                        '1.2K',
-                        style: TextStyle(
-                          color: Color(0xFF4ADE80),
-                          fontWeight: FontWeight.w900,
+                          'Preview only. Real live chat connects in a later backend milestone.',
+                          style: TextStyle(
+                            color: _textSoft,
+                            fontSize: 11,
+                            height: 1.25,
+                          ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Stage overlay. It stays inside the video frame.',
-                    style: TextStyle(color: _textSoft, fontSize: 12),
-                  ),
-                  const SizedBox(height: 14),
-                  Expanded(
-                    child: ListView.separated(
-                      padding: EdgeInsets.zero,
-                      itemCount: messages.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 10),
-                      itemBuilder: (context, index) {
-                        final msg = messages[index];
-                        return _StageChatMessage(
-                          name: msg.$1,
-                          text: msg.$2,
-                          time: msg.$3,
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0x33FFFFFF),
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: Colors.white12),
-                    ),
-                    child: const Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            'Type a message...',
-                            style: TextStyle(color: _textSoft, fontSize: 12),
-                          ),
-                        ),
-                        Icon(Icons.send_rounded, size: 17),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StageChatOverlayButton extends StatelessWidget {
+  const _StageChatOverlayButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onTap,
+        child: Container(
+          width: 30,
+          height: 30,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+          ),
+          child: Icon(icon, size: 16),
         ),
       ),
     );
