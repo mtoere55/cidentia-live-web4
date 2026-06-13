@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../auth/cidentia_auth_gate_contract.dart';
+import '../auth/cidentia_protected_action_dialog.dart';
 import '../local_social_data.dart';
 
 const _bg = Color(0xFF09090B);
