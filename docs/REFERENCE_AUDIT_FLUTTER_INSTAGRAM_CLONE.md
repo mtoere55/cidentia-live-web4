@@ -116,3 +116,43 @@ Upload/media picker planning, CID protected.
 
 M6:
 Offline-first/sync architecture review without adopting Supabase auth.
+
+8. Video / Reels / Post Video
+
+Reference paths:
+lib/feed/post/video/video.dart
+lib/feed/post/video/view/video_player.dart
+lib/feed/post/video/widgets/video_player_inherited_widget.dart
+lib/feed/post/widgets/post_video_player.dart
+lib/reels/reel/view/reel_view.dart
+lib/reels/reel/widgets/vertical_button.dart
+lib/reels/view/reels_view.dart
+lib/stories/widgets/story_avatar.dart
+
+Useful patterns:
+- Feed video post playback
+- Reels video playback
+- Play only when visible / pause when out of view
+- Shared sound state for video feed
+- Long-press pause behavior in Reels
+- Reels vertical action rail
+- Video progress indicator
+- Loading shimmer while video loads
+- Caption / author / participant overlay on video
+
+Do not copy directly:
+- PostBloc/AppBloc/UserRepository dependencies
+- Supabase or repository-bound media loading
+- instagram_blocks_ui-specific widgets without review
+- Upload/storage/backend logic
+
+Use later for:
+M5F - Recorded video post support.
+M5G - Reels video player polish.
+M5H - Public live replay/video playback.
+M6 - Video cache and offline playback planning.
+
+Important:
+This reference helps recorded video, Reels, story video, and playback UX.
+It does not provide the real Live Studio RTMP/WebRTC/HLS streaming engine.
+Live Studio remains a separate protected creator system.
