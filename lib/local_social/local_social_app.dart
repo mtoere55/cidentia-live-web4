@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import 'local_social_data.dart';
 import 'local_social_modules.dart';
@@ -1031,6 +1031,10 @@ class LiveStudioRightPanel extends StatelessWidget {
           duration: const Duration(milliseconds: 220),
           child: KeyedSubtree(key: ValueKey(mode), child: _activePanel()),
         ),
+        const SizedBox(height: 14),
+        const _StudioPreviewBoundaryCard(),
+        const SizedBox(height: 14),
+        const _StudioNextModulesCard(),
       ],
     );
   }
@@ -1046,6 +1050,136 @@ class LiveStudioRightPanel extends StatelessWidget {
       case StudioPanelMode.focus:
         return const _StudioFocusPanelCard();
     }
+  }
+}
+
+class _StudioPreviewBoundaryCard extends StatelessWidget {
+  const _StudioPreviewBoundaryCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: _panelSoft,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: _line),
+      ),
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.verified_user_outlined, size: 18),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Preview Safety',
+                  style: TextStyle(fontWeight: FontWeight.w900),
+                ),
+              ),
+              Text(
+                'LOCAL',
+                style: TextStyle(
+                  color: Color(0xFF4ADE80),
+                  fontWeight: FontWeight.w900,
+                  fontSize: 11,
+                  letterSpacing: 0.7,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 10),
+          Text(
+            'Studio UI is running as a local preview. Real live backend, wallet, CID and RTMP will open only in their own secured milestones.',
+            style: TextStyle(color: _textSoft, height: 1.35, fontSize: 12),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StudioNextModulesCard extends StatelessWidget {
+  const _StudioNextModulesCard();
+
+  @override
+  Widget build(BuildContext context) {
+    const modules = [
+      ('CID Proof', Icons.badge_outlined),
+      ('Wallet', Icons.account_balance_wallet_outlined),
+      ('RTMP / Multi', Icons.wifi_tethering_rounded),
+      ('TR EN DE', Icons.translate_rounded),
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: _panelSoft,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: _line),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.auto_awesome_rounded, size: 18),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Next Studio Modules',
+                  style: TextStyle(fontWeight: FontWeight.w900),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final item in modules)
+                _StudioModulePill(label: item.$1, icon: item.$2),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StudioModulePill extends StatelessWidget {
+  const _StudioModulePill({required this.label, required this.icon});
+
+  final String label;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFF101114),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: _line),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: _textSoft),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: const TextStyle(
+              color: _textSoft,
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
