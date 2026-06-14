@@ -648,18 +648,24 @@ class ChatsPreviewPage extends StatelessWidget {
         separatorBuilder: (_, __) => const Divider(color: _line),
         itemBuilder: (context, index) {
           final chat = localChats[index];
-          return ListTile(
-            leading: CircleAvatar(
-              backgroundColor:
-                  localPosts[index % localPosts.length].accent.first,
-              child: Text(chat.name.characters.first),
+          return Material(
+            color: Colors.transparent,
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundColor:
+                    localPosts[index % localPosts.length].accent.first,
+                child: Text(chat.name.characters.first),
+              ),
+              title: Text(
+                chat.name,
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
+              subtitle: Text(chat.message),
+              trailing: Text(
+                chat.time,
+                style: const TextStyle(color: _textSoft),
+              ),
             ),
-            title: Text(
-              chat.name,
-              style: const TextStyle(fontWeight: FontWeight.w800),
-            ),
-            subtitle: Text(chat.message),
-            trailing: Text(chat.time, style: const TextStyle(color: _textSoft)),
           );
         },
       ),
@@ -950,10 +956,16 @@ class _InfoTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
-        leading: Icon(icon),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
-        subtitle: Text(subtitle),
+      child: Material(
+        color: Colors.transparent,
+        child: ListTile(
+          leading: Icon(icon),
+          title: Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.w800),
+          ),
+          subtitle: Text(subtitle),
+        ),
       ),
     );
   }
