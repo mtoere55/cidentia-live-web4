@@ -108,7 +108,7 @@ class _ProfileHero extends StatelessWidget {
                 ),
                 SizedBox(height: 12),
                 Text(
-                  'Offline-first creator profile. Posts, reels, wallet, proof and trust layers will be connected step by step.',
+                  'Cidentia.Live local creator profile. Posts, Reels, wallet, proof and trust layers will be connected step by step.',
                   style: TextStyle(color: Colors.white, height: 1.35),
                 ),
                 SizedBox(height: 12),

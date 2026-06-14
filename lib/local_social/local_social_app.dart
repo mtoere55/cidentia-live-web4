@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 import 'local_social_data.dart';
 import 'local_social_modules.dart';
@@ -329,7 +329,7 @@ class _LocalStatusCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: _panelSoft,
         borderRadius: BorderRadius.circular(20),
@@ -338,11 +338,16 @@ class _LocalStatusCard extends StatelessWidget {
       child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Backend-free', style: TextStyle(fontWeight: FontWeight.w900)),
-          SizedBox(height: 8),
           Text(
-            'Firebase, Supabase ve PowerSync kapal\u{0131}. Bu ekran sadece sa\u{011F}lam local geli\u{015F}tirme yoludur.',
-            style: TextStyle(color: _textSoft, height: 1.35),
+            'Cidentia local preview',
+            style: TextStyle(fontWeight: FontWeight.w900),
+          ),
+          SizedBox(height: 6),
+          Text(
+            'Local preview only. Backend, CidenDB, wallet and RTMP stay closed.',
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(color: _textSoft, height: 1.2),
           ),
         ],
       ),
@@ -1448,13 +1453,13 @@ class _StudioDestinationsPanelCard extends StatelessWidget {
       ('YouTube', '@CidentiaLive', Color(0xFFFF0000), Icons.play_arrow_rounded),
       ('Twitch', '/cidentialive', Color(0xFF9146FF), Icons.chat_bubble_rounded),
       (
-        'Instagram',
-        '@cidentia.live',
+        'Cidentia.Live',
+        'web4/live',
         Color(0xFFEC4899),
         Icons.camera_alt_rounded,
       ),
       ('Facebook', 'Cidentia.Live', Color(0xFF3B82F6), Icons.facebook_rounded),
-      ('TikTok', '@cidentia.live', Color(0xFF111827), Icons.music_note_rounded),
+      ('TikTok', 'web4/live', Color(0xFF111827), Icons.music_note_rounded),
       ('Custom RTMP', 'rtmp://custom', Color(0xFF334155), Icons.public_rounded),
     ];
 
