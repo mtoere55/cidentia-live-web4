@@ -228,38 +228,37 @@ class _LocalShellState extends State<LocalShell> {
                   ),
                 ),
                 Expanded(child: page),
-                if (liveStudioFocus)
-                  Container(
-                    width: 84,
-                    decoration: const BoxDecoration(
-                      color: _panel,
-                      border: Border(left: BorderSide(color: _line)),
-                    ),
-                    child: SafeArea(
-                      child: _LiveStudioFocusRail(
-                        onExitFocus: () => setState(
-                          () => studioPanelMode = StudioPanelMode.chat,
+                if (selected == LocalSection.liveStudio)
+                  if (liveStudioFocus)
+                    Container(
+                      width: 84,
+                      decoration: const BoxDecoration(
+                        color: _panel,
+                        border: Border(left: BorderSide(color: _line)),
+                      ),
+                      child: SafeArea(
+                        child: _LiveStudioFocusRail(
+                          onExitFocus: () => setState(
+                            () => studioPanelMode = StudioPanelMode.chat,
+                          ),
+                        ),
+                      ),
+                    )
+                  else
+                    Container(
+                      width: 320,
+                      decoration: const BoxDecoration(
+                        color: _panel,
+                        border: Border(left: BorderSide(color: _line)),
+                      ),
+                      child: SafeArea(
+                        child: LiveStudioRightPanel(
+                          mode: studioPanelMode,
+                          onModeChanged: (mode) =>
+                              setState(() => studioPanelMode = mode),
                         ),
                       ),
                     ),
-                  )
-                else
-                  Container(
-                    width: 320,
-                    decoration: const BoxDecoration(
-                      color: _panel,
-                      border: Border(left: BorderSide(color: _line)),
-                    ),
-                    child: SafeArea(
-                      child: selected == LocalSection.liveStudio
-                          ? LiveStudioRightPanel(
-                              mode: studioPanelMode,
-                              onModeChanged: (mode) =>
-                                  setState(() => studioPanelMode = mode),
-                            )
-                          : const RightPreviewPanel(),
-                    ),
-                  ),
               ],
             ),
           );
