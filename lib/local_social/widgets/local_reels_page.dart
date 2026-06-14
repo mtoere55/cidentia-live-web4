@@ -264,6 +264,7 @@ class _ReelSlideState extends State<_ReelSlide> {
   @override
   Widget build(BuildContext context) {
     final post = widget.post;
+    final isLivePreview = widget.index % 3 == 0;
     return Center(
       child: Container(
         constraints: const BoxConstraints(maxWidth: 560),
@@ -344,6 +345,13 @@ class _ReelSlideState extends State<_ReelSlide> {
               bottom: 20,
               child: Column(
                 children: [
+                  if (isLivePreview) ...[
+                    _LiveCreatorBubble(
+                      post: post,
+                      onTap: () => _showLiveWatchPreviewSheet(context, post),
+                    ),
+                    const SizedBox(height: 18),
+                  ],
                   _ReelAction(
                     icon: isLiked
                         ? Icons.favorite_rounded
@@ -371,6 +379,113 @@ class _ReelSlideState extends State<_ReelSlide> {
                     onTap: _toggleSave,
                   ),
                 ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LiveCreatorBubble extends StatefulWidget {
+  const _LiveCreatorBubble({required this.post, required this.onTap});
+
+  final LocalPost post;
+  final VoidCallback onTap;
+
+  @override
+  State<_LiveCreatorBubble> createState() => _LiveCreatorBubbleState();
+}
+
+class _LiveCreatorBubbleState extends State<_LiveCreatorBubble>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _pulse;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 780),
+    )..repeat(reverse: true);
+
+    _pulse = Tween<double>(
+      begin: 0.55,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final initial = widget.post.author.isEmpty
+        ? '?'
+        : widget.post.author.characters.first;
+
+    return GestureDetector(
+      onTap: widget.onTap,
+      child: FadeTransition(
+        opacity: _pulse,
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(colors: widget.post.accent),
+                border: Border.all(color: Colors.white, width: 2),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x66000000),
+                    blurRadius: 14,
+                    offset: Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: CircleAvatar(
+                backgroundColor: const Color(0xFF111216),
+                child: Text(
+                  initial,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: -9,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFF1744),
+                  borderRadius: BorderRadius.circular(99),
+                  border: Border.all(color: Colors.white, width: 1.3),
+                ),
+                child: const Text(
+                  'LIVE',
+                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900),
+                ),
+              ),
+            ),
+            const Positioned(
+              bottom: -8,
+              child: CircleAvatar(
+                radius: 12,
+                backgroundColor: Color(0xFFFF2D55),
+                child: Icon(Icons.add_rounded, size: 17, color: Colors.white),
               ),
             ),
           ],
@@ -509,6 +624,109 @@ void _showReelShareSheet(BuildContext context, LocalPost post) {
             title: 'CID proof share',
             subtitle: 'Proof-backed reel sharing is planned later.',
             onTap: () => Navigator.of(context).pop(),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+void _showLiveWatchPreviewSheet(BuildContext context, LocalPost post) {
+  showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: Colors.transparent,
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (context) {
+      return _ReelPreviewSheet(
+        title: 'Live watch preview',
+        subtitle: '${post.author} is live - local preview only',
+        children: [
+          Container(
+            height: 320,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: post.accent,
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: _line),
+            ),
+            child: Stack(
+              children: [
+                const Positioned(
+                  left: 16,
+                  top: 16,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Color(0xFFFF1744),
+                      borderRadius: BorderRadius.all(Radius.circular(99)),
+                    ),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      child: Text(
+                        'LIVE',
+                        style: TextStyle(fontWeight: FontWeight.w900),
+                      ),
+                    ),
+                  ),
+                ),
+                Center(
+                  child: CircleAvatar(
+                    radius: 42,
+                    backgroundColor: Colors.black38,
+                    child: Text(
+                      post.author.characters.first,
+                      style: const TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ),
+                const Positioned(
+                  left: 16,
+                  right: 16,
+                  bottom: 16,
+                  child: Text(
+                    'Live stream watch surface. RTMP, backend and real camera stream stay locked.',
+                    style: TextStyle(color: Colors.white70, height: 1.35),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          _ReelSheetAction(
+            icon: Icons.remove_red_eye_outlined,
+            title: 'Join as viewer',
+            subtitle: 'Public local watch preview. No real stream is opened.',
+            onTap: () {
+              Navigator.of(context).pop();
+              _showReelSnack(context, 'Live watch preview only');
+            },
+          ),
+          _ReelSheetAction(
+            icon: Icons.chat_bubble_outline_rounded,
+            title: 'Open live chat preview',
+            subtitle: 'Chat is local-only until CID/backend is unlocked.',
+            onTap: () {
+              Navigator.of(context).pop();
+              _showReelSnack(context, 'Live chat preview only');
+            },
+          ),
+          _ReelSheetAction(
+            icon: Icons.notifications_active_outlined,
+            title: 'Notify me',
+            subtitle: 'Future live notification path.',
+            onTap: () {
+              Navigator.of(context).pop();
+              _showReelSnack(context, 'Live notify preview only');
+            },
           ),
         ],
       );
