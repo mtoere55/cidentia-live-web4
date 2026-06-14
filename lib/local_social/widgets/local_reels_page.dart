@@ -700,6 +700,56 @@ void _showLiveWatchPreviewSheet(BuildContext context, LocalPost post) {
               ],
             ),
           ),
+          const SizedBox(height: 14),
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1B1B22),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: _line),
+            ),
+            child: const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.remove_red_eye_outlined, size: 16),
+                    SizedBox(width: 6),
+                    Text(
+                      'CID-safe viewers · 1.2K',
+                      style: TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                    Spacer(),
+                    Text(
+                      'Signal 94%',
+                      style: TextStyle(color: Color(0xFF22C55E)),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 12),
+                Text(
+                  'Mira: Welcome to the Cidentia Live Room.',
+                  style: TextStyle(color: Colors.white70, height: 1.3),
+                ),
+                SizedBox(height: 6),
+                Text(
+                  'Viewer: Proof reaction sent · effect preview earned.',
+                  style: TextStyle(color: Colors.white60, height: 1.3),
+                ),
+                SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _LiveRoomMiniPill(label: 'Signal'),
+                    _LiveRoomMiniPill(label: 'Support'),
+                    _LiveRoomMiniPill(label: 'Proof'),
+                    _LiveRoomMiniPill(label: 'Effect'),
+                  ],
+                ),
+              ],
+            ),
+          ),
           const SizedBox(height: 16),
           _ReelSheetAction(
             icon: Icons.remove_red_eye_outlined,
@@ -752,6 +802,28 @@ void _showLiveWatchPreviewSheet(BuildContext context, LocalPost post) {
       );
     },
   );
+}
+
+class _LiveRoomMiniPill extends StatelessWidget {
+  const _LiveRoomMiniPill({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0x3314B8A6),
+        borderRadius: BorderRadius.circular(99),
+        border: Border.all(color: const Color(0x5522C55E)),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
+      ),
+    );
+  }
 }
 
 class _ReelPreviewSheet extends StatelessWidget {
