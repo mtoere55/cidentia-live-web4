@@ -36,6 +36,8 @@ class _OriginalInspiredProfilePageState
         const SizedBox(height: 10),
         const _ProfileActionRow(),
         const SizedBox(height: 10),
+        const _CreatorEconomyPreviewCard(),
+        const SizedBox(height: 10),
         _ProfileTabs(activeTab: activeTab, onChanged: _setTab),
         const SizedBox(height: 10),
         _ProfileGrid(activeTab: activeTab),
@@ -367,6 +369,184 @@ class _ProfileActionButton extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _CreatorEconomyPreviewCard extends StatelessWidget {
+  const _CreatorEconomyPreviewCard();
+
+  @override
+  Widget build(BuildContext context) {
+    const items = [
+      (Icons.ssid_chart_rounded, 'Signal', '94%', 'Live trust pulse'),
+      (Icons.volunteer_activism_outlined, 'Support', 'Locked', 'No payment'),
+      (Icons.verified_user_outlined, 'Proof', 'Ready', 'CID later'),
+      (Icons.auto_awesome_rounded, 'Effect', 'Earned', 'NFT-ready'),
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: _panel,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _line),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.hub_outlined, size: 18),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Creator Economy Preview',
+                  style: TextStyle(fontWeight: FontWeight.w900),
+                ),
+              ),
+              _ProfilePill(label: 'VISUAL ONLY'),
+            ],
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Activity-based Web4 layer preview. Wallet, token, payment, minting and blockchain stay locked.',
+            style: TextStyle(color: _textSoft, height: 1.35, fontSize: 12),
+          ),
+          const SizedBox(height: 12),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final metricWidth = constraints.maxWidth >= 760
+                  ? (constraints.maxWidth - 24) / 4
+                  : constraints.maxWidth >= 520
+                  ? (constraints.maxWidth - 8) / 2
+                  : constraints.maxWidth;
+
+              return Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final item in items)
+                    _CreatorEconomyMetric(
+                      width: metricWidth,
+                      icon: item.$1,
+                      label: item.$2,
+                      value: item.$3,
+                      note: item.$4,
+                    ),
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+          const _CreatorAssetStrip(),
+        ],
+      ),
+    );
+  }
+}
+
+class _CreatorEconomyMetric extends StatelessWidget {
+  const _CreatorEconomyMetric({
+    required this.width,
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.note,
+  });
+
+  final double width;
+  final IconData icon;
+  final String label;
+  final String value;
+  final String note;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: _panelSoft,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _line),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18),
+          const SizedBox(height: 10),
+          Text(
+            value,
+            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+          ),
+          const SizedBox(height: 3),
+          Text(label, style: const TextStyle(fontWeight: FontWeight.w800)),
+          const SizedBox(height: 4),
+          Text(
+            note,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(color: _textSoft, fontSize: 11),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CreatorAssetStrip extends StatelessWidget {
+  const _CreatorAssetStrip();
+
+  @override
+  Widget build(BuildContext context) {
+    const assets = [
+      (Icons.local_fire_department_outlined, 'Live streak'),
+      (Icons.workspace_premium_outlined, 'Creator proof'),
+      (Icons.auto_awesome_outlined, 'Earned effect'),
+      (Icons.groups_2_outlined, 'Community support'),
+      (Icons.emoji_events_outlined, 'Contest badge'),
+      (Icons.token_outlined, 'NFT-ready asset'),
+    ];
+
+    return SizedBox(
+      height: 84,
+      child: ListView.separated(
+        padding: EdgeInsets.zero,
+        scrollDirection: Axis.horizontal,
+        itemCount: assets.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final asset = assets[index];
+
+          return Container(
+            width: 128,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: _panel,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: _line),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(asset.$1, size: 18),
+                const Spacer(),
+                Text(
+                  asset.$2,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 12,
+                    height: 1.15,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
