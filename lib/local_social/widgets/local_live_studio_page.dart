@@ -544,7 +544,7 @@ class _StageChatMessage extends StatelessWidget {
           backgroundColor: const Color(0x6627272A),
           child: Text(
             name.characters.first,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900),
+            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900),
           ),
         ),
         const SizedBox(width: 9),
@@ -737,39 +737,29 @@ class _TranslateChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final activeColor = enabled ? const Color(0xFF22C55E) : Colors.white24;
+
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: Colors.black45,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: enabled ? const Color(0xFF22C55E) : Colors.white12,
-        ),
+        color: const Color(0x66000000),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: activeColor.withValues(alpha: 0.85)),
+        boxShadow: [
+          BoxShadow(blurRadius: 18, color: activeColor.withValues(alpha: 0.16)),
+        ],
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.translate_rounded, size: 16),
+            Icon(Icons.translate_rounded, size: 16, color: activeColor),
             const SizedBox(width: 8),
-            const Text('TR', style: TextStyle(fontWeight: FontWeight.w900)),
-            const SizedBox(width: 6),
-            const Icon(Icons.swap_horiz_rounded, size: 15),
-            const SizedBox(width: 6),
-            const Text('EN', style: TextStyle(fontWeight: FontWeight.w900)),
-            const SizedBox(width: 6),
-            const Icon(Icons.swap_horiz_rounded, size: 15),
-            const SizedBox(width: 6),
-            const Text('DE', style: TextStyle(fontWeight: FontWeight.w900)),
-            const SizedBox(width: 10),
-            const Text('Hub', style: TextStyle(fontWeight: FontWeight.w900)),
+            const _MiniSignalBars(),
             const SizedBox(width: 8),
-            CircleAvatar(
-              radius: 4,
-              backgroundColor: enabled
-                  ? const Color(0xFF22C55E)
-                  : const Color(0xFF71717A),
-            ),
+            Icon(Icons.public_rounded, size: 15, color: activeColor),
+            const SizedBox(width: 7),
+            CircleAvatar(radius: 3.5, backgroundColor: activeColor),
           ],
         ),
       ),
@@ -839,102 +829,28 @@ class _SubtitleOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bars = compact
-        ? [5.0, 8.0, 4.0, 10.0, 6.0, 12.0, 7.0, 5.0, 9.0, 6.0, 11.0, 5.0]
-        : [7.0, 11.0, 5.0, 14.0, 8.0, 16.0, 10.0, 6.0, 12.0, 8.0, 15.0, 7.0];
-
     return Container(
-      width: compact ? 520 : 360,
-      padding: EdgeInsets.symmetric(
-        horizontal: compact ? 16 : 14,
-        vertical: compact ? 11 : 12,
-      ),
+      width: compact ? 300 : 260,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
       decoration: BoxDecoration(
-        color: const Color(0x38101724),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white12),
+        color: const Color(0x4A040A16),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: const Color(0x3322D3EE)),
         boxShadow: const [
           BoxShadow(
+            blurRadius: 12,
+            offset: Offset(0, 6),
             color: Color(0x44000000),
-            blurRadius: 18,
-            offset: Offset(0, 10),
           ),
         ],
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: const Row(
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                decoration: BoxDecoration(
-                  color: const Color(0x3322C55E),
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: const Color(0x5522C55E)),
-                ),
-                child: const Text(
-                  'EN',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFFBBF7D0),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'Building in Web4 is about ownership, identity and real connections.',
-                  maxLines: compact ? 1 : 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Color(0xFFF4F4F5),
-                    fontSize: 13,
-                    height: 1.25,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(
-                Icons.graphic_eq_rounded,
-                size: 15,
-                color: Color(0xFFA78BFA),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: SizedBox(
-                  height: 16,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      for (final h in bars) ...[
-                        Expanded(
-                          child: Align(
-                            alignment: Alignment.bottomCenter,
-                            child: Container(
-                              height: h,
-                              decoration: BoxDecoration(
-                                color: const Color(0xCCA78BFA),
-                                borderRadius: BorderRadius.circular(999),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
+          Icon(Icons.graphic_eq_rounded, size: 12, color: Color(0xFF22D3EE)),
+          SizedBox(width: 7),
+          Expanded(child: _FineWaveLine()),
+          SizedBox(width: 7),
+          CircleAvatar(radius: 2, backgroundColor: Color(0xFF22D3EE)),
         ],
       ),
     );
@@ -966,6 +882,115 @@ class _WaveLine extends StatelessWidget {
   }
 }
 
+class _FineWaveLine extends StatelessWidget {
+  const _FineWaveLine();
+
+  @override
+  Widget build(BuildContext context) {
+    const heights = [
+      2.0,
+      4.0,
+      3.0,
+      7.0,
+      4.0,
+      9.0,
+      5.0,
+      3.0,
+      6.0,
+      4.0,
+      8.0,
+      5.0,
+      2.0,
+      5.0,
+      3.0,
+      7.0,
+      4.0,
+      2.0,
+    ];
+
+    const alphas = [
+      0.22,
+      0.42,
+      0.30,
+      0.72,
+      0.38,
+      0.95,
+      0.52,
+      0.28,
+      0.60,
+      0.34,
+      0.76,
+      0.48,
+      0.24,
+      0.50,
+      0.30,
+      0.66,
+      0.40,
+      0.22,
+    ];
+
+    const baseColor = Color(0xFF22D3EE);
+
+    return SizedBox(
+      height: 9,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          for (var i = 0; i < heights.length; i++) ...[
+            Expanded(
+              child: Align(
+                alignment: Alignment.center,
+                child: Container(
+                  width: 1.1,
+                  height: heights[i],
+                  decoration: BoxDecoration(
+                    color: baseColor.withValues(alpha: alphas[i]),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+              ),
+            ),
+            if (i != heights.length - 1) const SizedBox(width: 1),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _MiniSignalBars extends StatelessWidget {
+  const _MiniSignalBars();
+
+  @override
+  Widget build(BuildContext context) {
+    const heights = [6.0, 12.0, 8.0, 16.0, 10.0, 14.0];
+
+    return SizedBox(
+      width: 42,
+      height: 18,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          for (var i = 0; i < heights.length; i++) ...[
+            Expanded(
+              child: Container(
+                height: heights[i],
+                decoration: BoxDecoration(
+                  color: i.isEven
+                      ? const Color(0xFF22D3EE)
+                      : const Color(0xFFA855F7),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+            ),
+            if (i != heights.length - 1) const SizedBox(width: 3),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 class _SceneStrip extends StatelessWidget {
   const _SceneStrip();
 
@@ -981,16 +1006,16 @@ class _SceneStrip extends StatelessWidget {
     ];
 
     return SizedBox(
-      height: 88,
+      height: 64,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: scenes.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final selected = index == 0;
           return Container(
-            width: 154,
-            padding: const EdgeInsets.all(10),
+            width: 126,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
               color: selected ? Colors.white10 : _panel,
               borderRadius: BorderRadius.circular(18),
@@ -1004,9 +1029,9 @@ class _SceneStrip extends StatelessWidget {
                   index == scenes.length - 1
                       ? Icons.add_rounded
                       : Icons.video_camera_front_rounded,
-                  size: 20,
+                  size: 16,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 7),
                 Expanded(
                   child: Text(
                     scenes[index],
@@ -1045,10 +1070,10 @@ class _StudioControlDock extends StatelessWidget {
         borderRadius: BorderRadius.circular(26),
         border: Border.all(color: _line),
       ),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(8),
       child: Wrap(
-        spacing: 10,
-        runSpacing: 10,
+        spacing: 8,
+        runSpacing: 8,
         alignment: WrapAlignment.center,
         children: [
           const _ControlButton(
@@ -1116,8 +1141,8 @@ class _ControlButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 112,
-      height: 70,
+      width: 92,
+      height: 54,
       decoration: BoxDecoration(
         color: _panelSoft,
         borderRadius: BorderRadius.circular(18),
@@ -1126,13 +1151,13 @@ class _ControlButton extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 22),
-          const SizedBox(height: 6),
+          Icon(icon, size: 18),
+          const SizedBox(height: 4),
           Text(
             label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900),
+            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900),
           ),
         ],
       ),
@@ -1152,8 +1177,8 @@ class _LiveControlButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(18),
       onTap: onTap,
       child: Container(
-        width: 148,
-        height: 70,
+        width: 112,
+        height: 54,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: liveReady
@@ -1165,7 +1190,7 @@ class _LiveControlButton extends StatelessWidget {
         child: Center(
           child: Text(
             liveReady ? 'End Live' : 'Go Live',
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900),
           ),
         ),
       ),
@@ -1189,18 +1214,18 @@ class _DestinationsPanel extends StatelessWidget {
         borderRadius: BorderRadius.circular(26),
         border: Border.all(color: _line),
       ),
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       child: Column(
         children: [
           InkWell(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(16),
             onTap: onToggle,
             child: Row(
               children: [
                 const Expanded(
                   child: Text(
                     'Destinations',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
                   ),
                 ),
                 const Text(
@@ -1220,10 +1245,10 @@ class _DestinationsPanel extends StatelessWidget {
             ),
           ),
           if (expanded) ...[
-            const SizedBox(height: 14),
+            const SizedBox(height: 10),
             Wrap(
-              spacing: 10,
-              runSpacing: 10,
+              spacing: 8,
+              runSpacing: 8,
               children: destinations
                   .map((item) => _DestinationTile(item: item))
                   .toList(),
@@ -1296,57 +1321,42 @@ class _DestinationTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(16),
       onTap: () => _openDestinationManager(context, item),
       child: Container(
-        width: 156,
-        padding: const EdgeInsets.all(13),
+        width: 132,
+        height: 54,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
           color: _panelSoft,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(color: _line),
         ),
         child: Row(
           children: [
             Container(
-              width: 42,
-              height: 42,
+              width: 30,
+              height: 30,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(10),
                 gradient: LinearGradient(colors: item.colors),
               ),
-              child: Icon(item.icon),
+              child: Icon(item.icon, size: 16),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.w900),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    item.handle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: _textSoft, fontSize: 11),
-                  ),
-                  const SizedBox(height: 5),
-                  const Text(
-                    'MANAGE',
-                    style: TextStyle(
-                      color: Color(0xFF4ADE80),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ],
+              child: Text(
+                item.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 12,
+                ),
               ),
             ),
+            const SizedBox(width: 5),
+            const CircleAvatar(radius: 3, backgroundColor: Color(0xFF22C55E)),
           ],
         ),
       ),
@@ -1361,50 +1371,138 @@ class _TranslatePanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final activeColor = translateEnabled
+        ? const Color(0xFF22D3EE)
+        : const Color(0xFF71717A);
+
     return Container(
       decoration: BoxDecoration(
         color: _panel,
-        borderRadius: BorderRadius.circular(26),
+        borderRadius: BorderRadius.circular(22),
         border: Border.all(color: _line),
       ),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             children: [
-              const Icon(Icons.translate_rounded),
-              const SizedBox(width: 10),
+              Icon(Icons.translate_rounded, size: 18, color: activeColor),
+              const SizedBox(width: 8),
               const Expanded(
                 child: Text(
                   'Live Translation',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
                 ),
               ),
-              Switch(value: translateEnabled, onChanged: null),
+              CircleAvatar(radius: 4, backgroundColor: activeColor),
             ],
           ),
-          const SizedBox(height: 14),
-          const Text(
-            'TR Original',
-            style: TextStyle(color: _textSoft, fontWeight: FontWeight.w800),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.black26,
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(color: const Color(0x3322D3EE)),
+            ),
+            child: const Row(
+              children: [
+                Text(
+                  'TR',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900),
+                ),
+                SizedBox(width: 8),
+                Icon(Icons.arrow_forward_rounded, size: 13),
+                SizedBox(width: 8),
+                Text(
+                  'EN',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900),
+                ),
+                SizedBox(width: 8),
+                Icon(Icons.arrow_forward_rounded, size: 13),
+                SizedBox(width: 8),
+                Text(
+                  'DE',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900),
+                ),
+                SizedBox(width: 12),
+                Expanded(child: _FineWaveLine()),
+              ],
+            ),
           ),
-          const SizedBox(height: 6),
-          const Text(
-            'Web4 is about ownership, identity and real connections.',
-            style: TextStyle(height: 1.35),
-          ),
-          const SizedBox(height: 14),
-          const Text(
-            'EN Translation',
-            style: TextStyle(color: _textSoft, fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 6),
-          const Text(
-            'Building in Web4 is about ownership, identity and real connections.',
-            style: TextStyle(height: 1.35),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              _TinyStatusPill(
+                icon: Icons.closed_caption_rounded,
+                label: 'Subtitles',
+                active: translateEnabled,
+              ),
+              const SizedBox(width: 8),
+              _TinyStatusPill(
+                icon: Icons.hearing_rounded,
+                label: 'Voice',
+                active: false,
+              ),
+              const SizedBox(width: 8),
+              _TinyStatusPill(
+                icon: Icons.speed_rounded,
+                label: 'Low Latency',
+                active: true,
+              ),
+            ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _TinyStatusPill extends StatelessWidget {
+  const _TinyStatusPill({
+    required this.icon,
+    required this.label,
+    required this.active,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = active ? const Color(0xFF22C55E) : _textSoft;
+
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+        decoration: BoxDecoration(
+          color: Colors.black26,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: active ? const Color(0x4422C55E) : Colors.white10,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 13, color: color),
+            const SizedBox(width: 5),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1701,7 +1799,7 @@ class _MobileVideoPreview extends StatelessWidget {
             const Positioned(
               left: 18,
               right: 18,
-              bottom: 250,
+              bottom: 208,
               child: _MobileSubtitleBubble(),
             ),
           ],
@@ -1874,22 +1972,27 @@ class _MobileSubtitleBubble extends StatelessWidget {
     return Align(
       alignment: Alignment.centerRight,
       child: Container(
-        width: 260,
-        padding: const EdgeInsets.all(12),
+        width: 150,
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
         decoration: BoxDecoration(
-          color: Colors.black54,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Colors.white12),
-        ),
-        child: const Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'EN  Building in Web4 is about ownership and real connections.',
-              style: TextStyle(fontSize: 12, height: 1.35),
+          color: const Color(0x4A040A16),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: const Color(0x3322D3EE)),
+          boxShadow: const [
+            BoxShadow(
+              blurRadius: 8,
+              offset: Offset(0, 4),
+              color: Color(0x33000000),
             ),
-            SizedBox(height: 8),
-            _WaveLine(),
+          ],
+        ),
+        child: const Row(
+          children: [
+            Icon(Icons.graphic_eq_rounded, size: 10, color: Color(0xFF22D3EE)),
+            SizedBox(width: 5),
+            Expanded(child: _FineWaveLine()),
+            SizedBox(width: 5),
+            CircleAvatar(radius: 1.8, backgroundColor: Color(0xFF22D3EE)),
           ],
         ),
       ),
@@ -1925,74 +2028,77 @@ class _MobileDestinationsSheet extends StatelessWidget {
         ],
       ),
       clipBehavior: Clip.antiAlias,
-      child: Column(
-        children: [
-          InkWell(
-            onTap: onToggle,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
-              child: Column(
-                children: [
-                  Container(
-                    width: 46,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: Colors.white24,
-                      borderRadius: BorderRadius.circular(99),
+      child: SingleChildScrollView(
+        physics: const NeverScrollableScrollPhysics(),
+        child: Column(
+          children: [
+            InkWell(
+              onTap: onToggle,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 46,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: Colors.white24,
+                        borderRadius: BorderRadius.circular(99),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      const Expanded(
-                        child: Text(
-                          'Destinations',
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'Destinations',
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                        const Text(
+                          '6 / 6 Connected',
                           style: TextStyle(
-                            fontSize: 17,
+                            color: Color(0xFF4ADE80),
                             fontWeight: FontWeight.w900,
                           ),
                         ),
-                      ),
-                      const Text(
-                        '6 / 6 Connected',
-                        style: TextStyle(
-                          color: Color(0xFF4ADE80),
-                          fontWeight: FontWeight.w900,
+                        const SizedBox(width: 8),
+                        Icon(
+                          expanded
+                              ? Icons.keyboard_arrow_down_rounded
+                              : Icons.keyboard_arrow_up_rounded,
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Icon(
-                        expanded
-                            ? Icons.keyboard_arrow_down_rounded
-                            : Icons.keyboard_arrow_up_rounded,
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          if (expanded) ...[
-            SizedBox(
-              height: 118,
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                scrollDirection: Axis.horizontal,
-                itemCount: _destinations.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 10),
-                itemBuilder: (context, index) {
-                  final item = _destinations[index];
-                  return _MobileDestinationChip(item: item);
-                },
+            if (expanded) ...[
+              SizedBox(
+                height: 118,
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _destinations.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 10),
+                  itemBuilder: (context, index) {
+                    final item = _destinations[index];
+                    return _MobileDestinationChip(item: item);
+                  },
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 14),
-              child: _MobileQuickToolsGrid(),
-            ),
+              const SizedBox(height: 12),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 14),
+                child: _MobileQuickToolsGrid(),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

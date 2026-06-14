@@ -128,6 +128,23 @@ extension LocalSectionMeta on LocalSection {
         return Icons.person_outline_rounded;
     }
   }
+
+  String get mobileLabel {
+    switch (this) {
+      case LocalSection.feed:
+        return 'Feed';
+      case LocalSection.search:
+        return 'Search';
+      case LocalSection.reels:
+        return 'Reels';
+      case LocalSection.chats:
+        return 'Chats';
+      case LocalSection.liveStudio:
+        return 'Studio';
+      case LocalSection.profile:
+        return 'Profile';
+    }
+  }
 }
 
 class LocalShell extends StatefulWidget {
@@ -256,17 +273,26 @@ class _LocalShellState extends State<LocalShell> {
               selected == LocalSection.feed ? 'Cidentia.Live' : selected.label,
               style: const TextStyle(fontWeight: FontWeight.w800),
             ),
-            actions: const [
-              Icon(Icons.favorite_border_rounded),
-              SizedBox(width: 16),
-              Icon(Icons.add_box_outlined),
-              SizedBox(width: 16),
+            actions: [
+              IconButton(
+                tooltip: 'Local favorites',
+                onPressed: () {},
+                icon: const Icon(Icons.favorite_border_rounded),
+              ),
+              IconButton(
+                tooltip: 'Create preview',
+                onPressed: () {},
+                icon: const Icon(Icons.add_box_outlined),
+              ),
+              const SizedBox(width: 6),
             ],
           ),
           body: page,
           bottomNavigationBar: NavigationBar(
+            height: 68,
             backgroundColor: _panel,
             indicatorColor: Colors.white10,
+            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
             selectedIndex: selected.index,
             onDestinationSelected: (index) {
               setState(() => selected = LocalSection.values[index]);
@@ -274,9 +300,13 @@ class _LocalShellState extends State<LocalShell> {
             destinations: [
               for (final section in LocalSection.values)
                 NavigationDestination(
-                  icon: Icon(section.icon),
-                  selectedIcon: Icon(section.icon, color: Colors.white),
-                  label: section.label,
+                  icon: Icon(section.icon, size: 22),
+                  selectedIcon: Icon(
+                    section.icon,
+                    color: Colors.white,
+                    size: 23,
+                  ),
+                  label: section.mobileLabel,
                 ),
             ],
           ),
