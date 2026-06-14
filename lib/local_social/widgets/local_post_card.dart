@@ -642,6 +642,8 @@ void _showFeedLivePreviewSheet(BuildContext context, LocalPost post) {
                     _FeedLiveRoomMiniPill(label: 'Effect'),
                   ],
                 ),
+                SizedBox(height: 12),
+                _FeedActiveRoomMode(),
               ],
             ),
           ),
@@ -697,6 +699,67 @@ class _FeedLiveRoomMiniPill extends StatelessWidget {
       child: Text(
         label,
         style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
+      ),
+    );
+  }
+}
+
+class _FeedActiveRoomMode extends StatelessWidget {
+  const _FeedActiveRoomMode();
+
+  @override
+  Widget build(BuildContext context) {
+    return const _FeedLiveModeInfo(
+      icon: Icons.sensors_rounded,
+      title: 'Active room mode: Normal Live',
+      subtitle:
+          'Creator controls VS, Multi Guest and Support modes from Live Studio.',
+    );
+  }
+}
+
+class _FeedLiveModeInfo extends StatelessWidget {
+  const _FeedLiveModeInfo({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Color(0x2214B8A6),
+        borderRadius: BorderRadius.all(Radius.circular(16)),
+        border: Border.fromBorderSide(BorderSide(color: Color(0x4422C55E))),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 18),
+          SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: TextStyle(fontWeight: FontWeight.w900)),
+                SizedBox(height: 3),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    color: _textSoft,
+                    fontSize: 11,
+                    height: 1.25,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
