@@ -226,11 +226,11 @@ class _ReelSlideState extends State<_ReelSlide> {
     final post = widget.post;
     return Center(
       child: Container(
-        constraints: const BoxConstraints(maxWidth: 520),
-        margin: const EdgeInsets.symmetric(horizontal: 22, vertical: 26),
+        constraints: const BoxConstraints(maxWidth: 560),
+        margin: const EdgeInsets.fromLTRB(4, 8, 4, 10),
         decoration: BoxDecoration(
           color: _panel,
-          borderRadius: BorderRadius.circular(34),
+          borderRadius: BorderRadius.circular(8),
           border: Border.all(color: _line),
           boxShadow: const [
             BoxShadow(
@@ -267,9 +267,9 @@ class _ReelSlideState extends State<_ReelSlide> {
               ),
             ),
             Positioned(
-              left: 18,
-              right: 86,
-              bottom: 26,
+              left: 14,
+              right: 78,
+              bottom: 20,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -300,8 +300,8 @@ class _ReelSlideState extends State<_ReelSlide> {
               ),
             ),
             Positioned(
-              right: 18,
-              bottom: 26,
+              right: 12,
+              bottom: 20,
               child: Column(
                 children: [
                   _ReelAction(
@@ -332,11 +332,6 @@ class _ReelSlideState extends State<_ReelSlide> {
                   ),
                 ],
               ),
-            ),
-            const Positioned(
-              left: 18,
-              top: 18,
-              child: _ReelBadge(label: 'Mouse wheel ready'),
             ),
           ],
         ),
