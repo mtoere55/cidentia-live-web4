@@ -26,7 +26,7 @@ const localPosts = [
     handle: '@mira.studio',
     time: '18m',
     caption:
-        'Offline-first sosyal akış hazır. Önce sağlam çalışan gövde, sonra gerçek kimlik ve wallet katmanı.',
+        'Cidentia.Live local social flow is ready. First a stable shell, then verified CID and wallet layers.',
     accent: [Color(0xFFE879F9), Color(0xFFEC4899), Color(0xFFF97316)],
     likes: '12.8K',
     comments: '384',
@@ -36,7 +36,7 @@ const localPosts = [
     handle: '@web4.lab',
     time: '2h',
     caption:
-        'Feed, reels, chat ve profil alanları local veriyle açılıyor. Backend bağlanınca aynı gövde büyüyecek.',
+        'Feed, Reels, Chats and Profile open with local data. The same shell will grow when the backend boundary is connected.',
     accent: [Color(0xFF60A5FA), Color(0xFF06B6D4), Color(0xFF14B8A6)],
     likes: '8.1K',
     comments: '211',
@@ -46,7 +46,7 @@ const localPosts = [
     handle: '@creator.node',
     time: '1d',
     caption:
-        'Bu aşama tasarım finali değil. Sadece bozuk sistem üstüne kurmamak için güvenli çalışma tabanı.',
+        'This is not the final design phase. The goal is to build a safe Cidentia.Live working base before real connections.',
     accent: [Color(0xFFA78BFA), Color(0xFF6366F1), Color(0xFF0EA5E9)],
     likes: '4.6K',
     comments: '97',
@@ -90,27 +90,27 @@ class LocalChat {
 const localChats = [
   LocalChat(
     name: 'Mira Studio',
-    message: 'Local preview hazır mı?',
+    message: 'Local preview is ready.',
     time: '2m',
   ),
   LocalChat(
     name: 'Web4 Lab',
-    message: 'Backend sonra bağlanacak.',
+    message: 'Backend will be connected later.',
     time: '21m',
   ),
   LocalChat(
     name: 'Creator Node',
-    message: 'Profil ekranı demo veride.',
+    message: 'Profile screen is using demo data.',
     time: '1h',
   ),
   LocalChat(
     name: 'Market Intel',
-    message: 'Wallet alanı sonra gelecek.',
+    message: 'Wallet area will come later.',
     time: '4h',
   ),
   LocalChat(
     name: 'Truth Scanner',
-    message: 'Proof katmanı planlandı.',
+    message: 'Proof layer is planned.',
     time: '1d',
   ),
 ];

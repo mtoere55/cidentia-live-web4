@@ -453,17 +453,20 @@ class LocalPostCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ListTile(
-            leading: CircleAvatar(
-              backgroundColor: post.accent.first,
-              child: Text(post.author.characters.first),
+          Material(
+            color: Colors.transparent,
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundColor: post.accent.first,
+                child: Text(post.author.characters.first),
+              ),
+              title: Text(
+                post.author,
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
+              subtitle: Text('${post.handle} - ${post.time}'),
+              trailing: const Icon(Icons.more_horiz_rounded),
             ),
-            title: Text(
-              post.author,
-              style: const TextStyle(fontWeight: FontWeight.w800),
-            ),
-            subtitle: Text('${post.handle} Â· ${post.time}'),
-            trailing: const Icon(Icons.more_horiz_rounded),
           ),
           AspectRatio(
             aspectRatio: 1.35,
@@ -721,7 +724,7 @@ class ProfilePreviewPage extends StatelessWidget {
                             ),
                             SizedBox(height: 8),
                             Text(
-                              'Sosyal uygulama local Ã§alÄ±ÅŸma profili. GerÃ§ek CID ve wallet sonra ba\u{011F}lanacak.',
+                              'Local social profile preview. Verified CID and wallet will be connected later.',
                               style: TextStyle(color: _textSoft, height: 1.35),
                             ),
                           ],
