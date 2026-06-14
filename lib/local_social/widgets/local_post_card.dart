@@ -74,7 +74,10 @@ class _OriginalInspiredPostCardState extends State<OriginalInspiredPostCard> {
             onToggleFollow: _toggleFollow,
             onMoreOptions: () => _showPostOptionsSheet(context, post),
           ),
-          _PostMedia(post: post),
+          InkWell(
+            onTap: () => _showPostDetailSheet(context, post),
+            child: _PostMedia(post: post),
+          ),
           _PostActions(
             post: post,
             isLiked: isLiked,
@@ -382,6 +385,82 @@ void _showLocalActionSnack(BuildContext context, String message) {
         duration: const Duration(milliseconds: 1200),
       ),
     );
+}
+
+void _showPostDetailSheet(BuildContext context, LocalPost post) {
+  showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: Colors.transparent,
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (context) {
+      return _LocalPreviewSheet(
+        title: 'Post detail',
+        subtitle: '${post.author} - local preview only',
+        children: [
+          AspectRatio(
+            aspectRatio: 1,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(24),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: post.accent,
+                ),
+                border: Border.all(color: Colors.white12),
+              ),
+              child: Stack(
+                children: [
+                  Center(
+                    child: Icon(
+                      Icons.photo_camera_outlined,
+                      size: 72,
+                      color: Colors.white.withValues(alpha: 0.30),
+                    ),
+                  ),
+                  Positioned(
+                    left: 16,
+                    right: 16,
+                    bottom: 16,
+                    child: Text(
+                      post.caption,
+                      maxLines: 4,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        height: 1.3,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          _LocalSheetAction(
+            icon: Icons.mode_comment_outlined,
+            title: 'Comments',
+            subtitle: '${post.comments} comments - local preview',
+            onTap: () {
+              Navigator.of(context).pop();
+              _showCommentsSheet(context, post);
+            },
+          ),
+          _LocalSheetAction(
+            icon: Icons.send_outlined,
+            title: 'Share',
+            subtitle: 'Open local share paths for this post.',
+            onTap: () {
+              Navigator.of(context).pop();
+              _showShareSheet(context, post);
+            },
+          ),
+        ],
+      );
+    },
+  );
 }
 
 void _showPostOptionsSheet(BuildContext context, LocalPost post) {
