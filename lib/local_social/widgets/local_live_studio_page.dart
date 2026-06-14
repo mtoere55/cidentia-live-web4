@@ -73,6 +73,8 @@ class _OriginalInspiredLiveStudioPageState
             ),
             const SizedBox(height: 14),
             const _SceneStrip(),
+            const SizedBox(height: 10),
+            const _CreatorRoomModeStrip(),
             const SizedBox(height: 14),
             _StudioControlDock(
               liveReady: liveReady,
@@ -1086,6 +1088,102 @@ class _SceneStripState extends State<_SceneStrip> {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _CreatorRoomModeStrip extends StatefulWidget {
+  const _CreatorRoomModeStrip();
+
+  @override
+  State<_CreatorRoomModeStrip> createState() => _CreatorRoomModeStripState();
+}
+
+class _CreatorRoomModeStripState extends State<_CreatorRoomModeStrip> {
+  int selectedMode = 0;
+
+  static const modes = [
+    ('Normal Live', Icons.sensors_rounded),
+    ('VS Battle', Icons.compare_arrows_rounded),
+    ('Multi Guest', Icons.grid_view_rounded),
+    ('Support / Effect', Icons.auto_awesome_rounded),
+    ('Proof Room', Icons.verified_user_outlined),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 58,
+      decoration: BoxDecoration(
+        color: _panel,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: _line),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      child: Row(
+        children: [
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8),
+            child: Text(
+              'Room Mode',
+              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
+            ),
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: modes.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              itemBuilder: (context, index) {
+                final mode = modes[index];
+                final selected = selectedMode == index;
+
+                return InkWell(
+                  borderRadius: BorderRadius.circular(999),
+                  onTap: () => setState(() => selectedMode = index),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: selected ? Colors.white10 : _panelSoft,
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: selected ? const Color(0xFF22C55E) : _line,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(mode.$2, size: 15),
+                        const SizedBox(width: 7),
+                        Text(
+                          mode.$1,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(width: 8),
+          const Text(
+            'LOCAL',
+            style: TextStyle(
+              color: Color(0xFF4ADE80),
+              fontWeight: FontWeight.w900,
+              fontSize: 11,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -2155,7 +2253,7 @@ class _MobileDestinationsSheet extends StatelessWidget {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 240),
       curve: Curves.easeOutCubic,
-      height: expanded ? 320 : 72,
+      height: expanded ? 378 : 72,
       decoration: BoxDecoration(
         color: Colors.black87,
         borderRadius: BorderRadius.circular(28),
@@ -2232,7 +2330,12 @@ class _MobileDestinationsSheet extends StatelessWidget {
                   },
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 14),
+                child: _MobileRoomModeStrip(),
+              ),
+              const SizedBox(height: 10),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 14),
                 child: _MobileQuickToolsGrid(),
@@ -2293,6 +2396,70 @@ class _MobileDestinationChip extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _MobileRoomModeStrip extends StatefulWidget {
+  const _MobileRoomModeStrip();
+
+  @override
+  State<_MobileRoomModeStrip> createState() => _MobileRoomModeStripState();
+}
+
+class _MobileRoomModeStripState extends State<_MobileRoomModeStrip> {
+  int selectedMode = 0;
+
+  static const modes = [
+    ('Normal', Icons.sensors_rounded),
+    ('VS', Icons.compare_arrows_rounded),
+    ('Multi', Icons.grid_view_rounded),
+    ('Effect', Icons.auto_awesome_rounded),
+    ('Proof', Icons.verified_user_outlined),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 48,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: modes.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final mode = modes[index];
+          final selected = selectedMode == index;
+
+          return InkWell(
+            borderRadius: BorderRadius.circular(999),
+            onTap: () => setState(() => selectedMode = index),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: selected ? Colors.white12 : _panelSoft,
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(
+                  color: selected ? const Color(0xFF22C55E) : _line,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(mode.$2, size: 15),
+                  const SizedBox(width: 6),
+                  Text(
+                    mode.$1,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
