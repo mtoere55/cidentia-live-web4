@@ -8,23 +8,38 @@ const _panelSoft = Color(0xFF181A20);
 const _line = Color(0xFF262A33);
 const _textSoft = Color(0xFFA1A1AA);
 
-class OriginalInspiredProfilePage extends StatelessWidget {
+enum _ProfileTabKind { posts, reels, tagged }
+
+class OriginalInspiredProfilePage extends StatefulWidget {
   const OriginalInspiredProfilePage({super.key});
+
+  @override
+  State<OriginalInspiredProfilePage> createState() =>
+      _OriginalInspiredProfilePageState();
+}
+
+class _OriginalInspiredProfilePageState
+    extends State<OriginalInspiredProfilePage> {
+  _ProfileTabKind activeTab = _ProfileTabKind.posts;
+
+  void _setTab(_ProfileTabKind tab) {
+    setState(() => activeTab = tab);
+  }
 
   @override
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.fromLTRB(22, 22, 22, 90),
-      children: const [
-        _ProfileHero(),
-        SizedBox(height: 18),
-        _ProfileStatsRow(),
-        SizedBox(height: 18),
-        _ProfileActionRow(),
-        SizedBox(height: 22),
-        _ProfileTabs(),
-        SizedBox(height: 14),
-        _ProfileGrid(),
+      children: [
+        const _ProfileHero(),
+        const SizedBox(height: 18),
+        const _ProfileStatsRow(),
+        const SizedBox(height: 18),
+        const _ProfileActionRow(),
+        const SizedBox(height: 22),
+        _ProfileTabs(activeTab: activeTab, onChanged: _setTab),
+        const SizedBox(height: 14),
+        _ProfileGrid(activeTab: activeTab),
       ],
     );
   }
@@ -223,27 +238,51 @@ class _ProfileActionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Row(
+    return Row(
       children: [
         Expanded(
           child: _ProfileActionButton(
             icon: Icons.edit_outlined,
             label: 'Edit Profile',
             primary: true,
+            onTap: () => _openProfileActionSheet(
+              context,
+              title: 'Edit Profile',
+              subtitle: 'Local profile editor preview',
+              icon: Icons.edit_outlined,
+              text:
+                  'Profile editing will require a verified CID session later. This preview keeps the creator surface visible without opening backend or identity flows.',
+            ),
           ),
         ),
-        SizedBox(width: 12),
+        const SizedBox(width: 12),
         Expanded(
           child: _ProfileActionButton(
             icon: Icons.account_balance_wallet_outlined,
             label: 'Wallet',
+            onTap: () => _openProfileActionSheet(
+              context,
+              title: 'Wallet',
+              subtitle: 'Wallet locked preview',
+              icon: Icons.account_balance_wallet_outlined,
+              text:
+                  'Wallet stays locked in this local social package. No payment, token, balance, or wallet connector is opened here.',
+            ),
           ),
         ),
-        SizedBox(width: 12),
+        const SizedBox(width: 12),
         Expanded(
           child: _ProfileActionButton(
             icon: Icons.verified_user_outlined,
             label: 'Proof',
+            onTap: () => _openProfileActionSheet(
+              context,
+              title: 'Proof',
+              subtitle: 'CID proof preview',
+              icon: Icons.verified_user_outlined,
+              text:
+                  'Proof and trust badges are visual only until the CidenDB/CID boundary is resumed in a separate planned track.',
+            ),
           ),
         ),
       ],
@@ -255,42 +294,55 @@ class _ProfileActionButton extends StatelessWidget {
   const _ProfileActionButton({
     required this.icon,
     required this.label,
+    required this.onTap,
     this.primary = false,
   });
 
   final IconData icon;
   final String label;
+  final VoidCallback onTap;
   final bool primary;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: primary ? Colors.white : _panelSoft,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: primary ? Colors.white : _line),
-      ),
-      padding: const EdgeInsets.symmetric(vertical: 13),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 18, color: primary ? Colors.black : Colors.white),
-          const SizedBox(width: 8),
-          Text(
-            label,
-            style: TextStyle(
-              color: primary ? Colors.black : Colors.white,
-              fontWeight: FontWeight.w900,
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: primary ? Colors.white : _panelSoft,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: primary ? Colors.white : _line),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 13),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 18, color: primary ? Colors.black : Colors.white),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: primary ? Colors.black : Colors.white,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
 class _ProfileTabs extends StatelessWidget {
-  const _ProfileTabs();
+  const _ProfileTabs({required this.activeTab, required this.onChanged});
+
+  final _ProfileTabKind activeTab;
+  final ValueChanged<_ProfileTabKind> onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -301,20 +353,31 @@ class _ProfileTabs extends StatelessWidget {
         border: Border.all(color: _line),
       ),
       padding: const EdgeInsets.all(6),
-      child: const Row(
+      child: Row(
         children: [
           Expanded(
             child: _ProfileTab(
               icon: Icons.grid_on_rounded,
               label: 'Posts',
-              active: true,
+              active: activeTab == _ProfileTabKind.posts,
+              onTap: () => onChanged(_ProfileTabKind.posts),
             ),
           ),
           Expanded(
-            child: _ProfileTab(icon: Icons.play_circle_outline, label: 'Reels'),
+            child: _ProfileTab(
+              icon: Icons.play_circle_outline,
+              label: 'Reels',
+              active: activeTab == _ProfileTabKind.reels,
+              onTap: () => onChanged(_ProfileTabKind.reels),
+            ),
           ),
           Expanded(
-            child: _ProfileTab(icon: Icons.sell_outlined, label: 'Tagged'),
+            child: _ProfileTab(
+              icon: Icons.sell_outlined,
+              label: 'Tagged',
+              active: activeTab == _ProfileTabKind.tagged,
+              onTap: () => onChanged(_ProfileTabKind.tagged),
+            ),
           ),
         ],
       ),
@@ -326,46 +389,56 @@ class _ProfileTab extends StatelessWidget {
   const _ProfileTab({
     required this.icon,
     required this.label,
-    this.active = false,
+    required this.active,
+    required this.onTap,
   });
 
   final IconData icon;
   final String label;
   final bool active;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: active ? Colors.white10 : Colors.transparent,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 18, color: active ? Colors.white : _textSoft),
-          const SizedBox(width: 7),
-          Text(
-            label,
-            style: TextStyle(
-              color: active ? Colors.white : _textSoft,
-              fontWeight: FontWeight.w900,
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: active ? Colors.white10 : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 18, color: active ? Colors.white : _textSoft),
+            const SizedBox(width: 7),
+            Text(
+              label,
+              style: TextStyle(
+                color: active ? Colors.white : _textSoft,
+                fontWeight: FontWeight.w900,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
 class _ProfileGrid extends StatelessWidget {
-  const _ProfileGrid();
+  const _ProfileGrid({required this.activeTab});
+
+  final _ProfileTabKind activeTab;
 
   @override
   Widget build(BuildContext context) {
+    final itemCount = activeTab == _ProfileTabKind.tagged ? 6 : 12;
+
     return GridView.builder(
-      itemCount: 12,
+      itemCount: itemCount,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -375,84 +448,397 @@ class _ProfileGrid extends StatelessWidget {
       ),
       itemBuilder: (context, index) {
         final post = localPosts[index % localPosts.length];
-        return _GridTile(post: post, index: index);
+        return _GridTile(post: post, index: index, activeTab: activeTab);
       },
     );
   }
 }
 
 class _GridTile extends StatelessWidget {
-  const _GridTile({required this.post, required this.index});
+  const _GridTile({
+    required this.post,
+    required this.index,
+    required this.activeTab,
+  });
 
   final LocalPost post;
   final int index;
+  final _ProfileTabKind activeTab;
 
   @override
   Widget build(BuildContext context) {
-    final isReel = index % 4 == 1;
+    final isReel = activeTab == _ProfileTabKind.reels || index % 4 == 1;
+    final isTagged = activeTab == _ProfileTabKind.tagged;
 
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(22),
-        gradient: LinearGradient(
-          colors: post.accent,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    return InkWell(
+      borderRadius: BorderRadius.circular(22),
+      onTap: () => _openGridPreview(context, post, index, activeTab),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(22),
+          gradient: LinearGradient(
+            colors: post.accent,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          border: Border.all(color: Colors.white12),
         ),
-        border: Border.all(color: Colors.white12),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Stack(
-        children: [
-          Positioned.fill(child: CustomPaint(painter: _GridPatternPainter())),
-          Positioned(
-            left: 10,
-            top: 10,
-            child: Icon(
-              isReel
-                  ? Icons.play_circle_fill_rounded
-                  : Icons.collections_rounded,
-              color: Colors.white,
-              size: 22,
-            ),
-          ),
-          Positioned(
-            right: 10,
-            top: 10,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-              decoration: BoxDecoration(
-                color: Colors.black38,
-                borderRadius: BorderRadius.circular(99),
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
+          children: [
+            Positioned.fill(child: CustomPaint(painter: _GridPatternPainter())),
+            Positioned(
+              left: 10,
+              top: 10,
+              child: Icon(
+                isTagged
+                    ? Icons.sell_outlined
+                    : isReel
+                    ? Icons.play_circle_fill_rounded
+                    : Icons.collections_rounded,
+                color: Colors.white,
+                size: 22,
               ),
-              child: Text(
-                '#${index + 1}',
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w900,
+            ),
+            Positioned(
+              right: 10,
+              top: 10,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                decoration: BoxDecoration(
+                  color: Colors.black38,
+                  borderRadius: BorderRadius.circular(99),
                 ),
-              ),
-            ),
-          ),
-          Positioned(
-            left: 10,
-            right: 10,
-            bottom: 10,
-            child: Row(
-              children: [
-                const Icon(Icons.favorite_rounded, size: 15),
-                const SizedBox(width: 4),
-                Text(
-                  post.likes,
+                child: Text(
+                  '#${index + 1}',
                   style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
+              ),
+            ),
+            Positioned(
+              left: 10,
+              right: 10,
+              bottom: 10,
+              child: Row(
+                children: [
+                  Icon(
+                    isTagged
+                        ? Icons.alternate_email_rounded
+                        : Icons.favorite_rounded,
+                    size: 15,
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      isTagged ? 'Tagged' : post.likes,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+void _openProfileActionSheet(
+  BuildContext context, {
+  required String title,
+  required String subtitle,
+  required IconData icon,
+  required String text,
+}) {
+  showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: Colors.transparent,
+    useSafeArea: true,
+    isScrollControlled: true,
+    builder: (context) {
+      return _ProfilePreviewSheet(
+        title: title,
+        subtitle: subtitle,
+        icon: icon,
+        children: [
+          _ProfileInfoCard(icon: icon, title: title, text: text),
+          const SizedBox(height: 10),
+          const _ProfileInfoCard(
+            icon: Icons.lock_outline_rounded,
+            title: 'Protected action boundary',
+            text:
+                'This is a local-only profile preview. Protected actions must later require a verified CidenDB/CID session.',
+          ),
+        ],
+      );
+    },
+  );
+}
+
+void _openGridPreview(
+  BuildContext context,
+  LocalPost post,
+  int index,
+  _ProfileTabKind tab,
+) {
+  final title = switch (tab) {
+    _ProfileTabKind.posts => 'Profile post',
+    _ProfileTabKind.reels => 'Profile reel',
+    _ProfileTabKind.tagged => 'Tagged preview',
+  };
+
+  final icon = switch (tab) {
+    _ProfileTabKind.posts => Icons.collections_rounded,
+    _ProfileTabKind.reels => Icons.play_circle_fill_rounded,
+    _ProfileTabKind.tagged => Icons.sell_outlined,
+  };
+
+  showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: Colors.transparent,
+    useSafeArea: true,
+    isScrollControlled: true,
+    builder: (context) {
+      return _ProfilePreviewSheet(
+        title: '$title #${index + 1}',
+        subtitle: 'Local profile grid preview',
+        icon: icon,
+        children: [
+          _ProfileGridPreviewFrame(post: post, icon: icon, tab: tab),
+          const SizedBox(height: 12),
+          _ProfileInfoCard(
+            icon: Icons.info_outline_rounded,
+            title: 'Local grid item',
+            text:
+                'This preview shows the profile grid opening behavior only. Real post detail, reel playback, tagged routing, and backend data will be added later.',
+          ),
+        ],
+      );
+    },
+  );
+}
+
+class _ProfilePreviewSheet extends StatelessWidget {
+  const _ProfilePreviewSheet({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.children,
+  });
+
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final maxSheetHeight = MediaQuery.sizeOf(context).height * 0.84;
+
+    return Container(
+      margin: const EdgeInsets.all(14),
+      constraints: BoxConstraints(maxHeight: maxSheetHeight),
+      decoration: BoxDecoration(
+        color: _panel,
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: _line),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x77000000),
+            blurRadius: 28,
+            offset: Offset(0, 16),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(icon, color: Colors.white),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            subtitle,
+                            style: const TextStyle(color: _textSoft),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.close_rounded),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                ...children,
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ProfileGridPreviewFrame extends StatelessWidget {
+  const _ProfileGridPreviewFrame({
+    required this.post,
+    required this.icon,
+    required this.tab,
+  });
+
+  final LocalPost post;
+  final IconData icon;
+  final _ProfileTabKind tab;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = switch (tab) {
+      _ProfileTabKind.posts => 'POST',
+      _ProfileTabKind.reels => 'REEL',
+      _ProfileTabKind.tagged => 'TAGGED',
+    };
+
+    return AspectRatio(
+      aspectRatio: 4 / 3,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          gradient: LinearGradient(
+            colors: post.accent,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          border: Border.all(color: Colors.white12),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
+          children: [
+            Positioned.fill(child: CustomPaint(painter: _GridPatternPainter())),
+            Center(
+              child: CircleAvatar(
+                radius: 42,
+                backgroundColor: Colors.black38,
+                child: Icon(icon, color: Colors.white, size: 48),
+              ),
+            ),
+            Positioned(left: 16, top: 16, child: _ProfilePill(label: label)),
+            Positioned(
+              left: 16,
+              right: 16,
+              bottom: 16,
+              child: Text(
+                post.caption,
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w800,
+                  height: 1.35,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ProfileInfoCard extends StatelessWidget {
+  const _ProfileInfoCard({
+    required this.icon,
+    required this.title,
+    required this.text,
+  });
+
+  final IconData icon;
+  final String title;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white10,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _line),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: Colors.white),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(fontWeight: FontWeight.w900),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  text,
+                  style: const TextStyle(color: _textSoft, height: 1.35),
+                ),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ProfilePill extends StatelessWidget {
+  const _ProfilePill({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.black38,
+        borderRadius: BorderRadius.circular(99),
+        border: Border.all(color: Colors.white24),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        child: Text(
+          label,
+          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900),
+        ),
       ),
     );
   }
