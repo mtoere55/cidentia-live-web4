@@ -354,6 +354,8 @@ class _LocalCreatePreviewSheet extends StatefulWidget {
 
 class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
   String selectedMode = 'Post';
+  String selectedMediaType = 'Photo';
+  String selectedMediaLabel = 'Local frame 01';
   final TextEditingController captionController = TextEditingController();
 
   @override
@@ -395,7 +397,20 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
                 onModeChanged: (mode) => setState(() => selectedMode = mode),
               ),
               const SizedBox(height: 14),
-              _CreateMediaPreview(mode: selectedMode),
+              _CreatePickerPreview(
+                selectedType: selectedMediaType,
+                selectedLabel: selectedMediaLabel,
+                onMediaSelected: (type, label) => setState(() {
+                  selectedMediaType = type;
+                  selectedMediaLabel = label;
+                }),
+              ),
+              const SizedBox(height: 14),
+              _CreateMediaPreview(
+                mode: selectedMode,
+                mediaType: selectedMediaType,
+                mediaLabel: selectedMediaLabel,
+              ),
               const SizedBox(height: 14),
               _CreateCaptionPreview(controller: captionController),
               const SizedBox(height: 14),
@@ -535,10 +550,192 @@ class _CreateModeChip extends StatelessWidget {
   }
 }
 
+class _CreatePickerPreview extends StatelessWidget {
+  const _CreatePickerPreview({
+    required this.selectedType,
+    required this.selectedLabel,
+    required this.onMediaSelected,
+  });
+
+  final String selectedType;
+  final String selectedLabel;
+  final void Function(String type, String label) onMediaSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    const photoItems = ['Local frame 01', 'Local frame 02', 'Local frame 03'];
+    const videoItems = ['Local clip 01', 'Local clip 02', 'Local clip 03'];
+    final items = selectedType == 'Photo' ? photoItems : videoItems;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: _panelSoft,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _line),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Local media picker preview',
+            style: TextStyle(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Visual-only picker. No file access or upload is opened.',
+            style: TextStyle(color: _textSoft, height: 1.25),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _PickerTypeChip(
+                label: 'Photo',
+                icon: Icons.photo_library_outlined,
+                active: selectedType == 'Photo',
+                onTap: () => onMediaSelected('Photo', photoItems.first),
+              ),
+              _PickerTypeChip(
+                label: 'Video',
+                icon: Icons.video_library_outlined,
+                active: selectedType == 'Video',
+                onTap: () => onMediaSelected('Video', videoItems.first),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              for (final item in items)
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.only(right: item == items.last ? 0 : 8),
+                    child: _PickerThumb(
+                      label: item,
+                      icon: selectedType == 'Photo'
+                          ? Icons.image_outlined
+                          : Icons.play_circle_outline_rounded,
+                      active: selectedLabel == item,
+                      onTap: () => onMediaSelected(selectedType, item),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PickerTypeChip extends StatelessWidget {
+  const _PickerTypeChip({
+    required this.label,
+    required this.icon,
+    required this.active,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final bool active;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(99),
+      onTap: onTap,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: active ? Colors.white : Colors.white.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(99),
+          border: Border.all(color: active ? Colors.white : _line),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: active ? Colors.black : Colors.white, size: 16),
+              const SizedBox(width: 7),
+              Text(
+                label,
+                style: TextStyle(
+                  color: active ? Colors.black : Colors.white,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PickerThumb extends StatelessWidget {
+  const _PickerThumb({
+    required this.label,
+    required this.icon,
+    required this.active,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final bool active;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        height: 82,
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: active ? Colors.white : Colors.white.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: active ? Colors.white : _line),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: active ? Colors.black : Colors.white),
+            const SizedBox(height: 7),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: active ? Colors.black : Colors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _CreateMediaPreview extends StatelessWidget {
-  const _CreateMediaPreview({required this.mode});
+  const _CreateMediaPreview({
+    required this.mode,
+    required this.mediaType,
+    required this.mediaLabel,
+  });
 
   final String mode;
+  final String mediaType;
+  final String mediaLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -564,9 +761,11 @@ class _CreateMediaPreview extends StatelessWidget {
                 ),
               ),
             ),
-            const Center(
+            Center(
               child: Icon(
-                Icons.add_photo_alternate_outlined,
+                mediaType == 'Photo'
+                    ? Icons.add_photo_alternate_outlined
+                    : Icons.play_circle_outline_rounded,
                 size: 58,
                 color: Colors.white,
               ),
@@ -576,7 +775,7 @@ class _CreateMediaPreview extends StatelessWidget {
               right: 14,
               bottom: 14,
               child: Text(
-                '$mode local media placeholder',
+                '$mode $mediaType preview ? $mediaLabel',
                 style: const TextStyle(
                   fontWeight: FontWeight.w900,
                   fontSize: 18,
