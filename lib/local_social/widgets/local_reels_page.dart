@@ -690,30 +690,6 @@ class _ReelComposerPreview extends StatelessWidget {
   }
 }
 
-class _ReelBadge extends StatelessWidget {
-  const _ReelBadge({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Colors.black38,
-        borderRadius: BorderRadius.circular(99),
-        border: Border.all(color: Colors.white12),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: Text(
-          label,
-          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
-        ),
-      ),
-    );
-  }
-}
-
 class _RoundControl extends StatelessWidget {
   const _RoundControl({required this.icon, required this.onTap});
 
