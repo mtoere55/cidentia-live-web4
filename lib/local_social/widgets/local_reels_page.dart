@@ -146,8 +146,37 @@ class _ReelsScrollBehavior extends MaterialScrollBehavior {
   };
 }
 
-class _ReelsTitle extends StatelessWidget {
+class _ReelsTitle extends StatefulWidget {
   const _ReelsTitle();
+
+  @override
+  State<_ReelsTitle> createState() => _ReelsTitleState();
+}
+
+class _ReelsTitleState extends State<_ReelsTitle>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _liveOpacity;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 850),
+    )..repeat(reverse: true);
+
+    _liveOpacity = Tween<double>(
+      begin: 0.35,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -157,13 +186,24 @@ class _ReelsTitle extends StatelessWidget {
         borderRadius: BorderRadius.circular(99),
         border: Border.all(color: Colors.white12),
       ),
-      child: const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
         child: Row(
           children: [
-            Icon(Icons.smart_display_outlined, size: 18),
-            SizedBox(width: 8),
-            Text('Reels', style: TextStyle(fontWeight: FontWeight.w900)),
+            const Icon(Icons.smart_display_outlined, size: 18),
+            const SizedBox(width: 8),
+            const Text('Reels', style: TextStyle(fontWeight: FontWeight.w900)),
+            const SizedBox(width: 12),
+            FadeTransition(
+              opacity: _liveOpacity,
+              child: const Text(
+                'Live',
+                style: TextStyle(
+                  color: Color(0xFFFDA4AF),
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
           ],
         ),
       ),
