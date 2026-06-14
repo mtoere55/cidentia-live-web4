@@ -284,11 +284,7 @@ class _LocalShellState extends State<LocalShell> {
               ),
               IconButton(
                 tooltip: 'Create preview',
-                onPressed: () => _showLocalShellNotice(
-                  context,
-                  'Create preview',
-                  'Creation will be connected only after the approved media/upload milestone.',
-                ),
+                onPressed: () => _showLocalCreatePreviewSheet(context),
                 icon: const Icon(Icons.add_box_outlined),
               ),
               const SizedBox(width: 6),
@@ -330,6 +326,259 @@ void _showLocalShellNotice(BuildContext context, String title, String message) {
       content: Text('$title ? $message'),
     ),
   );
+}
+
+void _showLocalCreatePreviewSheet(BuildContext context) {
+  showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: Colors.transparent,
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (context) => const _LocalCreatePreviewSheet(),
+  );
+}
+
+class _LocalCreatePreviewSheet extends StatelessWidget {
+  const _LocalCreatePreviewSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    final maxHeight = MediaQuery.sizeOf(context).height * 0.88;
+
+    return Container(
+      margin: const EdgeInsets.all(10),
+      constraints: BoxConstraints(maxHeight: maxHeight),
+      decoration: BoxDecoration(
+        color: _panel,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: _line),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x77000000),
+            blurRadius: 30,
+            offset: Offset(0, 18),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const _CreateSheetHeader(),
+              const SizedBox(height: 14),
+              const _CreateModeRow(),
+              const SizedBox(height: 14),
+              const _CreateMediaPreview(),
+              const SizedBox(height: 14),
+              const _CreateCaptionPreview(),
+              const SizedBox(height: 14),
+              const _CreateBoundaryNotice(),
+              const SizedBox(height: 14),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.visibility_outlined),
+                  label: const Text('Preview only'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CreateSheetHeader extends StatelessWidget {
+  const _CreateSheetHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Icon(Icons.add_box_outlined),
+        const SizedBox(width: 10),
+        const Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Create preview',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+              ),
+              SizedBox(height: 3),
+              Text(
+                'Local-only media flow',
+                style: TextStyle(color: _textSoft, fontWeight: FontWeight.w700),
+              ),
+            ],
+          ),
+        ),
+        IconButton(
+          onPressed: () => Navigator.of(context).pop(),
+          icon: const Icon(Icons.close_rounded),
+        ),
+      ],
+    );
+  }
+}
+
+class _CreateModeRow extends StatelessWidget {
+  const _CreateModeRow();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        _CreateModeChip(icon: Icons.crop_square_rounded, label: 'Post'),
+        _CreateModeChip(icon: Icons.movie_creation_outlined, label: 'Reel'),
+        _CreateModeChip(icon: Icons.auto_stories_outlined, label: 'Story'),
+      ],
+    );
+  }
+}
+
+class _CreateModeChip extends StatelessWidget {
+  const _CreateModeChip({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: _panelSoft,
+        borderRadius: BorderRadius.circular(99),
+        border: Border.all(color: _line),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 17),
+            const SizedBox(width: 7),
+            Text(label, style: const TextStyle(fontWeight: FontWeight.w900)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CreateMediaPreview extends StatelessWidget {
+  const _CreateMediaPreview();
+
+  @override
+  Widget build(BuildContext context) {
+    return AspectRatio(
+      aspectRatio: 1.35,
+      child: Container(
+        decoration: BoxDecoration(
+          color: _panelSoft,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: _line),
+        ),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(22),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+              ),
+            ),
+            const Center(
+              child: Icon(
+                Icons.add_photo_alternate_outlined,
+                size: 58,
+                color: Colors.white,
+              ),
+            ),
+            const Positioned(
+              left: 14,
+              right: 14,
+              bottom: 14,
+              child: Text(
+                'Local media placeholder',
+                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CreateCaptionPreview extends StatelessWidget {
+  const _CreateCaptionPreview();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: _panelSoft,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _line),
+      ),
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Caption', style: TextStyle(fontWeight: FontWeight.w900)),
+          SizedBox(height: 8),
+          Text(
+            'Write a caption later. This sheet only previews the local create flow.',
+            style: TextStyle(color: _textSoft, height: 1.35),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CreateBoundaryNotice extends StatelessWidget {
+  const _CreateBoundaryNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+      ),
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.lock_outline_rounded, size: 20),
+          SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Preview only. No upload, storage, backend, CidenDB session, RTMP, wallet, token, payment, blockchain or real publishing is opened.',
+              style: TextStyle(color: _textSoft, height: 1.35),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _SideNavTile extends StatelessWidget {
