@@ -7,6 +7,10 @@ const _cardSoft = Color(0xFF181A20);
 const _line = Color(0xFF262A33);
 const _textSoft = Color(0xFFA1A1AA);
 
+bool _isFeedLivePost(LocalPost post) {
+  return post.handle == '@mira.studio';
+}
+
 class OriginalInspiredPostCard extends StatefulWidget {
   const OriginalInspiredPostCard({required this.post, super.key});
 
@@ -45,6 +49,7 @@ class _OriginalInspiredPostCardState extends State<OriginalInspiredPostCard> {
   @override
   Widget build(BuildContext context) {
     final post = widget.post;
+    final isLivePost = _isFeedLivePost(post);
     final firstLetter = post.author.isEmpty
         ? '?'
         : post.author.characters.first;
@@ -71,7 +76,9 @@ class _OriginalInspiredPostCardState extends State<OriginalInspiredPostCard> {
             post: post,
             firstLetter: firstLetter,
             isFollowing: isFollowing,
+            isLivePost: isLivePost,
             onToggleFollow: _toggleFollow,
+            onLiveTap: () => _showFeedLivePreviewSheet(context, post),
             onMoreOptions: () => _showPostOptionsSheet(context, post),
           ),
           InkWell(
@@ -99,14 +106,18 @@ class _PostHeader extends StatelessWidget {
     required this.post,
     required this.firstLetter,
     required this.isFollowing,
+    required this.isLivePost,
     required this.onToggleFollow,
+    required this.onLiveTap,
     required this.onMoreOptions,
   });
 
   final LocalPost post;
   final String firstLetter;
   final bool isFollowing;
+  final bool isLivePost;
   final VoidCallback onToggleFollow;
+  final VoidCallback onLiveTap;
   final VoidCallback onMoreOptions;
 
   @override
@@ -153,6 +164,10 @@ class _PostHeader extends StatelessWidget {
               ],
             ),
           ),
+          if (isLivePost) ...[
+            GestureDetector(onTap: onLiveTap, child: const _FeedLiveChip()),
+            const SizedBox(width: 8),
+          ],
           GestureDetector(
             onTap: onToggleFollow,
             child: AnimatedContainer(
@@ -182,6 +197,71 @@ class _PostHeader extends StatelessWidget {
             tooltip: 'Post options',
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _FeedLiveChip extends StatefulWidget {
+  const _FeedLiveChip();
+
+  @override
+  State<_FeedLiveChip> createState() => _FeedLiveChipState();
+}
+
+class _FeedLiveChipState extends State<_FeedLiveChip>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _pulse;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 820),
+    )..repeat(reverse: true);
+
+    _pulse = Tween<double>(
+      begin: 0.45,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _pulse,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFF1744),
+          borderRadius: BorderRadius.circular(99),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x55000000),
+              blurRadius: 12,
+              offset: Offset(0, 6),
+            ),
+          ],
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.wifi_tethering_rounded, size: 14),
+            SizedBox(width: 5),
+            Text(
+              'LIVE',
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -455,6 +535,74 @@ void _showPostDetailSheet(BuildContext context, LocalPost post) {
             onTap: () {
               Navigator.of(context).pop();
               _showShareSheet(context, post);
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
+void _showFeedLivePreviewSheet(BuildContext context, LocalPost post) {
+  showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: Colors.transparent,
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (context) {
+      return _LocalPreviewSheet(
+        title: 'Live watch preview',
+        subtitle: '${post.author} is live - local preview only',
+        children: [
+          AspectRatio(
+            aspectRatio: 1.35,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(24),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: post.accent,
+                ),
+                border: Border.all(color: _line),
+              ),
+              child: Stack(
+                children: [
+                  const Positioned(left: 16, top: 16, child: _FeedLiveChip()),
+                  Center(
+                    child: CircleAvatar(
+                      radius: 42,
+                      backgroundColor: Colors.black38,
+                      child: Text(
+                        post.author.characters.first,
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const Positioned(
+                    left: 16,
+                    right: 16,
+                    bottom: 16,
+                    child: Text(
+                      'Feed live discovery surface. RTMP, backend and real camera stream stay locked.',
+                      style: TextStyle(color: Colors.white70, height: 1.35),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          _LocalSheetAction(
+            icon: Icons.remove_red_eye_outlined,
+            title: 'Watch live preview',
+            subtitle: 'Open local live viewer surface. No real stream.',
+            onTap: () {
+              Navigator.of(context).pop();
+              _showLocalActionSnack(context, 'Feed live preview only');
             },
           ),
         ],
