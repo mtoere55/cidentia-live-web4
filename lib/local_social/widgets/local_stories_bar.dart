@@ -205,10 +205,10 @@ class _StoryPreviewSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final maxSheetHeight = MediaQuery.sizeOf(context).height * 0.86;
+    final maxSheetHeight = MediaQuery.sizeOf(context).height * 0.94;
 
     return Container(
-      margin: const EdgeInsets.all(14),
+      margin: const EdgeInsets.fromLTRB(8, 8, 8, 8),
       constraints: BoxConstraints(maxHeight: maxSheetHeight),
       decoration: BoxDecoration(
         color: _panel,
@@ -225,7 +225,7 @@ class _StoryPreviewSheet extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.all(12),
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -339,7 +339,7 @@ class _StoryPreviewFrame extends StatelessWidget {
     return AspectRatio(
       aspectRatio: 9 / 14,
       child: Container(
-        constraints: const BoxConstraints(maxHeight: 520),
+        constraints: const BoxConstraints(maxHeight: 720),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(30),
           gradient: LinearGradient(
