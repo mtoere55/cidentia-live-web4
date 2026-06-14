@@ -276,12 +276,20 @@ class _LocalShellState extends State<LocalShell> {
             actions: [
               IconButton(
                 tooltip: 'Local favorites',
-                onPressed: () {},
+                onPressed: () => _showLocalShellNotice(
+                  context,
+                  'Local favorites',
+                  'Saved and liked items are local-preview only in this milestone.',
+                ),
                 icon: const Icon(Icons.favorite_border_rounded),
               ),
               IconButton(
                 tooltip: 'Create preview',
-                onPressed: () {},
+                onPressed: () => _showLocalShellNotice(
+                  context,
+                  'Create preview',
+                  'Creation will be connected only after the approved media/upload milestone.',
+                ),
                 icon: const Icon(Icons.add_box_outlined),
               ),
               const SizedBox(width: 6),
@@ -314,6 +322,15 @@ class _LocalShellState extends State<LocalShell> {
       },
     );
   }
+}
+
+void _showLocalShellNotice(BuildContext context, String title, String message) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      behavior: SnackBarBehavior.floating,
+      content: Text('$title ? $message'),
+    ),
+  );
 }
 
 class _SideNavTile extends StatelessWidget {
@@ -1544,7 +1561,11 @@ class _StudioDestinationsPanelCard extends StatelessWidget {
             ),
           const SizedBox(height: 4),
           OutlinedButton.icon(
-            onPressed: null,
+            onPressed: () => _showLocalShellNotice(
+              context,
+              'Add Destination',
+              'Destination creation is protected. Real RTMP/backend setup opens only in its own approved milestone.',
+            ),
             icon: const Icon(Icons.add_rounded),
             label: const Text('Add Destination'),
           ),

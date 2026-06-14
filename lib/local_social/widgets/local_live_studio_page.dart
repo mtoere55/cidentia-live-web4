@@ -8,6 +8,15 @@ const _panelSoft = Color(0xFF181A20);
 const _line = Color(0xFF262A33);
 const _textSoft = Color(0xFFA1A1AA);
 
+void _showLiveStudioNotice(BuildContext context, String title, String message) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      behavior: SnackBarBehavior.floating,
+      content: Text('$title ? $message'),
+    ),
+  );
+}
+
 class OriginalInspiredLiveStudioPage extends StatefulWidget {
   const OriginalInspiredLiveStudioPage({
     super.key,
@@ -265,7 +274,11 @@ class _DesktopStudioPreview extends StatelessWidget {
                 top: 78,
                 child: _SmallIconButton(
                   icon: Icons.fullscreen_rounded,
-                  onTap: () {},
+                  onTap: () => _showLiveStudioNotice(
+                    context,
+                    'Stage Focus',
+                    'Stage focus is controlled from the Studio panel. No fullscreen backend or stream mode is opened here.',
+                  ),
                 ),
               ),
             Positioned(
@@ -2364,7 +2377,11 @@ class _DestinationManagerDialogState extends State<_DestinationManagerDialog> {
                 children: [
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: null,
+                      onPressed: () => _showLiveStudioNotice(
+                        context,
+                        'Test Connection',
+                        'RTMP testing is disabled in local preview. Real connection testing opens only in the approved RTMP/backend milestone.',
+                      ),
                       icon: const Icon(Icons.settings_ethernet_rounded),
                       label: const Text('Test Connection'),
                     ),
@@ -2718,7 +2735,11 @@ class _LiveTranslationHubContentState
           children: [
             Expanded(
               child: OutlinedButton.icon(
-                onPressed: null,
+                onPressed: () => _showLiveStudioNotice(
+                  context,
+                  'Test Voice',
+                  'Voice testing is disabled in local preview. Real voice translation opens only in its own approved backend milestone.',
+                ),
                 icon: const Icon(Icons.hearing_rounded),
                 label: const Text('Test Voice'),
               ),
