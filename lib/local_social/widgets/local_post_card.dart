@@ -551,8 +551,8 @@ void _showFeedLivePreviewSheet(BuildContext context, LocalPost post) {
     useSafeArea: true,
     builder: (context) {
       return _LocalPreviewSheet(
-        title: 'Live watch preview',
-        subtitle: '${post.author} is live - local preview only',
+        title: 'Cidentia Live Room',
+        subtitle: '${post.author} · CID-safe local watch surface',
         children: [
           AspectRatio(
             aspectRatio: 1.35,
@@ -587,7 +587,7 @@ void _showFeedLivePreviewSheet(BuildContext context, LocalPost post) {
                     right: 16,
                     bottom: 16,
                     child: Text(
-                      'Feed live discovery surface. RTMP, backend and real camera stream stay locked.',
+                      'CID Signal Room · Proof, support and effects are preview-only. RTMP, backend and wallet stay locked.',
                       style: TextStyle(color: Colors.white70, height: 1.35),
                     ),
                   ),
@@ -598,11 +598,30 @@ void _showFeedLivePreviewSheet(BuildContext context, LocalPost post) {
           const SizedBox(height: 14),
           _LocalSheetAction(
             icon: Icons.remove_red_eye_outlined,
-            title: 'Watch live preview',
-            subtitle: 'Open local live viewer surface. No real stream.',
+            title: 'Enter Live Room',
+            subtitle: 'Open the local viewer surface. No real stream.',
             onTap: () {
               Navigator.of(context).pop();
               _showLocalActionSnack(context, 'Feed live preview only');
+            },
+          ),
+          _LocalSheetAction(
+            icon: Icons.auto_awesome_rounded,
+            title: 'Effect earned preview',
+            subtitle:
+                'Future effects can become achievement or NFT-ready assets.',
+            onTap: () {
+              Navigator.of(context).pop();
+              _showLocalActionSnack(context, 'Effect reward preview only');
+            },
+          ),
+          _LocalSheetAction(
+            icon: Icons.verified_user_outlined,
+            title: 'Proof support',
+            subtitle: 'Future support will use CID proof and economy rules.',
+            onTap: () {
+              Navigator.of(context).pop();
+              _showLocalActionSnack(context, 'Proof support preview only');
             },
           ),
         ],

@@ -639,8 +639,8 @@ void _showLiveWatchPreviewSheet(BuildContext context, LocalPost post) {
     useSafeArea: true,
     builder: (context) {
       return _ReelPreviewSheet(
-        title: 'Live watch preview',
-        subtitle: '${post.author} is live - local preview only',
+        title: 'Cidentia Live Room',
+        subtitle: '${post.author} · CID-safe local watch surface',
         children: [
           Container(
             height: 320,
@@ -703,8 +703,8 @@ void _showLiveWatchPreviewSheet(BuildContext context, LocalPost post) {
           const SizedBox(height: 16),
           _ReelSheetAction(
             icon: Icons.remove_red_eye_outlined,
-            title: 'Join as viewer',
-            subtitle: 'Public local watch preview. No real stream is opened.',
+            title: 'Enter Live Room',
+            subtitle: 'Watch the local room surface. No real stream is opened.',
             onTap: () {
               Navigator.of(context).pop();
               _showReelSnack(context, 'Live watch preview only');
@@ -712,8 +712,8 @@ void _showLiveWatchPreviewSheet(BuildContext context, LocalPost post) {
           ),
           _ReelSheetAction(
             icon: Icons.chat_bubble_outline_rounded,
-            title: 'Open live chat preview',
-            subtitle: 'Chat is local-only until CID/backend is unlocked.',
+            title: 'CID Signal Chat',
+            subtitle: 'Preview the future verified chat lane.',
             onTap: () {
               Navigator.of(context).pop();
               _showReelSnack(context, 'Live chat preview only');
@@ -721,11 +721,31 @@ void _showLiveWatchPreviewSheet(BuildContext context, LocalPost post) {
           ),
           _ReelSheetAction(
             icon: Icons.notifications_active_outlined,
-            title: 'Notify me',
-            subtitle: 'Future live notification path.',
+            title: 'Follow Signal',
+            subtitle: 'Future live notification and trust signal path.',
             onTap: () {
               Navigator.of(context).pop();
               _showReelSnack(context, 'Live notify preview only');
+            },
+          ),
+          _ReelSheetAction(
+            icon: Icons.auto_awesome_rounded,
+            title: 'Effect earned preview',
+            subtitle:
+                'Future effects can become achievement or NFT-ready assets.',
+            onTap: () {
+              Navigator.of(context).pop();
+              _showReelSnack(context, 'Effect reward preview only');
+            },
+          ),
+          _ReelSheetAction(
+            icon: Icons.verified_user_outlined,
+            title: 'Proof support',
+            subtitle:
+                'Future creator support will use CID proof and economy rules.',
+            onTap: () {
+              Navigator.of(context).pop();
+              _showReelSnack(context, 'Proof support preview only');
             },
           ),
         ],
