@@ -600,24 +600,126 @@ class SearchPreviewPage extends StatelessWidget {
         itemCount: 24,
         gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
           maxCrossAxisExtent: 210,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
+          mainAxisSpacing: 4,
+          crossAxisSpacing: 4,
         ),
         itemBuilder: (context, index) {
           final colors = localPosts[index % localPosts.length].accent;
+          final isLive = index % 7 == 2;
+          final isReel = !isLive && index % 3 == 1;
+          final label = isLive
+              ? 'LIVE'
+              : isReel
+              ? 'Reel'
+              : 'Post';
+          final views = [
+            '445K',
+            '1.4M',
+            '3.2M',
+            '6M',
+            '7.2M',
+            '13.9M',
+          ][index % 6];
+
           return Container(
+            clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              gradient: LinearGradient(colors: colors),
-            ),
-            child: Center(
-              child: Icon(
-                index.isEven
-                    ? Icons.photo_camera_outlined
-                    : Icons.play_circle_outline,
-                size: 42,
-                color: Colors.white,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: colors,
               ),
+            ),
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.white.withValues(alpha: 0.04),
+                          Colors.black.withValues(alpha: 0.28),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                Center(
+                  child: Icon(
+                    isLive
+                        ? Icons.live_tv_rounded
+                        : isReel
+                        ? Icons.play_circle_outline_rounded
+                        : Icons.photo_camera_outlined,
+                    size: 54,
+                    color: Colors.white.withValues(alpha: 0.30),
+                  ),
+                ),
+                Positioned(
+                  left: 8,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 7,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.34),
+                      borderRadius: BorderRadius.circular(99),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.16),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          isLive
+                              ? Icons.fiber_manual_record_rounded
+                              : isReel
+                              ? Icons.play_arrow_rounded
+                              : Icons.grid_on_rounded,
+                          color: Colors.white,
+                          size: 12,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          label,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: 8,
+                  bottom: 8,
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.remove_red_eye_rounded,
+                        color: Colors.white,
+                        size: 15,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        views,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           );
         },
