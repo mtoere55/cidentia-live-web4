@@ -127,8 +127,196 @@ class _OriginalInspiredReelsPageState extends State<OriginalInspiredReelsPage> {
             ),
           ),
           const Positioned(left: 22, top: 24, child: _ReelsTitle()),
+          if (MediaQuery.sizeOf(context).width >= 1280)
+            const Positioned(
+              left: 22,
+              top: 86,
+              bottom: 28,
+              child: _ReelsLiveDiscoverySidebar(),
+            ),
         ],
       ),
+    );
+  }
+}
+
+class _ReelsLiveDiscoverySidebar extends StatelessWidget {
+  const _ReelsLiveDiscoverySidebar();
+
+  @override
+  Widget build(BuildContext context) {
+    const sections = [
+      (
+        'Following Live',
+        [
+          ('Mira Studio', 'Normal Live', '1.2K', Icons.sensors_rounded),
+          ('Web4 Proof', 'Proof Room', '860', Icons.verified_user_outlined),
+        ],
+      ),
+      (
+        'VS / Battle',
+        [('CID Battle', 'VS active', '3.7K', Icons.compare_arrows_rounded)],
+      ),
+      (
+        'Multi Guest',
+        [('Community Room', 'Guest grid', '2.4K', Icons.grid_view_rounded)],
+      ),
+      (
+        'Proof Rooms',
+        [('Truth Room', 'CID signal', '640', Icons.shield_outlined)],
+      ),
+    ];
+
+    return SizedBox(
+      width: 292,
+      child: ListView.separated(
+        padding: EdgeInsets.zero,
+        itemCount: sections.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 12),
+        itemBuilder: (context, index) {
+          final section = sections[index];
+
+          return _ReelsLiveDiscoverySection(
+            title: section.$1,
+            rooms: section.$2,
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _ReelsLiveDiscoverySection extends StatelessWidget {
+  const _ReelsLiveDiscoverySection({required this.title, required this.rooms});
+
+  final String title;
+  final List<(String, String, String, IconData)> rooms;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.34),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 11, 12, 4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 12,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 9),
+            for (final room in rooms)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: _ReelsLiveDiscoveryProfile(
+                  name: room.$1,
+                  mode: room.$2,
+                  viewers: room.$3,
+                  icon: room.$4,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ReelsLiveDiscoveryProfile extends StatelessWidget {
+  const _ReelsLiveDiscoveryProfile({
+    required this.name,
+    required this.mode,
+    required this.viewers,
+    required this.icon,
+  });
+
+  final String name;
+  final String mode;
+  final String viewers;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            CircleAvatar(
+              radius: 19,
+              backgroundColor: const Color(0xFF27272A),
+              child: Icon(icon, color: Colors.white, size: 17),
+            ),
+            const Positioned(
+              left: 1,
+              right: 1,
+              bottom: -7,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Color(0xFFFF1744),
+                  borderRadius: BorderRadius.all(Radius.circular(99)),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 2),
+                  child: Text(
+                    'LIVE',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 7, fontWeight: FontWeight.w900),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                mode,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Color(0xFF86EFAC),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const Icon(
+          Icons.remove_red_eye_outlined,
+          size: 13,
+          color: Colors.white60,
+        ),
+        const SizedBox(width: 3),
+        Text(
+          viewers,
+          style: const TextStyle(
+            color: Colors.white60,
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -837,7 +1025,7 @@ class _ReelActiveRoomMode extends StatelessWidget {
       icon: Icons.sensors_rounded,
       title: 'Active room mode: Normal Live',
       subtitle:
-          'Creator controls VS, Multi Guest and Support modes from Live Studio.',
+          'Mira selected this mode from Live Studio. Viewers join the active room and react inside it.',
     );
   }
 }
