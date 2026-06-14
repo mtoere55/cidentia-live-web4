@@ -1460,8 +1460,8 @@ class _StudioDestinationsPanelCard extends StatelessWidget {
       ('YouTube', '@CidentiaLive', Color(0xFFFF0000), Icons.play_arrow_rounded),
       ('Twitch', '/cidentialive', Color(0xFF9146FF), Icons.chat_bubble_rounded),
       (
-        'Cidentia.Live',
-        'web4/live',
+        'Instagram',
+        '@cidentia.live',
         Color(0xFFEC4899),
         Icons.camera_alt_rounded,
       ),
