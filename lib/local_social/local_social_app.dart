@@ -187,16 +187,23 @@ class _LocalShellState extends State<LocalShell> {
                           padding: EdgeInsets.fromLTRB(20, 24, 18, 18),
                           child: CidentiaBrandHeader(),
                         ),
-                        const SizedBox(height: 28),
-                        for (final section in LocalSection.values)
-                          _SideNavTile(
-                            section: section,
-                            selected: selected == section,
-                            onTap: () => setState(() => selected = section),
+                        const SizedBox(height: 12),
+                        Expanded(
+                          child: ListView(
+                            padding: EdgeInsets.zero,
+                            children: [
+                              for (final section in LocalSection.values)
+                                _SideNavTile(
+                                  section: section,
+                                  selected: selected == section,
+                                  onTap: () =>
+                                      setState(() => selected = section),
+                                ),
+                            ],
                           ),
-                        const Spacer(),
+                        ),
                         const Padding(
-                          padding: EdgeInsets.all(20),
+                          padding: EdgeInsets.fromLTRB(16, 8, 16, 16),
                           child: _LocalStatusCard(),
                         ),
                       ],
