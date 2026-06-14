@@ -1,0 +1,842 @@
+=== BACKEND RISK SCAN ===
+C:\PROJELER\cidentia-live-web4\lib\feed\feed.dart:1 :: export 'bloc/feed_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:7 :: import 'package:bloc/bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:10 :: import 'package:firebase_remote_config_repository/firebase_remote_config_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:14 :: import 'package:posts_repository/posts_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:17 :: part 'feed_bloc_mixin.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:21 :: class FeedBloc extends Bloc<FeedEvent, FeedState> with FeedBlocMixin {
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:22 :: FeedBloc({
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:23 :: required PostsRepository postsRepository,
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:24 :: required FirebaseRemoteConfigRepository firebaseRemoteConfigRepository,
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:25 :: }) : _postsRepository = postsRepository,
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:26 :: _firebaseRemoteConfigRepository = firebaseRemoteConfigRepository,
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:50 :: PostsRepository get postsRepository => _postsRepository;
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:53 :: FirebaseRemoteConfigRepository get firebaseRemoteConfigRepository =>
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:54 :: _firebaseRemoteConfigRepository;
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:56 :: final PostsRepository _postsRepository;
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:57 :: final FirebaseRemoteConfigRepository _firebaseRemoteConfigRepository;
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:72 :: final (:newPage, :hasMore, :blocks) = await fetchFeedPage(
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:80 :: blocks: [...state.feed.feedPage.blocks, ...blocks],
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:81 :: totalBlocks: state.feed.feedPage.totalBlocks + blocks.length,
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:108 :: final (:newPage, :hasMore, :blocks) = await fetchFeedPage(
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:110 :: withSponsoredBlocks: false,
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:111 :: mapper: postsToReelBlockMapper,
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:118 :: blocks: [...state.feed.reelsPage.blocks, ...blocks],
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:119 :: totalBlocks: state.feed.reelsPage.totalBlocks + blocks.length,
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:135 :: final (:newPage, :hasMore, :blocks) = await fetchFeedPage(
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:136 :: mapper: postsToReelBlockMapper,
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:143 :: blocks: blocks,
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:144 :: totalBlocks: blocks.length,
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:160 :: final (:newPage, :hasMore, :blocks) = await fetchFeedPage();
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:164 :: blocks: blocks,
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:166 :: totalBlocks: blocks.length,
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:183 :: final recommendedBlocks = await compute(
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:185 :: PostsRepository.recommendedPosts.withNavigateToPostAuthorAction,
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:187 :: final blocks = await insertSponsoredBlocks(
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:189 :: blocks: recommendedBlocks,
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:194 :: blocks: [...state.feed.feedPage.blocks, ...blocks],
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:195 :: totalBlocks: state.feed.feedPage.totalBlocks + blocks.length,
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:206 :: static List<InstaBlock> _shuffleRecommendedPosts(List<InstaBlock> blocks) {
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:207 :: return [...blocks..shuffle()];
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:216 :: final newPost = await _postsRepository.createPost(
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:251 :: final feedBlock = oldFeed.feedPage.blocks.findPostBlock(
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:252 :: test: (block) => block.id == update.newPost.id,
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:254 :: final reel = oldFeed.reelsPage.blocks.findPostBlock(
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:255 :: test: (block) =>
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:256 :: block.id == update.newPost.id &&
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:257 :: block.type == PostReelBlock.identifier,
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:259 :: if (feedBlock == null && reel == null && !update.isCreate) {
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:262 :: final updatedFeedBlocks = oldFeed.updateFeedPage(update: update);
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:263 :: List<InstaBlock>? updatedReelsBlocks;
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:265 :: updatedReelsBlocks = oldFeed.updateReelsPage(update: update);
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:270 :: blocks: updatedFeedBlocks,
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:271 :: totalBlocks: updatedFeedBlocks.length,
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:274 :: blocks: updatedReelsBlocks,
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc.dart:275 :: totalBlocks: updatedReelsBlocks?.length,
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:1 :: part of 'feed_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:5 :: Future<({int newPage, bool hasMore, List<InstaBlock> blocks})>;
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:8 :: typedef ListPostMapper = List<InstaBlock> Function(List<Post> post);
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:32 :: /// It provides getters to access the new large block and new reel block derived
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:34 :: /// The `onUpdate` method can be used to update a block with a new block.
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:42 :: /// final newLargeBlock = update.newLargeBlock;
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:43 :: /// final newReelBlock = update.newReelBlock;
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:44 :: /// final updatedBlock = update.onUpdate(oldBlock, newBlock);
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:54 :: /// - `PostLargeBlock` class for representing a large block of a post
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:55 :: /// - `PostReelBlock` class for representing a reel block of a post
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:63 :: /// Returns the new large block derived from the `newPost` by calling the
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:64 :: /// `toPostLargeBlock()` method.
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:65 :: PostLargeBlock get newLargeBlock => newPost.toPostLargeBlock;
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:67 :: /// Returns the new reel block derived from the `newPost` by calling the
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:68 :: /// `toPostReelBlock()` method.
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:69 :: PostReelBlock get newReelBlock => newPost.toPostReelBlock;
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:71 :: /// Updates a [PostBlock] with a new block.
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:73 :: /// This method takes in a [block] of type [T] and a [newBlock] of type
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:74 :: /// [PostBlock] and returns a new [PostBlock] that is updated based on the
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:75 :: /// provided [newBlock].
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:79 :: /// final updatedBlock = onUpdate<PostLargeBlock>(block, newBlock);
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:82 :: /// Note: The [block] and [newBlock] should have the same type [T].
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:83 :: /// If the [block] and [newBlock] have different types, the method will throw
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:86 :: PostBlock onUpdate<T>(T block, PostBlock newBlock);
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:103 :: /// The [onUpdate] method takes in a `block` of type `T` and a `newBlock` of
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:104 :: /// type [PostBlock] and returns a new [PostBlock] that is updated based on
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:105 :: /// the provided `newBlock`. If the `block` is of any other type, it throws an
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:106 :: /// [UnsupportedError] with a message indicating the unsupported block type.
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:112 :: PostBlock onUpdate<T>(T block, PostBlock newBlock) => switch (block) {
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:113 :: final PostLargeBlock block => block.copyWith(caption: newBlock.caption),
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:114 :: final PostReelBlock block => block.copyWith(caption: newBlock.caption),
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:115 :: _ => throw UnsupportedError('Unsupported block type: $block'),
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:119 :: /// {@template feed_bloc_mixin}
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:120 :: /// A mixin class that provides common functionality for a feed bloc.
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:122 :: /// This mixin class is intended to be used with a `Bloc` class that handles
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:125 :: /// by ID, updating blocks, and inserting sponsored blocks.
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:128 :: /// - `PostsRepository` for fetching posts and post likers
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:129 :: /// - `FirebaseRemoteConfigRepository` for fetching remote data
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:133 :: /// class MyFeedBloc extends Bloc<FeedEvent, FeedState> with FeedBlocMixin {
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:135 :: ///   PostsRepository get postsRepository => ...
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:136 :: ///   FirebaseRemoteConfigRepository get firebaseRemoteConfigRepository => ...
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:138 :: ///   // Implement other methods and properties specific to your feed bloc
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:143 :: /// Note: This mixin assumes that the `Bloc` class has already implemented the
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:145 :: /// It also assumes that the `PostsRepository` and
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:146 :: /// `FirebaseRemoteConfigRepository` dependencies have been properly
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:150 :: /// - `Bloc` class for handling feed-related events and states
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:151 :: /// - `PostsRepository` class for fetching posts and post likers
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:152 :: /// - `FirebaseRemoteConfigRepository` class for fetching remote data
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:154 :: mixin FeedBlocMixin on Bloc<FeedEvent, FeedState> {
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:158 :: PostsRepository get postsRepository;
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:159 :: FirebaseRemoteConfigRepository get firebaseRemoteConfigRepository;
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:161 :: /// Retrieves a post block by its ID.
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:165 :: /// final postBlock = await getPostBy('123');
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:169 :: /// `postsRepository` to fetch the post by its ID and converts it to a
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:170 :: /// `PostLargeBlock`.
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:173 :: Future<PostBlock?> getPostBy(String id) async {
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:174 :: final post = await postsRepository.getPostBy(id: id);
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:175 :: return post?.toPostLargeBlock;
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:186 :: /// final (:newPage, :hasMore, :blocks) = await fetchFeedPage(
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:189 :: ///   withSponsoredBlocks: false,
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:194 :: /// print(blocks);
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:200 :: bool withSponsoredBlocks = true,
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:203 :: final posts = await postsRepository.getPage(
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:210 :: final instaBlocks = mapper?.call(posts) ?? postsToLargeBlocksMapper(posts);
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:211 :: if (!withSponsoredBlocks) {
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:212 :: return (newPage: newPage, hasMore: hasMore, blocks: instaBlocks);
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:214 :: final blocks = await insertSponsoredBlocks(
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:216 :: blocks: instaBlocks,
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:218 :: return (newPage: newPage, hasMore: hasMore, blocks: blocks);
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:221 :: /// Converts a list of [Post] objects to a list of [InstaBlock] objects
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:222 :: /// representing reel blocks.
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:226 :: /// For each filtered post, it creates an [InstaBlock] object representing
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:227 :: /// the reel block and adds it to the `instaBlocks` list.
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:228 :: /// Finally, it returns the list of [InstaBlock] objects.
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:233 :: /// List<InstaBlock> instaBlocks = postsToReelBlockMapper(posts);
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:235 :: List<InstaBlock> postsToReelBlockMapper(List<Post> posts) {
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:236 :: final instaBlocks = <InstaBlock>[];
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:238 :: final reel = post.toPostReelBlock;
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:239 :: instaBlocks.add(reel);
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:241 :: return instaBlocks;
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:249 :: /// List<InstaBlock> instaBlocks = postsToLargeBlocksMapper(posts);
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:251 :: List<InstaBlock> postsToLargeBlocksMapper(List<Post> posts) =>
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:252 :: posts.map<InstaBlock>((post) => post.toPostLargeBlock).toList();
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:254 :: /// Inserts sponsored blocks into a list of [InstaBlock].
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:257 :: /// 1. Fetches the sponsored blocks as a JSON string using
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:258 :: /// `firebaseRemoteConfigRepository.fetchRemoteData`.
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:259 :: /// 2. Spawns an isolate to compute the insertion of the sponsored blocks.
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:261 :: /// 4. Waits for the isolate to send the inserted blocks through a
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:263 :: /// 5. Returns the inserted blocks as a list of [InstaBlock].
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:268 :: /// final blocks = [...]; // List of InstaBlock
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:269 :: /// final insertedBlocks = await insertSponsoredBlocks(
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:271 :: ///  blocks: blocks,
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:275 :: /// Note: This method assumes that the [firebaseRemoteConfigRepository] is
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:277 :: Future<List<InstaBlock>> insertSponsoredBlocks({
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:279 :: required List<InstaBlock> blocks,
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:281 :: final sponsoredBlocksStringJson = firebaseRemoteConfigRepository
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:282 :: .fetchRemoteData('sponsored_blocks');
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:285 :: final isolate = await Isolate.spawn(_computeSponsoredBlocks, [
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:288 :: blocks,
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:289 :: sponsoredBlocksStringJson,
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:293 :: final insertedBlocks = await receivePort.first as List<InstaBlock>;
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:294 :: return insertedBlocks;
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:297 :: /// Computes the sponsored blocks based on the given arguments.
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:299 :: /// The function randomly selects a sponsored block from the sponsored blocks
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:301 :: /// and the length of the blocks.
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:302 :: /// It then updates the blocks list by inserting the sponsored block at the
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:303 :: /// appropriate position, and removes a portion of the blocks based on the
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:306 :: /// If there are no more blocks, the function adds a [DividerHorizontalBlock]
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:307 :: /// and a [SectionHeaderBlock] of type [SectionHeaderBlockType.suggested]
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:308 :: /// to the blocks list.
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:310 :: /// The updated blocks list is sent back through the provided [SendPort].
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:311 :: static Future<void> _computeSponsoredBlocks(List<dynamic> args) async {
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:314 :: final blocks = args[2] as List<InstaBlock>;
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:315 :: final sponsoredBlocksListJson = List<Map<String, dynamic>>.from(
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:321 :: var tempBlocks = [...blocks];
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:322 :: var tempDataLength = tempBlocks.length;
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:327 :: final sponsored = sponsoredBlocksListJson
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:329 :: .map(PostSponsoredBlock.fromJson)
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:348 :: tempBlocks = tempBlocks.sublist(randomSkipRange);
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:349 :: blocks.insert(blocks.length - tempBlocks.length, randomSponsoredPost);
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:350 :: tempDataLength = tempBlocks.length;
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:355 :: blocks.followedBy([
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:356 :: if (blocks.isNotEmpty) DividerHorizontalBlock(),
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:357 :: const SectionHeaderBlock(
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:358 :: sectionType: SectionHeaderBlockType.suggested,
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:364 :: return sendPort.send(blocks);
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:369 :: List<PostBlock> updateFeedPage({required PageUpdate update}) {
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:371 :: return feedPage.blocks.selectPostsBlock().updateBlocks(update: update);
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:377 :: List<PostBlock> updateReelsPage({required PageUpdate update}) {
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:379 :: return reelsPage.blocks.selectPostsBlock().updateBlocks(
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:389 :: extension on List<InstaBlock> {
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:390 :: List<PostBlock> selectPostsBlock() => whereType<PostBlock>().toList();
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:392 :: InstaBlock? findPostBlock({
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:393 :: PostBlock? other,
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:394 :: bool Function(PostBlock block)? test,
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:396 :: (block) => switch (block) {
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:397 :: final PostBlock block =>
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:398 :: (other == null || other.id == block.id) && (test?.call(block) ?? true),
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:404 :: extension on List<PostBlock> {
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:405 :: List<PostBlock> updateBlocks({
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:411 :: ? _update<PostReelBlock>(update: update, isReels: isReels)
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:412 :: : _update<PostLargeBlock>(update: update, isReels: isReels),
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:415 :: List<PostBlock> _update<T extends PostBlock>({
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:421 :: newItem: isReels ? update.newReelBlock : update.newLargeBlock,
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_bloc_mixin.dart:424 :: findItemCallback: (block, newBlock) => block.id == newBlock.id,
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_event.dart:1 :: part of 'feed_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\bloc\feed_state.dart:1 :: part of 'feed_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\post\post.dart:1 :: export 'bloc/post_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\post\bloc\post_bloc.dart:5 :: import 'package:hydrated_bloc/hydrated_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\post\bloc\post_bloc.dart:8 :: import 'package:posts_repository/posts_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\post\bloc\post_bloc.dart:10 :: import 'package:user_repository/user_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\post\bloc\post_bloc.dart:12 :: part 'post_bloc.g.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\post\bloc\post_bloc.dart:16 :: class PostBloc extends HydratedBloc<PostEvent, PostState> {
+C:\PROJELER\cidentia-live-web4\lib\feed\post\bloc\post_bloc.dart:17 :: PostBloc({
+C:\PROJELER\cidentia-live-web4\lib\feed\post\bloc\post_bloc.dart:19 :: required PostsRepository postsRepository,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\bloc\post_bloc.dart:20 :: required UserRepository userRepository,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\bloc\post_bloc.dart:22 :: _postsRepository = postsRepository,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\bloc\post_bloc.dart:23 :: _userRepository = userRepository,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\bloc\post_bloc.dart:48 :: final UserRepository _userRepository;
+C:\PROJELER\cidentia-live-web4\lib\feed\post\bloc\post_bloc.dart:49 :: final PostsRepository _postsRepository;
+C:\PROJELER\cidentia-live-web4\lib\feed\post\bloc\post_bloc.dart:61 :: _postsRepository.likesOf(id: id),
+C:\PROJELER\cidentia-live-web4\lib\feed\post\bloc\post_bloc.dart:75 :: _postsRepository.commentsAmountOf(postId: id),
+C:\PROJELER\cidentia-live-web4\lib\feed\post\bloc\post_bloc.dart:89 :: _postsRepository.isLiked(id: id),
+C:\PROJELER\cidentia-live-web4\lib\feed\post\bloc\post_bloc.dart:107 :: _userRepository.followingStatus(userId: event.ownerId),
+C:\PROJELER\cidentia-live-web4\lib\feed\post\bloc\post_bloc.dart:124 :: final users = await _postsRepository.getPostLikers(
+C:\PROJELER\cidentia-live-web4\lib\feed\post\bloc\post_bloc.dart:141 :: final post = await _postsRepository.updatePost(
+C:\PROJELER\cidentia-live-web4\lib\feed\post\bloc\post_bloc.dart:147 :: event.onPostUpdated?.call(post.toPostLargeBlock);
+C:\PROJELER\cidentia-live-web4\lib\feed\post\bloc\post_bloc.dart:161 :: await _postsRepository.like(id: id);
+C:\PROJELER\cidentia-live-web4\lib\feed\post\bloc\post_bloc.dart:184 :: await _userRepository.follow(followToId: event.authorId);
+C:\PROJELER\cidentia-live-web4\lib\feed\post\bloc\post_bloc.dart:197 :: await _postsRepository.deletePost(id: id);
+C:\PROJELER\cidentia-live-web4\lib\feed\post\bloc\post_bloc.dart:210 :: await _postsRepository.sharePost(
+C:\PROJELER\cidentia-live-web4\lib\feed\post\bloc\post_bloc.dart:230 :: final likersInFollowings = await _postsRepository
+C:\PROJELER\cidentia-live-web4\lib\feed\post\bloc\post_bloc.g.dart:5 :: part of 'post_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\post\bloc\post_event.dart:1 :: part of 'post_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\post\bloc\post_event.dart:26 :: final ValueSetter<PostBlock>? onPostUpdated;
+C:\PROJELER\cidentia-live-web4\lib\feed\post\bloc\post_state.dart:1 :: part of 'post_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:3 :: import 'package:flutter_bloc/flutter_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:12 :: import 'package:instagram_blocks_ui/instagram_blocks_ui.dart' hide VideoPlayer;
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:13 :: import 'package:posts_repository/posts_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:15 :: import 'package:user_repository/user_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:19 :: required this.block,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:28 :: final PostBlock block;
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:37 :: return BlocProvider(
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:38 :: create: (context) => PostBloc(
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:39 :: postId: block.id,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:40 :: userRepository: context.read<UserRepository>(),
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:41 :: postsRepository: context.read<PostsRepository>(),
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:46 :: block: block,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:58 :: required this.block,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:66 :: final PostBlock block;
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:87 :: void _handleOnPostTap(BuildContext context, {required BlockAction action}) =>
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:96 :: promoBlockAction: action,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:97 :: sponsoredPost: widget.block as PostSponsoredBlock,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:105 :: context.read<PostBloc>()
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:111 :: ownerId: widget.block.author.id,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:112 :: currentUserId: context.read<AppBloc>().state.user.id,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:120 :: final bloc = context.read<PostBloc>();
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:122 :: final isOwner = context.select((PostBloc bloc) => bloc.state.isOwner);
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:123 :: final isLiked = context.select((PostBloc bloc) => bloc.state.isLiked);
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:124 :: final isFollowed = context.select((PostBloc bloc) => bloc.state.isFollowed);
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:126 :: (PostBloc bloc) => bloc.state.commentsCount,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:130 :: block: widget.block,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:133 :: likePost: () => bloc.add(const PostLikeRequested()),
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:136 :: bloc.add(PostAuthorFollowRequested(authorId: widget.block.author.id)),
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:142 :: PostLikesCount(block: widget.block, onUserTap: onUserTap),
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:156 :: onPostEdit: (block) => context.pushNamed(
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:158 :: pathParameters: {'post_id': block.id},
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:159 :: extra: block,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:162 :: bloc.add(const PostDeleteRequested());
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:163 :: context.read<FeedBloc>().add(
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:166 :: newPost: widget.block.toPost,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:178 :: post: widget.block,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\view\post_view.dart:187 :: block: widget.block,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_edit.dart:3 :: import 'package:flutter_bloc/flutter_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_edit.dart:5 :: import 'package:flutter_instagram_offline_first_clone/feed/post/bloc/post_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_edit.dart:9 :: import 'package:instagram_blocks_ui/instagram_blocks_ui.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_edit.dart:10 :: import 'package:posts_repository/posts_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_edit.dart:12 :: import 'package:user_repository/user_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_edit.dart:17 :: final PostBlock post;
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_edit.dart:21 :: return BlocProvider(
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_edit.dart:22 :: create: (context) => PostBloc(
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_edit.dart:24 :: postsRepository: context.read<PostsRepository>(),
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_edit.dart:25 :: userRepository: context.read<UserRepository>(),
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_edit.dart:35 :: final PostBlock post;
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_edit.dart:60 :: context.read<PostBloc>().add(
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_edit.dart:63 :: onPostUpdated: (block) {
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_edit.dart:64 :: context.read<FeedBloc>().add(
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_edit.dart:67 :: newPost: block.toPost,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_likers_in_followings.dart:3 :: import 'package:flutter_bloc/flutter_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_likers_in_followings.dart:5 :: import 'package:instagram_blocks_ui/instagram_blocks_ui.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_likers_in_followings.dart:13 :: (PostBloc bloc) => bloc.state.likersInFollowings,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_likes_count.dart:2 :: import 'package:flutter_bloc/flutter_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_likes_count.dart:4 :: import 'package:instagram_blocks_ui/instagram_blocks_ui.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_likes_count.dart:9 :: required this.block,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_likes_count.dart:14 :: final PostBlock block;
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_likes_count.dart:19 :: final likesCount = context.select((PostBloc bloc) => bloc.state.likes);
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_likes_count.dart:21 :: (PostBloc bloc) => bloc.state.likersInFollowings,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_likes_count.dart:29 :: key: ValueKey('likes-count-${block.id}'),
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_likes_count.dart:41 :: return BlockSettings().postTextDelegate.likedByText(
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup.dart:7 :: import 'package:flutter_bloc/flutter_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup.dart:13 :: import 'package:instagram_blocks_ui/instagram_blocks_ui.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup.dart:14 :: import 'package:posts_repository/posts_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup.dart:16 :: import 'package:user_repository/user_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup.dart:61 :: required this.block,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup.dart:68 :: final PostBlock block;
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup.dart:75 :: return BlocProvider(
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup.dart:76 :: create: (context) => PostBloc(
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup.dart:77 :: postId: block.id,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup.dart:78 :: postsRepository: context.read<PostsRepository>(),
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup.dart:79 :: userRepository: context.read<UserRepository>(),
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup.dart:82 :: block: block,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup.dart:93 :: required this.block,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup.dart:100 :: final PostBlock block;
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup.dart:144 :: _isLikedSubscription = context.read<PostBloc>().stream.listen((state) {
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup.dart:182 :: '${widget.block.id}${widget.block.createdAt}-repaintBoundary',
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup.dart:188 :: key: ValueKey(widget.block.id + widget.block.createdAt.toString()),
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup.dart:193 :: 'user_id': widget.block.author.id,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup.dart:203 :: onLongPress: () => onLongPress(context.read<PostBloc>()),
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup.dart:271 :: void onLongPress(PostBloc bloc) {
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup.dart:272 :: _popupDialog = _createPopupDialog(bloc);
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup.dart:284 :: context.read<PostBloc>().add(const PostLikeRequested());
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup.dart:305 :: post: widget.block,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup.dart:313 :: pathParameters: {'user_id': widget.block.author.id},
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup.dart:320 :: block: widget.block,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup.dart:342 :: OverlayEntry _createPopupDialog(PostBloc bloc) => OverlayEntry(
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup.dart:343 :: builder: (context) => BlocProvider.value(
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup.dart:344 :: value: bloc,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup.dart:346 :: block: widget.block,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup_dialog.dart:7 :: import 'package:flutter_bloc/flutter_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup_dialog.dart:9 :: import 'package:instagram_blocks_ui/instagram_blocks_ui.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup_dialog.dart:15 :: required this.block,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup_dialog.dart:29 :: final PostBlock block;
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup_dialog.dart:63 :: PopupDialogHeader(block: block),
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup_dialog.dart:65 :: block: block,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup_dialog.dart:90 :: const PopupDialogHeader({required this.block, super.key});
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup_dialog.dart:92 :: final PostBlock block;
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup_dialog.dart:104 :: avatarUrl: block.author.avatarUrl,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup_dialog.dart:108 :: title: Text(block.author.username, style: context.bodyLarge),
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup_dialog.dart:115 :: required this.block,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup_dialog.dart:123 :: final PostBlock block;
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup_dialog.dart:134 :: if (block.firstMedia is ImageMedia)
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup_dialog.dart:135 :: PostPopupImage(block: block)
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup_dialog.dart:139 :: videoUrl: block.firstMedia!.url,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup_dialog.dart:140 :: blurHash: block.firstMedia!.blurHash,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup_dialog.dart:166 :: const PostPopupImage({required this.block, super.key});
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup_dialog.dart:168 :: final PostBlock block;
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup_dialog.dart:180 :: id: block.id,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup_dialog.dart:182 :: url: block.firstMediaUrl!,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup_dialog.dart:183 :: blurHash: block.firstMedia?.blurHash,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_popup_dialog.dart:217 :: child: BlocBuilder<PostBloc, PostState>(
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_preview.dart:3 :: import 'package:flutter_bloc/flutter_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_preview.dart:60 :: PostBlock? _block;
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_preview.dart:69 :: .read<FeedBloc>()
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_preview.dart:73 :: _block = value;
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_preview.dart:84 :: .read<FeedBloc>()
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_preview.dart:86 :: .then((value) => setState(() => _block = value)),
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_preview.dart:94 :: key: ValueKey(_block!.id),
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_preview.dart:95 :: block: _block!,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\post_video_player.dart:3 :: import 'package:instagram_blocks_ui/instagram_blocks_ui.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\share_post.dart:3 :: import 'package:flutter_bloc/flutter_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\share_post.dart:9 :: import 'package:instagram_blocks_ui/instagram_blocks_ui.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\share_post.dart:10 :: import 'package:posts_repository/posts_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\share_post.dart:11 :: import 'package:search_repository/search_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\share_post.dart:14 :: import 'package:user_repository/user_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\share_post.dart:18 :: required this.block,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\share_post.dart:24 :: final PostBlock block;
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\share_post.dart:30 :: return MultiBlocProvider(
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\share_post.dart:32 :: BlocProvider(
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\share_post.dart:34 :: UserProfileBloc(
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\share_post.dart:35 :: userRepository: context.read<UserRepository>(),
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\share_post.dart:36 :: postsRepository: context.read<PostsRepository>(),
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\share_post.dart:41 :: BlocProvider(
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\share_post.dart:42 :: create: (context) => PostBloc(
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\share_post.dart:43 :: postId: block.id,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\share_post.dart:44 :: postsRepository: context.read<PostsRepository>(),
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\share_post.dart:45 :: userRepository: context.read<UserRepository>(),
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\share_post.dart:50 :: block: block,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\share_post.dart:60 :: required this.block,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\share_post.dart:66 :: final PostBlock block;
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\share_post.dart:114 :: (UserProfileBloc bloc) => bloc.state.followers,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\share_post.dart:117 :: (UserProfileBloc bloc) => bloc.state.followings,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\share_post.dart:150 :: block: widget.block,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\share_post.dart:241 :: required this.block,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\share_post.dart:247 :: final PostBlock block;
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\share_post.dart:288 :: final user = context.read<AppBloc>().state.user;
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\share_post.dart:299 :: void sharePost() => context.read<PostBloc>().add(
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\share_post.dart:303 :: postAuthor: widget.block.author,
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\share_post.dart:437 :: final searchRepository = context.read<SearchRepository>();
+C:\PROJELER\cidentia-live-web4\lib\feed\post\widgets\share_post.dart:451 :: final users = await searchRepository.searchUsers(query: query);
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:4 :: import 'package:flutter_bloc/flutter_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:13 :: import 'package:stories_repository/stories_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:14 :: import 'package:user_repository/user_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:32 :: context.read<UserProfileBloc>().add(
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:45 :: return BlocProvider(
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:46 :: create: (context) => StoriesBloc(
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:47 :: storiesRepository: context.read<StoriesRepository>(),
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:48 :: userRepository: context.read<UserRepository>(),
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:71 :: context.read<FeedBloc>().add(const FeedPageRequested(page: 0));
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:115 :: context.read<FeedBloc>().add(const FeedRefreshRequested());
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:116 :: context.read<StoriesBloc>().add(
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:137 :: BlocBuilder<FeedBloc, FeedState>(
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:140 :: // or when the status is populated and the blocks are different
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:144 :: !const ListEquality<InstaBlock>().equals(
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:145 :: previous.feed.feedPage.blocks,
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:146 :: current.feed.feedPage.blocks,
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:156 :: ? FeedPageListView(blocks: feedPage.blocks)
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:160 :: FeedLoadingBlock(),
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:162 :: FeedLoadingBlock(),
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:176 :: const FeedPageListView({required this.blocks, super.key});
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:178 :: final List<InstaBlock> blocks;
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:185 :: List<InstaBlock> get blocks => widget.blocks;
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:192 :: if (oldWidget.blocks != widget.blocks) {
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:193 :: _updateBlocks();
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:197 :: void _updateBlocks() {
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:198 :: for (var i = 0; i < blocks.length; i++) {
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:199 :: if (blocks[i].toJson()['id'] == null) continue;
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:200 :: _listItemsMap[blocks[i].toJson()['id'] as String] = i;
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:209 :: itemCount: blocks.length,
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:216 :: final block = blocks[index];
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:217 :: return _buildBlock(
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:220 :: feedLength: blocks.length,
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:221 :: block: block,
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:230 :: Widget _buildBlock({
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:234 :: required InstaBlock block,
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:239 :: if (block is DividerHorizontalBlock) {
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:240 :: return DividerBlock(feedPageController: feedPageController);
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:242 :: if (block is SectionHeaderBlock) {
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:243 :: return switch (block.sectionType) {
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:244 :: SectionHeaderBlockType.suggested => Column(
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:264 :: onPresented: () => context.read<FeedBloc>().add(
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:278 :: // context.read<FeedBloc>().add(const FeedPageRequested());
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:285 :: context.read<FeedBloc>().add(const FeedPageRequested()),
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:289 :: if (block is PostBlock) {
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:290 :: // return TestPageItem(post: block);
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:292 :: key: ValueKey(block.id),
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:293 :: block: block,
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:295 :: withInViewNotifier: block.isReel,
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_page.dart:299 :: return Text('Unknown block type: ${block.type}');
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_test_page.dart:5 :: import 'package:flutter_bloc/flutter_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_test_page.dart:10 :: import 'package:stories_repository/stories_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_test_page.dart:11 :: import 'package:user_repository/user_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_test_page.dart:18 :: return BlocProvider(
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_test_page.dart:19 :: create: (context) => StoriesBloc(
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_test_page.dart:20 :: storiesRepository: context.read<StoriesRepository>(),
+C:\PROJELER\cidentia-live-web4\lib\feed\view\feed_test_page.dart:21 :: userRepository: context.read<UserRepository>(),
+C:\PROJELER\cidentia-live-web4\lib\feed\widgets\divider_block.dart:8 :: import 'package:instagram_blocks_ui/instagram_blocks_ui.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\widgets\divider_block.dart:12 :: class DividerBlock extends StatefulWidget {
+C:\PROJELER\cidentia-live-web4\lib\feed\widgets\divider_block.dart:13 :: const DividerBlock({required this.feedPageController, super.key});
+C:\PROJELER\cidentia-live-web4\lib\feed\widgets\divider_block.dart:18 :: State<DividerBlock> createState() => _DividerBlockState();
+C:\PROJELER\cidentia-live-web4\lib\feed\widgets\divider_block.dart:21 :: class _DividerBlockState extends State<DividerBlock>
+C:\PROJELER\cidentia-live-web4\lib\feed\widgets\divider_block.dart:23 :: final _dividerBlockKey = GlobalKey();
+C:\PROJELER\cidentia-live-web4\lib\feed\widgets\divider_block.dart:57 :: void _ensureBlockVisible() {
+C:\PROJELER\cidentia-live-web4\lib\feed\widgets\divider_block.dart:60 :: _dividerBlockKey.currentContext!,
+C:\PROJELER\cidentia-live-web4\lib\feed\widgets\divider_block.dart:75 :: key: _dividerBlockKey,
+C:\PROJELER\cidentia-live-web4\lib\feed\widgets\divider_block.dart:79 :: itemKey: const ValueKey('dividerBlock_topAnimatedDivider'),
+C:\PROJELER\cidentia-live-web4\lib\feed\widgets\divider_block.dart:80 :: onSeen: _ensureBlockVisible,
+C:\PROJELER\cidentia-live-web4\lib\feed\widgets\divider_block.dart:104 :: 'dividerBLock_invisibleCheckIconBox',
+C:\PROJELER\cidentia-live-web4\lib\feed\widgets\feed_loading_block.dart:5 :: class FeedLoadingBlock extends StatelessWidget {
+C:\PROJELER\cidentia-live-web4\lib\feed\widgets\feed_loading_block.dart:6 :: const FeedLoadingBlock({super.key});
+C:\PROJELER\cidentia-live-web4\lib\feed\widgets\feed_page_controller.dart:4 :: import 'package:flutter_bloc/flutter_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\widgets\feed_page_controller.dart:8 :: import 'package:powersync_repository/powersync_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\widgets\feed_page_controller.dart:75 :: _context.read<FeedBloc>().add(
+C:\PROJELER\cidentia-live-web4\lib\feed\widgets\feed_page_controller.dart:83 :: late final storage = Supabase.instance.client.storage.from('posts');
+C:\PROJELER\cidentia-live-web4\lib\feed\widgets\widgets.dart:2 :: export 'divider_block.dart';
+C:\PROJELER\cidentia-live-web4\lib\feed\widgets\widgets.dart:5 :: export 'feed_loading_block.dart';
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:6 :: import 'package:flutter_bloc/flutter_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:16 :: import 'package:instagram_blocks_ui/instagram_blocks_ui.dart';
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:19 :: import 'package:user_repository/user_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:23 :: required this.block,
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:29 :: final PostReelBlock block;
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:36 :: key: ValueKey(block.id),
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:37 :: block: block,
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:40 :: Reel(block: block, withSound: withSound, play: play),
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:47 :: required this.block,
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:53 :: final PostReelBlock block;
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:72 :: Uri.parse(widget.block.reel.url),
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:79 :: context.read<PostBloc>()
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:85 :: ownerId: widget.block.author.id,
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:86 :: currentUserId: context.read<AppBloc>().state.user.id,
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:101 :: context.read<PostBloc>().stream.listen((state) {
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:120 :: final block = widget.block;
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:132 :: videoUrl: block.reel.url,
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:134 :: blurHash: block.reel.blurHash,
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:145 :: VerticalButtons(block),
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:162 :: ReelAuthorListTile(block: block),
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:163 :: if (block.caption.isNotEmpty) ...[
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:165 :: ReelCaption(caption: block.caption),
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:171 :: participant: block.author.username,
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:212 :: onTap: () => context.read<PostBloc>().add(const PostLikeRequested()),
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:265 :: const VerticalButtons(this.block, {super.key});
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:267 :: final PostReelBlock block;
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:271 :: final isLiked = context.select((PostBloc bloc) => bloc.state.isLiked);
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:272 :: final likes = context.select((PostBloc bloc) => bloc.state.likes);
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:274 :: (PostBloc bloc) => bloc.state.commentsCount,
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:276 :: final isOwner = context.select((PostBloc bloc) => bloc.state.isOwner);
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:278 :: Future<void> onCommentsTap(PostReelBlock block) =>
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:282 :: post: block,
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:302 :: context.read<PostBloc>().add(const PostLikeRequested()),
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:308 :: onButtonTap: () => onCommentsTap.call(block),
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:325 :: block: block,
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:356 :: context.read<PostBloc>().add(
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:359 :: context.read<FeedBloc>().add(
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:362 :: newPost: block.toPost,
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:384 :: imageUrl: block.author.avatarUrl,
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:401 :: const ReelAuthorListTile({required this.block, super.key});
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:403 :: final PostReelBlock block;
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:407 :: final author = block.author;
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:409 :: final isFollowed = context.select((PostBloc bloc) => bloc.state.isFollowed);
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:410 :: final isOwner = context.select((PostBloc bloc) => bloc.state.isOwner);
+C:\PROJELER\cidentia-live-web4\lib\reels\reel\view\reel_view.dart:446 :: onTap: () => context.read<PostBloc>().add(
+C:\PROJELER\cidentia-live-web4\lib\reels\view\reels_view.dart:6 :: import 'package:flutter_bloc/flutter_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\reels\view\reels_view.dart:13 :: import 'package:instagram_blocks_ui/instagram_blocks_ui.dart';
+C:\PROJELER\cidentia-live-web4\lib\reels\view\reels_view.dart:31 :: context.read<FeedBloc>().add(const FeedReelsPageRequested());
+C:\PROJELER\cidentia-live-web4\lib\reels\view\reels_view.dart:54 :: body: BlocBuilder<FeedBloc, FeedState>(
+C:\PROJELER\cidentia-live-web4\lib\reels\view\reels_view.dart:57 :: !const ListEquality<InstaBlock>().equals(
+C:\PROJELER\cidentia-live-web4\lib\reels\view\reels_view.dart:58 :: previous.feed.reelsPage.blocks,
+C:\PROJELER\cidentia-live-web4\lib\reels\view\reels_view.dart:59 :: current.feed.reelsPage.blocks,
+C:\PROJELER\cidentia-live-web4\lib\reels\view\reels_view.dart:63 :: final blocks = state.feed.reelsPage.blocks;
+C:\PROJELER\cidentia-live-web4\lib\reels\view\reels_view.dart:65 :: if (blocks.isEmpty) {
+C:\PROJELER\cidentia-live-web4\lib\reels\view\reels_view.dart:70 :: context.read<FeedBloc>().add(
+C:\PROJELER\cidentia-live-web4\lib\reels\view\reels_view.dart:83 :: itemCount: blocks.length,
+C:\PROJELER\cidentia-live-web4\lib\reels\view\reels_view.dart:97 :: final block = blocks[index];
+C:\PROJELER\cidentia-live-web4\lib\reels\view\reels_view.dart:98 :: if (block is PostReelBlock) {
+C:\PROJELER\cidentia-live-web4\lib\reels\view\reels_view.dart:100 :: key: ValueKey(block.id),
+C:\PROJELER\cidentia-live-web4\lib\reels\view\reels_view.dart:105 :: block: block,
+C:\PROJELER\cidentia-live-web4\lib\reels\view\reels_view.dart:109 :: child: Text('Unknown block type: ${block.type}'),
+C:\PROJELER\cidentia-live-web4\lib\reels\view\reels_view.dart:151 :: context.read<FeedBloc>().add(const FeedReelsPageRequested()),
+C:\PROJELER\cidentia-live-web4\lib\chats\chats.dart:1 :: export 'bloc/chats_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\bloc\chats_bloc.dart:1 :: import 'package:bloc/bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\bloc\chats_bloc.dart:2 :: import 'package:chats_repository/chats_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\bloc\chats_bloc.dart:9 :: class ChatsBloc extends Bloc<ChatEvent, ChatsState> {
+C:\PROJELER\cidentia-live-web4\lib\chats\bloc\chats_bloc.dart:10 :: ChatsBloc({required ChatsRepository chatsRepository})
+C:\PROJELER\cidentia-live-web4\lib\chats\bloc\chats_bloc.dart:11 :: : _chatsRepository = chatsRepository,
+C:\PROJELER\cidentia-live-web4\lib\chats\bloc\chats_bloc.dart:18 :: final ChatsRepository _chatsRepository;
+C:\PROJELER\cidentia-live-web4\lib\chats\bloc\chats_bloc.dart:24 :: _chatsRepository.chatsOf(userId: event.userId),
+C:\PROJELER\cidentia-live-web4\lib\chats\bloc\chats_bloc.dart:38 :: await _chatsRepository.createChat(
+C:\PROJELER\cidentia-live-web4\lib\chats\bloc\chats_bloc.dart:52 :: await _chatsRepository.deleteChat(
+C:\PROJELER\cidentia-live-web4\lib\chats\bloc\chats_event.dart:1 :: part of 'chats_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\bloc\chats_state.dart:2 :: part of 'chats_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\chat.dart:1 :: export 'bloc/chat_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\bloc\chat_bloc.dart:4 :: import 'package:chats_repository/chats_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\bloc\chat_bloc.dart:6 :: import 'package:hydrated_bloc/hydrated_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\bloc\chat_bloc.dart:8 :: import 'package:powersync_repository/powersync_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\bloc\chat_bloc.dart:10 :: import 'package:user_repository/user_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\bloc\chat_bloc.dart:12 :: part 'chat_bloc.g.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\bloc\chat_bloc.dart:16 :: class ChatBloc extends Bloc<ChatEvent, ChatState> {
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\bloc\chat_bloc.dart:17 :: ChatBloc({required String chatId, required ChatsRepository chatsRepository})
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\bloc\chat_bloc.dart:19 :: _chatsRepository = chatsRepository,
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\bloc\chat_bloc.dart:28 :: _messagesRealtimeChannel = _chatsRepository.messagesUpdates(
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\bloc\chat_bloc.dart:41 :: final ChatsRepository _chatsRepository;
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\bloc\chat_bloc.dart:128 :: final data = await _chatsRepository.getMessages(
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\bloc\chat_bloc.dart:153 :: await _chatsRepository.sendMessage(
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\bloc\chat_bloc.dart:171 :: await _chatsRepository.deleteMessage(messageId: event.messageId);
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\bloc\chat_bloc.dart:184 :: await _chatsRepository.readMessage(messageId: event.messageId);
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\bloc\chat_bloc.dart:197 :: await _chatsRepository.editMessage(
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\bloc\chat_bloc.g.dart:5 :: part of 'chat_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\bloc\chat_event.dart:1 :: part of 'chat_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\bloc\chat_state.dart:1 :: part of 'chat_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\view\chat_page.dart:5 :: import 'package:chats_repository/chats_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\view\chat_page.dart:8 :: import 'package:flutter_bloc/flutter_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\view\chat_page.dart:17 :: import 'package:user_repository/user_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\view\chat_page.dart:27 :: return BlocProvider(
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\view\chat_page.dart:28 :: create: (context) => ChatBloc(
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\view\chat_page.dart:30 :: chatsRepository: context.read<ChatsRepository>(),
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\view\chat_page.dart:70 :: context.read<ChatBloc>().add(ChatMessageDeleteRequested(message.id));
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\view\chat_page.dart:94 :: final user = context.read<AppBloc>().state.user;
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\view\chat_page.dart:105 :: child: BlocBuilder<ChatBloc, ChatState>(
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\view\chat_page.dart:233 :: final hasMore = context.select((ChatBloc bloc) => bloc.state.hasMore);
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\view\chat_page.dart:249 :: .read<ChatBloc>()
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\widgets\message_bubble.dart:3 :: import 'package:flutter_bloc/flutter_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\widgets\message_bubble.dart:7 :: import 'package:instagram_blocks_ui/instagram_blocks_ui.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\widgets\message_bubble.dart:34 :: final user = context.read<AppBloc>().state.user;
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\widgets\message_bubble.dart:95 :: onSeen: () => context.read<ChatBloc>().add(ChatMessageSeen(message.id)),
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\widgets\message_content.dart:3 :: import 'package:flutter_bloc/flutter_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\widgets\message_content.dart:8 :: import 'package:instagram_blocks_ui/instagram_blocks_ui.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\widgets\message_content.dart:56 :: final user = context.select((AppBloc bloc) => bloc.state.user);
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\widgets\message_content.dart:199 :: final PostBlock sharedPost;
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\widgets\message_content.dart:317 :: final PostBlock sharedPost;
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\widgets\message_content.dart:345 :: final PostBlock sharedPost;
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\widgets\message_content.dart:495 :: final user = context.select((AppBloc bloc) => bloc.state.user);
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\widgets\message_text.dart:9 :: import 'package:user_repository/user_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\widgets\message_text_bubble.dart:4 :: import 'package:user_repository/user_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\widgets\message_text_field.dart:4 :: import 'package:flutter_bloc/flutter_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\widgets\message_text_field.dart:5 :: import 'package:flutter_instagram_offline_first_clone/app/bloc/app_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\widgets\message_text_field.dart:6 :: import 'package:flutter_instagram_offline_first_clone/chats/chat/bloc/chat_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\widgets\message_text_field.dart:9 :: import 'package:instagram_blocks_ui/instagram_blocks_ui.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\widgets\message_text_field.dart:160 :: final user = context.read<AppBloc>().state.user;
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\widgets\message_text_field.dart:169 :: context.read<ChatBloc>().add(
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\widgets\message_text_field.dart:182 :: context.read<ChatBloc>().add(
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\widgets\parse_attachments.dart:3 :: import 'package:flutter_bloc/flutter_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\widgets\parse_attachments.dart:5 :: import 'package:instagram_blocks_ui/instagram_blocks_ui.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\widgets\parse_attachments.dart:29 :: final user = context.read<AppBloc>().state.user;
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\widgets\replied_message_bubble.dart:3 :: import 'package:flutter_bloc/flutter_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\widgets\replied_message_bubble.dart:4 :: import 'package:flutter_instagram_offline_first_clone/app/bloc/app_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\widgets\replied_message_bubble.dart:5 :: import 'package:instagram_blocks_ui/instagram_blocks_ui.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\widgets\replied_message_bubble.dart:16 :: final user = context.select((AppBloc bloc) => bloc.state.user);
+C:\PROJELER\cidentia-live-web4\lib\chats\chat\widgets\swipeable_message.dart:6 :: import 'package:instagram_blocks_ui/instagram_blocks_ui.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\view\chats_page.dart:4 :: import 'package:chats_repository/chats_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\view\chats_page.dart:6 :: import 'package:flutter_bloc/flutter_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\view\chats_page.dart:7 :: import 'package:flutter_instagram_offline_first_clone/app/bloc/app_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\view\chats_page.dart:8 :: import 'package:flutter_instagram_offline_first_clone/chats/bloc/chats_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\view\chats_page.dart:19 :: final user = context.select((AppBloc bloc) => bloc.state.user);
+C:\PROJELER\cidentia-live-web4\lib\chats\view\chats_page.dart:20 :: return BlocProvider(
+C:\PROJELER\cidentia-live-web4\lib\chats\view\chats_page.dart:22 :: ChatsBloc(chatsRepository: context.read<ChatsRepository>())
+C:\PROJELER\cidentia-live-web4\lib\chats\view\chats_page.dart:45 :: final user = context.select((AppBloc bloc) => bloc.state.user);
+C:\PROJELER\cidentia-live-web4\lib\chats\view\chats_page.dart:62 :: context.read<ChatsBloc>().add(
+C:\PROJELER\cidentia-live-web4\lib\chats\view\chats_page.dart:86 :: final chats = context.select((ChatsBloc bloc) => bloc.state.chats);
+C:\PROJELER\cidentia-live-web4\lib\chats\view\chats_page.dart:103 :: final user = context.select((AppBloc bloc) => bloc.state.user);
+C:\PROJELER\cidentia-live-web4\lib\chats\view\chats_page.dart:137 :: void createChat() => context.read<ChatsBloc>().add(
+C:\PROJELER\cidentia-live-web4\lib\chats\widgets\chat_inbox_tile.dart:3 :: import 'package:flutter_bloc/flutter_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\chats\widgets\chat_inbox_tile.dart:20 :: final user = context.select((AppBloc bloc) => bloc.state.user);
+C:\PROJELER\cidentia-live-web4\lib\chats\widgets\chat_inbox_tile.dart:35 :: fn: () => context.read<ChatsBloc>().add(
+C:\PROJELER\cidentia-live-web4\lib\user_profile\user_profile.dart:1 :: export 'bloc/user_profile_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\user_profile\bloc\user_profile_bloc.dart:3 :: import 'package:bloc/bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\user_profile\bloc\user_profile_bloc.dart:5 :: import 'package:posts_repository/posts_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\user_profile\bloc\user_profile_bloc.dart:7 :: import 'package:user_repository/user_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\user_profile\bloc\user_profile_bloc.dart:12 :: class UserProfileBloc extends Bloc<UserProfileEvent, UserProfileState> {
+C:\PROJELER\cidentia-live-web4\lib\user_profile\bloc\user_profile_bloc.dart:13 :: UserProfileBloc({
+C:\PROJELER\cidentia-live-web4\lib\user_profile\bloc\user_profile_bloc.dart:14 :: required UserRepository userRepository,
+C:\PROJELER\cidentia-live-web4\lib\user_profile\bloc\user_profile_bloc.dart:15 :: required PostsRepository postsRepository,
+C:\PROJELER\cidentia-live-web4\lib\user_profile\bloc\user_profile_bloc.dart:17 :: }) : _userRepository = userRepository,
+C:\PROJELER\cidentia-live-web4\lib\user_profile\bloc\user_profile_bloc.dart:18 :: _postsRepository = postsRepository,
+C:\PROJELER\cidentia-live-web4\lib\user_profile\bloc\user_profile_bloc.dart:19 :: _userId = userId ?? userRepository.currentUserId ?? '',
+C:\PROJELER\cidentia-live-web4\lib\user_profile\bloc\user_profile_bloc.dart:51 :: final UserRepository _userRepository;
+C:\PROJELER\cidentia-live-web4\lib\user_profile\bloc\user_profile_bloc.dart:52 :: final PostsRepository _postsRepository;
+C:\PROJELER\cidentia-live-web4\lib\user_profile\bloc\user_profile_bloc.dart:54 :: bool get isOwner => _userId == _userRepository.currentUserId;
+C:\PROJELER\cidentia-live-web4\lib\user_profile\bloc\user_profile_bloc.dart:56 :: Stream<List<PostBlock>> userPosts({bool small = true}) {
+C:\PROJELER\cidentia-live-web4\lib\user_profile\bloc\user_profile_bloc.dart:58 :: return _postsRepository
+C:\PROJELER\cidentia-live-web4\lib\user_profile\bloc\user_profile_bloc.dart:60 :: .map((posts) => posts.map((e) => e.toPostSmallBlock).toList());
+C:\PROJELER\cidentia-live-web4\lib\user_profile\bloc\user_profile_bloc.dart:62 :: return _postsRepository
+C:\PROJELER\cidentia-live-web4\lib\user_profile\bloc\user_profile_bloc.dart:64 :: .map((posts) => posts.map((e) => e.toPostLargeBlock).toList());
+C:\PROJELER\cidentia-live-web4\lib\user_profile\bloc\user_profile_bloc.dart:72 :: isOwner ? _userRepository.user : _userRepository.profile(id: _userId),
+C:\PROJELER\cidentia-live-web4\lib\user_profile\bloc\user_profile_bloc.dart:83 :: _postsRepository.postsAmountOf(userId: _userId),
+C:\PROJELER\cidentia-live-web4\lib\user_profile\bloc\user_profile_bloc.dart:93 :: _userRepository.followingsCountOf(userId: _userId),
+C:\PROJELER\cidentia-live-web4\lib\user_profile\bloc\user_profile_bloc.dart:104 :: _userRepository.followersCountOf(userId: _userId),
+C:\PROJELER\cidentia-live-web4\lib\user_profile\bloc\user_profile_bloc.dart:111 :: _userRepository.followingStatus(userId: _userId).asBroadcastStream();
+C:\PROJELER\cidentia-live-web4\lib\user_profile\bloc\user_profile_bloc.dart:118 :: await _userRepository.updateUser(
+C:\PROJELER\cidentia-live-web4\lib\user_profile\bloc\user_profile_bloc.dart:137 :: final followers = await _userRepository.getFollowers(userId: _userId);
+C:\PROJELER\cidentia-live-web4\lib\user_profile\bloc\user_profile_bloc.dart:149 :: final followings = await _userRepository.getFollowings(userId: _userId);
+C:\PROJELER\cidentia-live-web4\lib\user_profile\bloc\user_profile_bloc.dart:161 :: _userRepository.followers(userId: _userId),
+C:\PROJELER\cidentia-live-web4\lib\user_profile\bloc\user_profile_bloc.dart:171 :: await _userRepository.follow(followToId: event.userId ?? _userId);
+C:\PROJELER\cidentia-live-web4\lib\user_profile\bloc\user_profile_bloc.dart:182 :: await _userRepository.removeFollower(id: event.userId ?? _userId);
+C:\PROJELER\cidentia-live-web4\lib\user_profile\bloc\user_profile_event.dart:2 :: part of 'user_profile_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\user_profile\bloc\user_profile_state.dart:1 :: part of 'user_profile_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\user_profile\view\user_profile_page.dart:8 :: import 'package:flutter_bloc/flutter_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\user_profile\view\user_profile_page.dart:16 :: import 'package:instagram_blocks_ui/instagram_blocks_ui.dart';
+C:\PROJELER\cidentia-live-web4\lib\user_profile\view\user_profile_page.dart:17 :: import 'package:posts_repository/posts_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\user_profile\view\user_profile_page.dart:20 :: import 'package:user_repository/user_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\user_profile\view\user_profile_page.dart:34 :: return MultiBlocProvider(
+C:\PROJELER\cidentia-live-web4\lib\user_profile\view\user_profile_page.dart:36 :: BlocProvider(
+C:\PROJELER\cidentia-live-web4\lib\user_profile\view\user_profile_page.dart:38 :: UserProfileBloc(
+C:\PROJELER\cidentia-live-web4\lib\user_profile\view\user_profile_page.dart:40 :: postsRepository: context.read<PostsRepository>(),
+C:\PROJELER\cidentia-live-web4\lib\user_profile\view\user_profile_page.dart:41 :: userRepository: context.read<UserRepository>(),
+C:\PROJELER\cidentia-live-web4\lib\user_profile\view\user_profile_page.dart:79 :: props.promoBlockAction as NavigateToSponsoredPostAuthorProfileAction?;
+C:\PROJELER\cidentia-live-web4\lib\user_profile\view\user_profile_page.dart:80 :: final user = context.select((UserProfileBloc bloc) => bloc.state.user);
+C:\PROJELER\cidentia-live-web4\lib\user_profile\view\user_profile_page.dart:182 :: final PostSponsoredBlock? sponsoredPost;
+C:\PROJELER\cidentia-live-web4\lib\user_profile\view\user_profile_page.dart:195 :: final bloc = context.read<UserProfileBloc>();
+C:\PROJELER\cidentia-live-web4\lib\user_profile\view\user_profile_page.dart:203 :: BetterStreamBuilder<List<PostBlock>>(
+C:\PROJELER\cidentia-live-web4\lib\user_profile\view\user_profile_page.dart:204 :: initialData: const <PostBlock>[],
+C:\PROJELER\cidentia-live-web4\lib\user_profile\view\user_profile_page.dart:205 :: stream: bloc.userPosts(),
+C:\PROJELER\cidentia-live-web4\lib\user_profile\view\user_profile_page.dart:206 :: comparator: const ListEquality<PostBlock>().equals,
+C:\PROJELER\cidentia-live-web4\lib\user_profile\view\user_profile_page.dart:207 :: builder: (context, blocks) {
+C:\PROJELER\cidentia-live-web4\lib\user_profile\view\user_profile_page.dart:208 :: if (blocks.isEmpty && widget.sponsoredPost == null) {
+C:\PROJELER\cidentia-live-web4\lib\user_profile\view\user_profile_page.dart:217 :: itemCount: widget.sponsoredPost != null ? 1 : blocks.length,
+C:\PROJELER\cidentia-live-web4\lib\user_profile\view\user_profile_page.dart:219 :: final block = widget.sponsoredPost ?? blocks[index];
+C:\PROJELER\cidentia-live-web4\lib\user_profile\view\user_profile_page.dart:220 :: final multiMedia = block.media.length > 1;
+C:\PROJELER\cidentia-live-web4\lib\user_profile\view\user_profile_page.dart:223 :: block: block,
+C:\PROJELER\cidentia-live-web4\lib\user_profile\view\user_profile_page.dart:226 :: key: ValueKey(block.id),
+C:\PROJELER\cidentia-live-web4\lib\user_profile\view\user_profile_page.dart:228 :: isReel: block.isReel,
+C:\PROJELER\cidentia-live-web4\lib\user_profile\view\user_profile_page.dart:230 :: mediaUrl: block.firstMediaUrl!,
+C:\PROJELER\cidentia-live-web4\lib\user_profile\view\user_profile_page.dart:232 :: PostSmallImage(post: block),
+C:\PROJELER\cidentia-live-web4\lib\user_profile\view\user_profile_page.dart:247 :: final PostBlock post;
+C:\PROJELER\cidentia-live-web4\lib\user_profile\view\user_profile_page.dart:285 :: final PostSponsoredBlock? sponsoredPost;
+C:\PROJELER\cidentia-live-web4\lib\user_profile\view\user_profile_page.dart:289 :: final isOwner = context.select((UserProfileBloc bloc) => bloc.isOwner);
+C:\PROJELER\cidentia-live-web4\lib\user_profile\view\user_profile_page.dart:290 :: final user$ = context.select((UserProfileBloc b) => b.state.user);
+C:\PROJELER\cidentia-live-web4\lib\user_profile\view\user_profile_page.dart:388 :: context.read<AppBloc>().add(const AppLogoutRequested());
+C:\PROJELER\cidentia-live-web4\lib\user_profile\view\user_profile_page.dart:412 :: final user = context.select((AppBloc bloc) => bloc.state.user);
+C:\PROJELER\cidentia-live-web4\lib\user_profile\view\user_profile_page.dart:414 :: (CreateStoriesBloc bloc) => bloc.state.isAvailable,
+C:\PROJELER\cidentia-live-web4\lib\user_profile\view\user_profile_page.dart:429 :: context.read<CreateStoriesBloc>().add(
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_create_post.dart:14 :: import 'package:instagram_blocks_ui/instagram_blocks_ui.dart';
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_edit.dart:3 :: import 'package:flutter_bloc/flutter_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_edit.dart:8 :: import 'package:instagram_blocks_ui/instagram_blocks_ui.dart';
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_edit.dart:9 :: import 'package:posts_repository/posts_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_edit.dart:10 :: import 'package:user_repository/user_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_edit.dart:17 :: return BlocProvider(
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_edit.dart:18 :: create: (context) => UserProfileBloc(
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_edit.dart:19 :: userRepository: context.read<UserRepository>(),
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_edit.dart:20 :: postsRepository: context.read<PostsRepository>(),
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_edit.dart:51 :: final user = context.select((AppBloc bloc) => bloc.state.user);
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_edit.dart:74 :: context.read<UserProfileBloc>().add(
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_edit.dart:236 :: return BlocProvider(
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_edit.dart:237 :: create: (context) => UserProfileBloc(
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_edit.dart:238 :: userRepository: context.read<UserRepository>(),
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_edit.dart:239 :: postsRepository: context.read<PostsRepository>(),
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_edit.dart:303 :: fn = () => context.read<UserProfileBloc>().add(
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_edit.dart:307 :: fn = () => context.read<UserProfileBloc>().add(
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_followers.dart:2 :: import 'package:flutter_bloc/flutter_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_followers.dart:17 :: context.read<UserProfileBloc>().add(
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_followers.dart:29 :: (UserProfileBloc bloc) => bloc.state.followers,
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_followings.dart:2 :: import 'package:flutter_bloc/flutter_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_followings.dart:17 :: context.read<UserProfileBloc>().add(
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_followings.dart:29 :: (UserProfileBloc bloc) => bloc.state.followings,
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_header.dart:3 :: import 'package:flutter_bloc/flutter_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_header.dart:9 :: import 'package:instagram_blocks_ui/instagram_blocks_ui.dart';
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_header.dart:11 :: import 'package:user_repository/user_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_header.dart:21 :: final PostSponsoredBlock? sponsoredPost;
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_header.dart:32 :: final isOwner = context.select((UserProfileBloc b) => b.isOwner);
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_header.dart:33 :: final user$ = context.select((UserProfileBloc b) => b.state.user);
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_header.dart:40 :: (CreateStoriesBloc bloc) => bloc.state.isAvailable,
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_header.dart:67 :: context.read<CreateStoriesBloc>().add(
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_header.dart:157 :: (UserProfileBloc bloc) => bloc.state.postsCount,
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_header.dart:160 :: (UserProfileBloc bloc) => bloc.state.followersCount,
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_header.dart:163 :: (UserProfileBloc bloc) => bloc.state.followingsCount,
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_header.dart:247 :: final bloc = context.read<UserProfileBloc>();
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_header.dart:248 :: final user = context.select((UserProfileBloc bloc) => bloc.state.user);
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_header.dart:253 :: stream: bloc.followingStatus(),
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_header.dart:273 :: bloc.add(const UserProfileFollowUserRequested()),
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_header.dart:279 :: : () => bloc.add(const UserProfileFollowUserRequested()),
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_list_tile.dart:4 :: import 'package:flutter_bloc/flutter_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_list_tile.dart:10 :: import 'package:instagram_blocks_ui/instagram_blocks_ui.dart';
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_list_tile.dart:11 :: import 'package:user_repository/user_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_list_tile.dart:34 :: _isFollowed = context.read<UserRepository>().isFollowed(
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_list_tile.dart:46 :: fn: () => context.read<UserProfileBloc>().add(
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_list_tile.dart:52 :: void _follow(BuildContext context) => context.read<UserProfileBloc>().add(
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_list_tile.dart:58 :: final profile = context.select((UserProfileBloc bloc) => bloc.state.user);
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_list_tile.dart:59 :: final me = context.select((AppBloc bloc) => bloc.state.user);
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_list_tile.dart:197 :: stream: context.read<UserRepository>().followingStatus(userId: user.id),
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_list_tile.dart:252 :: stream: context.read<UserRepository>().followingStatus(
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_list_tile.dart:269 :: ..onTap = () => context.read<UserProfileBloc>().add(
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_posts.dart:3 :: import 'package:flutter_bloc/flutter_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_posts.dart:7 :: import 'package:instagram_blocks_ui/instagram_blocks_ui.dart';
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_posts.dart:52 :: StreamBuilder<List<PostBlock>>(
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_posts.dart:53 :: stream: context.read<UserProfileBloc>().userPosts(small: false),
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_posts.dart:55 :: final blocks = snapshot.data;
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_posts.dart:58 :: postBuilder: (_, index, block) => PostView(
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_posts.dart:59 :: key: ValueKey(block.id),
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_posts.dart:60 :: block: block,
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_posts.dart:65 :: blocks: blocks,
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_posts.dart:88 :: final bloc = context.read<UserProfileBloc>();
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_posts.dart:89 :: final isOwner = context.select((UserProfileBloc b) => b.isOwner);
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_posts.dart:94 :: onTap: () => bloc.add(const UserProfileFollowUserRequested()),
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_posts.dart:107 :: stream: bloc.followingStatus(),
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_props.dart:2 :: import 'package:insta_blocks/insta_blocks.dart';
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_props.dart:8 :: required this.promoBlockAction,
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_props.dart:13 :: PostSponsoredBlock? sponsoredPost,
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_props.dart:14 :: BlockAction? promoBlockAction,
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_props.dart:18 :: promoBlockAction: promoBlockAction,
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_props.dart:22 :: final PostSponsoredBlock? sponsoredPost;
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_props.dart:23 :: final BlockAction? promoBlockAction;
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_props.dart:26 :: List<Object?> get props => [isSponsored, sponsoredPost, promoBlockAction];
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_statistics.dart:3 :: import 'package:flutter_bloc/flutter_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_statistics.dart:59 :: (UserProfileBloc b) => b.state.followersCount,
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_statistics.dart:62 :: (UserProfileBloc b) => b.state.followingsCount,
+C:\PROJELER\cidentia-live-web4\lib\user_profile\widgets\user_profile_statistics.dart:64 :: final user = context.select((UserProfileBloc b) => b.state.user);
+C:\PROJELER\cidentia-live-web4\lib\stories\stories.dart:1 :: export 'bloc/create_stories_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\stories\stories.dart:2 :: export 'bloc/stories_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\stories\stories.dart:3 :: export 'bloc/user_stories_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\create_stories_bloc.dart:3 :: import 'package:bloc/bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\create_stories_bloc.dart:5 :: import 'package:firebase_remote_config_repository/firebase_remote_config_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\create_stories_bloc.dart:8 :: import 'package:stories_repository/stories_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\create_stories_bloc.dart:9 :: import 'package:user_repository/user_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\create_stories_bloc.dart:14 :: class CreateStoriesBloc extends Bloc<CreateStoriesEvent, CreateStoriesState> {
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\create_stories_bloc.dart:15 :: CreateStoriesBloc({
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\create_stories_bloc.dart:16 :: required StoriesRepository storiesRepository,
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\create_stories_bloc.dart:17 :: required FirebaseRemoteConfigRepository firebaseRemoteConfigRepository,
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\create_stories_bloc.dart:18 :: }) : _storiesRepository = storiesRepository,
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\create_stories_bloc.dart:19 :: _firebaseRemoteConfigRepository = firebaseRemoteConfigRepository,
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\create_stories_bloc.dart:31 :: final StoriesRepository _storiesRepository;
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\create_stories_bloc.dart:32 :: final FirebaseRemoteConfigRepository _firebaseRemoteConfigRepository;
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\create_stories_bloc.dart:38 :: final storiesEnabled = _firebaseRemoteConfigRepository.isFeatureAvailable(
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\create_stories_bloc.dart:44 :: _firebaseRemoteConfigRepository.onConfigUpdated(),
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\create_stories_bloc.dart:46 :: _firebaseRemoteConfigRepository.activate();
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\create_stories_bloc.dart:48 :: final storiesEnabled = _firebaseRemoteConfigRepository
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\create_stories_bloc.dart:70 :: final contentUrl = await _storiesRepository.uploadStoryMedia(
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\create_stories_bloc.dart:76 :: await _storiesRepository.createStory(
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\create_stories_event.dart:1 :: part of 'create_stories_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\create_stories_state.dart:1 :: part of 'create_stories_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\stories_bloc.dart:1 :: import 'package:bloc/bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\stories_bloc.dart:7 :: import 'package:stories_repository/stories_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\stories_bloc.dart:8 :: import 'package:user_repository/user_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\stories_bloc.dart:13 :: class StoriesBloc extends Bloc<StoriesEvent, StoriesState> {
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\stories_bloc.dart:14 :: StoriesBloc({
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\stories_bloc.dart:15 :: required StoriesRepository storiesRepository,
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\stories_bloc.dart:16 :: required UserRepository userRepository,
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\stories_bloc.dart:17 :: }) : _storiesRepository = storiesRepository,
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\stories_bloc.dart:18 :: _userRepository = userRepository,
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\stories_bloc.dart:25 :: final StoriesRepository _storiesRepository;
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\stories_bloc.dart:26 :: final UserRepository _userRepository;
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\stories_bloc.dart:33 :: final followings = await _userRepository.getFollowings();
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\stories_bloc.dart:37 :: final userStories = await _storiesRepository
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\stories_bloc.dart:73 :: await _storiesRepository.setUserStorySeen(
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\stories_bloc.dart:89 :: await _storiesRepository.deleteStory(id: event.id);
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\stories_event.dart:1 :: part of 'stories_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\stories_state.dart:3 :: part of 'stories_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\user_stories_bloc.dart:5 :: import 'package:hydrated_bloc/hydrated_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\user_stories_bloc.dart:8 :: import 'package:stories_repository/stories_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\user_stories_bloc.dart:9 :: import 'package:user_repository/user_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\user_stories_bloc.dart:11 :: part 'user_stories_bloc.g.dart';
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\user_stories_bloc.dart:15 :: class UserStoriesBloc extends HydratedBloc<UserStoriesEvent, UserStoriesState> {
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\user_stories_bloc.dart:16 :: UserStoriesBloc({
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\user_stories_bloc.dart:18 :: required StoriesRepository storiesRepository,
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\user_stories_bloc.dart:20 :: _storiesRepository = storiesRepository,
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\user_stories_bloc.dart:28 :: final StoriesRepository _storiesRepository;
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\user_stories_bloc.dart:39 :: _storiesRepository.mergedStories(
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\user_stories_bloc.dart:53 :: ) => _storiesRepository.setUserStorySeen(
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\user_stories_bloc.dart:61 :: ) => _storiesRepository.deleteStory(id: event.id);
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\user_stories_bloc.g.dart:5 :: part of 'user_stories_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\user_stories_event.dart:1 :: part of 'user_stories_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\stories\bloc\user_stories_state.dart:1 :: part of 'user_stories_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\stories\view\stories_page.dart:4 :: import 'package:flutter_bloc/flutter_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\stories\view\stories_page.dart:9 :: import 'package:instagram_blocks_ui/instagram_blocks_ui.dart';
+C:\PROJELER\cidentia-live-web4\lib\stories\view\stories_page.dart:12 :: import 'package:stories_repository/stories_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\stories\view\stories_page.dart:14 :: import 'package:user_repository/user_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\stories\view\stories_page.dart:23 :: return BlocProvider(
+C:\PROJELER\cidentia-live-web4\lib\stories\view\stories_page.dart:24 :: create: (context) => StoriesBloc(
+C:\PROJELER\cidentia-live-web4\lib\stories\view\stories_page.dart:25 :: storiesRepository: context.read<StoriesRepository>(),
+C:\PROJELER\cidentia-live-web4\lib\stories\view\stories_page.dart:26 :: userRepository: context.read<UserRepository>(),
+C:\PROJELER\cidentia-live-web4\lib\stories\view\stories_page.dart:127 :: final user = context.select((AppBloc bloc) => bloc.state.user);
+C:\PROJELER\cidentia-live-web4\lib\stories\view\stories_page.dart:165 :: context.read<StoriesBloc>().add(
+C:\PROJELER\cidentia-live-web4\lib\stories\view\stories_page.dart:257 :: final user = context.select((AppBloc bloc) => bloc.state.user);
+C:\PROJELER\cidentia-live-web4\lib\stories\view\stories_page.dart:288 :: onTap: () => context.read<StoriesBloc>().add(
+C:\PROJELER\cidentia-live-web4\lib\stories\view\stories_page.dart:344 :: final user = context.select((AppBloc bloc) => bloc.state.user);
+C:\PROJELER\cidentia-live-web4\lib\stories\widgets\stories_carousel.dart:3 :: import 'package:flutter_bloc/flutter_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\stories\widgets\stories_carousel.dart:18 :: (CreateStoriesBloc bloc) => bloc.state.isAvailable,
+C:\PROJELER\cidentia-live-web4\lib\stories\widgets\stories_carousel.dart:20 :: final user = context.select((AppBloc bloc) => bloc.state.user);
+C:\PROJELER\cidentia-live-web4\lib\stories\widgets\stories_carousel.dart:30 :: child: BlocBuilder<StoriesBloc, StoriesState>(
+C:\PROJELER\cidentia-live-web4\lib\stories\widgets\stories_carousel.dart:54 :: context.read<CreateStoriesBloc>().add(
+C:\PROJELER\cidentia-live-web4\lib\stories\widgets\stories_props.dart:2 :: import 'package:user_repository/user_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\stories\widgets\story_avatar.dart:5 :: import 'package:flutter_bloc/flutter_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\stories\widgets\story_avatar.dart:9 :: import 'package:instagram_blocks_ui/instagram_blocks_ui.dart';
+C:\PROJELER\cidentia-live-web4\lib\stories\widgets\story_avatar.dart:11 :: import 'package:stories_repository/stories_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\stories\widgets\story_avatar.dart:12 :: import 'package:user_repository/user_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\stories\widgets\story_avatar.dart:44 :: final user = context.select((AppBloc bloc) => bloc.state.user);
+C:\PROJELER\cidentia-live-web4\lib\stories\widgets\story_avatar.dart:46 :: return BlocProvider(
+C:\PROJELER\cidentia-live-web4\lib\stories\widgets\story_avatar.dart:47 :: create: (context) => UserStoriesBloc(
+C:\PROJELER\cidentia-live-web4\lib\stories\widgets\story_avatar.dart:49 :: storiesRepository: context.read<StoriesRepository>(),
+C:\PROJELER\cidentia-live-web4\lib\stories\widgets\story_avatar.dart:84 :: return BlocBuilder<UserStoriesBloc, UserStoriesState>(
+C:\PROJELER\cidentia-live-web4\lib\stories\widgets\user_stories_avatar.dart:3 :: import 'package:flutter_bloc/flutter_bloc.dart';
+C:\PROJELER\cidentia-live-web4\lib\stories\widgets\user_stories_avatar.dart:7 :: import 'package:instagram_blocks_ui/instagram_blocks_ui.dart';
+C:\PROJELER\cidentia-live-web4\lib\stories\widgets\user_stories_avatar.dart:9 :: import 'package:stories_repository/stories_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\stories\widgets\user_stories_avatar.dart:10 :: import 'package:user_repository/user_repository.dart';
+C:\PROJELER\cidentia-live-web4\lib\stories\widgets\user_stories_avatar.dart:60 :: final user = context.select((AppBloc bloc) => bloc.state.user);
+C:\PROJELER\cidentia-live-web4\lib\stories\widgets\user_stories_avatar.dart:85 :: return BlocProvider(
+C:\PROJELER\cidentia-live-web4\lib\stories\widgets\user_stories_avatar.dart:86 :: create: (context) => UserStoriesBloc(
+C:\PROJELER\cidentia-live-web4\lib\stories\widgets\user_stories_avatar.dart:88 :: storiesRepository: context.read<StoriesRepository>(),
+C:\PROJELER\cidentia-live-web4\lib\stories\widgets\user_stories_avatar.dart:141 :: : context.select((UserStoriesBloc bloc) => bloc.state.stories);
+C:\PROJELER\cidentia-live-web4\lib\stories\widgets\user_stories_avatar.dart:143 :: (UserStoriesBloc bloc) => bloc.state.showStories,

@@ -1,0 +1,54 @@
+import 'package:flutter/material.dart';
+
+class LocalFutureModule {
+  const LocalFutureModule({
+    required this.title,
+    required this.subtitle,
+    required this.value,
+    required this.status,
+    required this.icon,
+    required this.colors,
+  });
+
+  final String title;
+  final String subtitle;
+  final String value;
+  final String status;
+  final IconData icon;
+  final List<Color> colors;
+}
+
+const localFutureModules = [
+  LocalFutureModule(
+    title: 'CID Identity',
+    subtitle: 'CidenDB verified social identity placeholder',
+    value: 'CID Local',
+    status: 'Planned',
+    icon: Icons.badge_outlined,
+    colors: [Color(0xFF60A5FA), Color(0xFF2563EB)],
+  ),
+  LocalFutureModule(
+    title: 'Wallet',
+    subtitle: 'Balance, earnings, transfers and creator payments',
+    value: '€0.00',
+    status: 'Locked',
+    icon: Icons.account_balance_wallet_outlined,
+    colors: [Color(0xFF34D399), Color(0xFF059669)],
+  ),
+  LocalFutureModule(
+    title: 'Trust Score',
+    subtitle: 'Reputation, verification and safety signal',
+    value: '98.4',
+    status: 'Demo',
+    icon: Icons.verified_user_outlined,
+    colors: [Color(0xFFFBBF24), Color(0xFFF97316)],
+  ),
+  LocalFutureModule(
+    title: 'Proof',
+    subtitle: 'Content proof, certificate and authenticity layer',
+    value: 'Ready',
+    status: 'Next',
+    icon: Icons.fingerprint_rounded,
+    colors: [Color(0xFFA78BFA), Color(0xFF7C3AED)],
+  ),
+];

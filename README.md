@@ -1,106 +1,123 @@
-# Flutter Instagram offline-first Clone
+# Cidentia.Live Web4
 
-![coverage][coverage_badge]
-[![style: very good analysis][very_good_analysis_badge]][very_good_analysis_link]
-[![License: MIT][license_badge]][license_link]
+Cidentia.Live Web4 is a local-first social experience prototype for the Cidentia ecosystem.
 
-<div>
-<h1><a href="https://youtu.be/xr56AjdGf-o"><strong>Watch complete tutorial »</strong></a></h1>
-<a href="https://github.com/Gambley1/flutter_instagram_offline_first_clone/issues/new?assignees=&labels=bug&projects=&template=bug_report.md&title=fix%3A+">Report Bug .</a>
-<a href="https://github.com/Gambley1/flutter_instagram_offline_first_clone/issues/new?assignees=&labels=enhancement%2C+feature&projects=&template=feature_request.md&title=feat%3A+">Request Feature</a>
-</p>
-</div>
+This repository is not an Instagram clone product. It is a Cidentia.Live preview shell built with Flutter. Selected open-source Flutter social UI ideas may be studied only as read-only visual references during development.
 
-## 💫 About The Project
+## Project Purpose
 
-<a href="https://youtu.be/xr56AjdGf-o">
-  <img src="screenshots/cover.png" width="100%">
-</a>
+Cidentia.Live is planned as a Web4 social and live interaction layer connected to the Cidentia ecosystem.
 
-Most people always wanted to see a Flutter project that is not just a clone but a real-world app with a real-world architecture, that will cover all-in-one: sleek UI with blazingly-fast backend. And, try to imagine, without a Firebase as a primary service…
+The long-term goal is to provide a social platform where public browsing can stay open while protected actions are connected to verified CidenDB/CID identity sessions.
 
-I present for you Flutter **offline-first** Instagram clone, leveraging Flutter best practices!
+Current work focuses on building a stable local Flutter interface before connecting real backend services.
 
-I am 100% sure this project and guide will impress you, regardless of your current experience.
+## Current Local Preview Scope
 
-It's not just another Instagram clone... You will learn comprehensively everything and beyond to be a real-world app creator.
+The current branch contains local-only preview surfaces for:
 
-This repository will enhance your skills so much that after you will be fully-capable of building your very own comprehensive applications with confidence and no fear.
+- Feed and post action paths
+- Reels scrolling and local actions
+- Stories viewer preview
+- Chats local interaction preview
+- Profile tabs, grid preview, and local action sheets
+- Live Studio layout previews
+- Creator and social surface experiments
 
-Moreover, you are going to learn how to create a completely **offline-first** application. It means that every single in-app feature is accessible with no internet connection!
+These features are local preview behavior only. They are not connected to production backend services.
 
-## ⚡️ Built With
+## Identity Boundary
 
-- [Flutter](https://flutter.dev/)
-- [Supabase](https://supabase.com/)
-- [PowerSync](https://www.powersync.com/)
-- [Firebase](https://firebase.google.com/)
+CidenDB is the identity and databank authority.
 
-## 🚀 Getting Started
+CidentiaApp is the onboarding and registration authority.
 
-Watch my free complete [**tutorial**](https://youtu.be/xr56AjdGf-o) on my channel!
+Cidentia.Live must not create its own identity authority, password login, fake OTP system, or independent user registration flow.
 
-With a step-by-step explanation, ensuring very smooth watching experience, you will learn to build Flutter real-world applications with confidence and no fear!
+Public browsing can remain open. Protected actions must later require a verified CidenDB/CID session.
 
-### ⚠️ Important Notice
+Protected actions include, but are not limited to:
 
-**The tutorial was recorded more than 1 year ago**, so some code and Flutter SDK versions may differ from the current repository state.
+- Editing profile
+- Sending messages
+- Managing proof
+- Connecting wallet
+- Starting live studio actions
+- Managing RTMP or live destinations
+- Uploading media
+- Wallet or payment operations
 
-**📋 For the latest setup instructions and migration guide, please refer to [MIGRATION.md](MIGRATION.md)** which contains:
+## Current Safety State
 
-- Updated Flutter SDK 3.35.7 setup instructions
-- FVM (Flutter Version Management) recommendations
-- Latest dependency versions and breaking changes
-- Step-by-step migration guide from older versions
+The current local preview does not open:
 
-**Always use the latest `main` branch** of this repository as the source of truth, rather than following the tutorial code exactly.
+- Real CidenDB session
+- Real OTP verification
+- Real wallet connection
+- Real payment flow
+- Real backend write operation
+- Real RTMP stream
+- Real live broadcast
+- Real token storage
 
-**Don't forget to give a video like and subscribe to the channel! Thanks!**
+Any future connection to these systems must be implemented in a separate planned backend and identity phase.
 
-## ⭐️ Contributing
+## Development Principles
 
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+This project must be developed in small reversible patches.
 
-If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
-Don't forget to give the project a star! Thanks again!
+Before coding, the current repository state must be checked through branch, status, log, and relevant file reads.
 
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+No random filler cards, test blocks, placeholder panels, or unrelated UI elements should be added just to fill empty space.
 
-## 📝 License
+Existing page structure must be protected. Fix the real cause of UI or runtime problems without changing the intended product direction.
 
-Distributed under the MIT License. See [MIT License](https://opensource.org/licenses/MIT) for more information.
+## Reference Policy
 
-## 💭 Contact
+The original Flutter Instagram offline-first clone is a read-only reference source.
 
-- Twitter - [@Emil Zulufov (ezIT)](https://twitter.com/EmdyEmil)
-- Email - emilzulufov.commercial@gmail.com
+Allowed reference areas:
 
-Project Link: [https://github.com/Gambley1/flutter_instagram_offline_first_clone](https://github.com/Gambley1/flutter_instagram_offline_first_clone)
+- Feed layout ideas
+- Reels layout behavior
+- Story viewer patterns
+- Chat bubble and input patterns
+- Profile grid and tab behavior
+- Local social interaction UX
 
-## 🎯 Acknowledgments
+Not allowed:
 
-This tutorial is highly inspired by a very popular Flutter News toolkit, make sure to check it out!
+- Copying identity or auth logic
+- Supabase auth replacement
+- Google sign-in replacement
+- Firebase or Supabase backend dependency as identity source
+- Password login
+- Token or session architecture from the reference project
+- Blind copying without adapting to Cidentia.Live architecture
 
-And you can watch my blog on medium.
+## Current Branch Direction
 
-- [flutter_news_toolkit](https://flutter.dev/news)
-- [medium blog](https://medium.com/@emilzulufov566/become-flutter-successful-developer-in-days-1bb4ef47b305)
+The active development direction is local social product completion before real backend and CidenDB integration.
 
-## ☕️ Support
+M3G and M3H focused on local social surface behavior.
 
-Also, I would really appreciate any of your support! You can buy me a coffee and become a part of our beautiful community.
+Backend, OTP, CidenDB, wallet, RTMP, payment, and real live-streaming work must remain separate unless explicitly resumed.
 
-Your donation will hugely help me and it will allow me to keep the next beautiful videos and tutorials high-quality and free!
+## Local Run
 
-- [Ko-fi](https://kofi.com/emilzulufov)
-- [PayPal](https://paypal.me/emilzulufov)
+Use the local Flutter entry point:
 
-[coverage_badge]: coverage_badge.svg
-[license_badge]: https://img.shields.io/badge/license-MIT-blue.svg
-[license_link]: https://opensource.org/licenses/MIT
-[very_good_analysis_badge]: https://img.shields.io/badge/style-very_good_analysis-B22C89.svg
-[very_good_analysis_link]: https://pub.dev/packages/very_good_analysis
+    flutter run -d windows -t lib/main_local.dart
+
+Common local checks:
+
+    flutter analyze lib\main_local.dart lib\local_social\local_social_app.dart lib\local_social\widgets\local_post_card.dart lib\local_social\widgets\local_reels_page.dart lib\local_social\widgets\local_stories_bar.dart lib\local_social\widgets\local_chat_detail.dart lib\local_social\widgets\local_profile_grid.dart
+
+    git diff --check
+    git status --short
+
+## Project Status
+
+Cidentia.Live Web4 is under active local preview development.
+
+The current goal is to stabilize the Flutter social interface first, then connect real CidenDB/CID and backend systems through a controlled and documented boundary.
