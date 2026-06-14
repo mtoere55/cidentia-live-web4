@@ -713,7 +713,7 @@ class _FeedActiveRoomMode extends StatelessWidget {
       icon: Icons.sensors_rounded,
       title: 'Active room mode: Normal Live',
       subtitle:
-          'Creator controls VS, Multi Guest and Support modes from Live Studio.',
+          'Mira selected this mode from Live Studio. Viewers join the active room and react inside it.',
     );
   }
 }
