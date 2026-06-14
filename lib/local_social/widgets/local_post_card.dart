@@ -434,36 +434,7 @@ void _showCommentsSheet(BuildContext context, LocalPost post) {
       return _LocalPreviewSheet(
         title: 'Comments',
         subtitle: '${post.comments} comments - local preview',
-        children: [
-          const _PreviewComment(
-            name: 'Selin',
-            text: 'This Web4 creator flow feels clean.',
-          ),
-          const _PreviewComment(
-            name: 'Alex',
-            text: 'The CID proof layer can become powerful.',
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            decoration: BoxDecoration(
-              color: _cardSoft,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: _line),
-            ),
-            child: const Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Add a local preview comment...',
-                    style: TextStyle(color: _textSoft),
-                  ),
-                ),
-                Icon(Icons.send_rounded, size: 18),
-              ],
-            ),
-          ),
-        ],
+        children: [_LocalCommentsPreview(post: post)],
       );
     },
   );
@@ -620,6 +591,156 @@ class _LocalSheetAction extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _LocalCommentsPreview extends StatefulWidget {
+  const _LocalCommentsPreview({required this.post});
+
+  final LocalPost post;
+
+  @override
+  State<_LocalCommentsPreview> createState() => _LocalCommentsPreviewState();
+}
+
+class _LocalCommentsPreviewState extends State<_LocalCommentsPreview> {
+  late final TextEditingController _controller;
+  final List<_LocalCommentDraft> _comments = [
+    const _LocalCommentDraft(
+      name: 'Selin',
+      text: 'This Web4 creator flow feels clean.',
+    ),
+    const _LocalCommentDraft(
+      name: 'Alex',
+      text: 'The CID proof layer can become powerful.',
+    ),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController();
+    _controller.addListener(() => setState(() {}));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submitComment() {
+    final text = _controller.text.trim();
+    if (text.isEmpty) return;
+
+    setState(() {
+      _comments.add(_LocalCommentDraft(name: 'You', text: text));
+      _controller.clear();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final canSend = _controller.text.trim().isNotEmpty;
+    final keyboardBottom = MediaQuery.viewInsetsOf(context).bottom;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: keyboardBottom),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 260),
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: _comments.length,
+              itemBuilder: (context, index) {
+                final comment = _comments[index];
+                return _PreviewComment(name: comment.name, text: comment.text);
+              },
+            ),
+          ),
+          const SizedBox(height: 12),
+          _LocalCommentComposer(
+            controller: _controller,
+            canSend: canSend,
+            onSubmit: _submitComment,
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Local-only comment preview. Real comments will use the Cidentia.Live backend later.',
+            style: TextStyle(color: _textSoft, fontSize: 11, height: 1.35),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LocalCommentDraft {
+  const _LocalCommentDraft({required this.name, required this.text});
+
+  final String name;
+  final String text;
+}
+
+class _LocalCommentComposer extends StatelessWidget {
+  const _LocalCommentComposer({
+    required this.controller,
+    required this.canSend,
+    required this.onSubmit,
+  });
+
+  final TextEditingController controller;
+  final bool canSend;
+  final VoidCallback onSubmit;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 8, 8, 8),
+      decoration: BoxDecoration(
+        color: _cardSoft,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: canSend ? const Color(0xFF22C55E) : _line),
+      ),
+      child: Row(
+        children: [
+          const CircleAvatar(
+            radius: 15,
+            backgroundColor: Color(0xFF27272A),
+            child: Text(
+              'Y',
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: TextField(
+              controller: controller,
+              minLines: 1,
+              maxLines: 3,
+              textInputAction: TextInputAction.send,
+              onSubmitted: (_) => onSubmit(),
+              decoration: const InputDecoration(
+                hintText: 'Add a local preview comment...',
+                hintStyle: TextStyle(color: _textSoft),
+                border: InputBorder.none,
+                isDense: true,
+              ),
+            ),
+          ),
+          IconButton(
+            onPressed: canSend ? onSubmit : null,
+            icon: Icon(
+              Icons.send_rounded,
+              color: canSend ? const Color(0xFF86EFAC) : Colors.white30,
+            ),
+            tooltip: 'Send local comment',
+          ),
+        ],
       ),
     );
   }
