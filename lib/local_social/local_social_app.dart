@@ -219,8 +219,14 @@ class _LocalShellState extends State<LocalShell> {
                             ],
                           ),
                         ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
+                          child: _DesktopCreatePreviewButton(
+                            onTap: () => _showLocalCreatePreviewSheet(context),
+                          ),
+                        ),
                         const Padding(
-                          padding: EdgeInsets.fromLTRB(16, 8, 16, 16),
+                          padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
                           child: _LocalStatusCard(),
                         ),
                       ],
@@ -619,6 +625,45 @@ class _SideNavTile extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DesktopCreatePreviewButton extends StatelessWidget {
+  const _DesktopCreatePreviewButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: Colors.white),
+        ),
+        child: const Row(
+          children: [
+            Icon(Icons.add_box_outlined, color: Colors.black, size: 20),
+            SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Create preview',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+            Icon(Icons.lock_outline_rounded, color: Colors.black54, size: 16),
+          ],
         ),
       ),
     );
