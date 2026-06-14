@@ -450,39 +450,297 @@ class StoriesStrip extends StatelessWidget {
         itemCount: localStories.length,
         separatorBuilder: (_, __) => const SizedBox(width: 14),
         itemBuilder: (context, index) {
-          return Column(
-            children: [
-              Container(
-                width: 76,
-                height: 76,
-                padding: const EdgeInsets.all(3),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [localStories[index].color, Colors.pinkAccent],
+          final story = localStories[index];
+          final isLiveStory = index == 1 && !story.isCreate;
+
+          return GestureDetector(
+            onTap: isLiveStory
+                ? () => _showStoryLiveRoomPreview(
+                    context,
+                    story.label,
+                    story.color,
+                  )
+                : null,
+            child: Column(
+              children: [
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      width: 76,
+                      height: 76,
+                      padding: const EdgeInsets.all(3),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          colors: isLiveStory
+                              ? const [Color(0xFFFF1744), Color(0xFF8B5CF6)]
+                              : [story.color, Colors.pinkAccent],
+                        ),
+                        boxShadow: isLiveStory
+                            ? const [
+                                BoxShadow(
+                                  color: Color(0x55FF1744),
+                                  blurRadius: 18,
+                                  offset: Offset(0, 8),
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          color: _bg,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          story.isCreate
+                              ? Icons.add_rounded
+                              : isLiveStory
+                              ? Icons.wifi_tethering_rounded
+                              : Icons.person_rounded,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    if (isLiveStory)
+                      const Positioned(
+                        left: 12,
+                        right: 12,
+                        bottom: -7,
+                        child: _StoryLiveBadge(),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  story.label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: isLiveStory ? FontWeight.w900 : FontWeight.w400,
                   ),
                 ),
-                child: Container(
-                  decoration: const BoxDecoration(
-                    color: _bg,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    localStories[index].isCreate
-                        ? Icons.add_rounded
-                        : Icons.person_rounded,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                localStories[index].label,
-                style: const TextStyle(fontSize: 12),
-              ),
-            ],
+              ],
+            ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _StoryLiveBadge extends StatefulWidget {
+  const _StoryLiveBadge();
+
+  @override
+  State<_StoryLiveBadge> createState() => _StoryLiveBadgeState();
+}
+
+class _StoryLiveBadgeState extends State<_StoryLiveBadge>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _pulse;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 820),
+    )..repeat(reverse: true);
+
+    _pulse = Tween<double>(
+      begin: 0.5,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _pulse,
+      child: Container(
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFF1744),
+          borderRadius: BorderRadius.circular(99),
+          border: Border.all(color: Colors.white24),
+        ),
+        child: const Text(
+          'LIVE',
+          style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900),
+        ),
+      ),
+    );
+  }
+}
+
+void _showStoryLiveRoomPreview(
+  BuildContext context,
+  String creator,
+  Color accent,
+) {
+  showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: Colors.transparent,
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (context) {
+      return Container(
+        margin: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: const Color(0xFF121217),
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(color: _line),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 42,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: _line,
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+              const Text(
+                'Cidentia Live Room',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                '$creator · Story live discovery',
+                style: const TextStyle(color: _textSoft),
+              ),
+              const SizedBox(height: 16),
+              AspectRatio(
+                aspectRatio: 1.35,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(24),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [accent, const Color(0xFF8B5CF6)],
+                    ),
+                    border: Border.all(color: _line),
+                  ),
+                  child: Stack(
+                    children: [
+                      const Positioned(
+                        left: 16,
+                        top: 16,
+                        child: _StoryLiveBadge(),
+                      ),
+                      Center(
+                        child: CircleAvatar(
+                          radius: 42,
+                          backgroundColor: Colors.black38,
+                          child: Text(
+                            creator.characters.first,
+                            style: const TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const Positioned(
+                        left: 16,
+                        right: 16,
+                        bottom: 16,
+                        child: Text(
+                          'Story live discovery · Signal, Proof and Effect are preview-only. RTMP, backend and wallet stay locked.',
+                          style: TextStyle(color: Colors.white70, height: 1.35),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(
+                    child: _StoryLiveAction(
+                      icon: Icons.remove_red_eye_outlined,
+                      label: 'Enter',
+                      onTap: () => Navigator.of(context).pop(),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _StoryLiveAction(
+                      icon: Icons.auto_awesome_rounded,
+                      label: 'Effect',
+                      onTap: () => Navigator.of(context).pop(),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _StoryLiveAction(
+                      icon: Icons.verified_user_outlined,
+                      label: 'Proof',
+                      onTap: () => Navigator.of(context).pop(),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+class _StoryLiveAction extends StatelessWidget {
+  const _StoryLiveAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1B1B22),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: _line),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, size: 20),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
+            ),
+          ],
+        ),
       ),
     );
   }
