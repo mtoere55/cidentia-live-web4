@@ -12,7 +12,7 @@ void _showLiveStudioNotice(BuildContext context, String title, String message) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       behavior: SnackBarBehavior.floating,
-      content: Text('$title ? $message'),
+      content: Text('$title - $message'),
     ),
   );
 }
@@ -1004,20 +1004,45 @@ class _MiniSignalBars extends StatelessWidget {
   }
 }
 
-class _SceneStrip extends StatelessWidget {
+class _SceneStrip extends StatefulWidget {
   const _SceneStrip();
 
   @override
-  Widget build(BuildContext context) {
-    const scenes = [
-      'Talking Head',
-      'Camera',
-      'Screen Share',
-      'Slides',
-      'Webcam + Slides',
-      'Add Source',
-    ];
+  State<_SceneStrip> createState() => _SceneStripState();
+}
 
+class _SceneStripState extends State<_SceneStrip> {
+  int selectedScene = 0;
+
+  static const scenes = [
+    'Talking Head',
+    'Camera',
+    'Screen Share',
+    'Slides',
+    'Webcam + Slides',
+    'Add Source',
+  ];
+
+  void _selectScene(int index) {
+    if (index == scenes.length - 1) {
+      _showLiveStudioNotice(
+        context,
+        'Add Source',
+        'Source creation is local-preview only. Real camera, screen, media, or RTMP sources open in their own approved milestone.',
+      );
+      return;
+    }
+
+    setState(() => selectedScene = index);
+    _showLiveStudioNotice(
+      context,
+      'Scene selected',
+      '${scenes[index]} is now active in local preview.',
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return SizedBox(
       height: 64,
       child: ListView.separated(
@@ -1025,35 +1050,39 @@ class _SceneStrip extends StatelessWidget {
         itemCount: scenes.length,
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
-          final selected = index == 0;
-          return Container(
-            width: 126,
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            decoration: BoxDecoration(
-              color: selected ? Colors.white10 : _panel,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(
-                color: selected ? const Color(0xFFA855F7) : _line,
+          final selected = index == selectedScene;
+          return InkWell(
+            borderRadius: BorderRadius.circular(18),
+            onTap: () => _selectScene(index),
+            child: Container(
+              width: 126,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: selected ? Colors.white10 : _panel,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: selected ? const Color(0xFFA855F7) : _line,
+                ),
               ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  index == scenes.length - 1
-                      ? Icons.add_rounded
-                      : Icons.video_camera_front_rounded,
-                  size: 16,
-                ),
-                const SizedBox(width: 7),
-                Expanded(
-                  child: Text(
-                    scenes[index],
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.w900),
+              child: Row(
+                children: [
+                  Icon(
+                    index == scenes.length - 1
+                        ? Icons.add_rounded
+                        : Icons.video_camera_front_rounded,
+                    size: 16,
                   ),
-                ),
-              ],
+                  const SizedBox(width: 7),
+                  Expanded(
+                    child: Text(
+                      scenes[index],
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         },
@@ -1062,7 +1091,7 @@ class _SceneStrip extends StatelessWidget {
   }
 }
 
-class _StudioControlDock extends StatelessWidget {
+class _StudioControlDock extends StatefulWidget {
   const _StudioControlDock({
     required this.liveReady,
     required this.translateEnabled,
@@ -1074,6 +1103,52 @@ class _StudioControlDock extends StatelessWidget {
   final bool translateEnabled;
   final VoidCallback onToggleLive;
   final VoidCallback onToggleTranslate;
+
+  @override
+  State<_StudioControlDock> createState() => _StudioControlDockState();
+}
+
+class _StudioControlDockState extends State<_StudioControlDock> {
+  bool micEnabled = true;
+  bool cameraEnabled = true;
+  bool recording = false;
+
+  void _toggleMic() {
+    setState(() => micEnabled = !micEnabled);
+    _showLiveStudioNotice(
+      context,
+      'Mic',
+      micEnabled
+          ? 'Microphone enabled in local preview.'
+          : 'Microphone muted in local preview.',
+    );
+  }
+
+  void _toggleCamera() {
+    setState(() => cameraEnabled = !cameraEnabled);
+    _showLiveStudioNotice(
+      context,
+      'Camera',
+      cameraEnabled
+          ? 'Camera enabled in local preview.'
+          : 'Camera disabled in local preview.',
+    );
+  }
+
+  void _toggleRecord() {
+    setState(() => recording = !recording);
+    _showLiveStudioNotice(
+      context,
+      'Record',
+      recording
+          ? 'Local recording indicator enabled. No file is created.'
+          : 'Local recording indicator stopped.',
+    );
+  }
+
+  void _notice(String title, String message) {
+    _showLiveStudioNotice(context, title, message);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1089,51 +1164,104 @@ class _StudioControlDock extends StatelessWidget {
         runSpacing: 8,
         alignment: WrapAlignment.center,
         children: [
-          const _ControlButton(
-            icon: Icons.mic_rounded,
-            label: 'Mic',
-            active: true,
-          ),
-          const _ControlButton(
-            icon: Icons.videocam_rounded,
-            label: 'Camera',
-            active: true,
-          ),
-          const _ControlButton(
-            icon: Icons.monitor_rounded,
-            label: 'Share Screen',
-          ),
-          const _ControlButton(
-            icon: Icons.person_add_alt_1_rounded,
-            label: 'Invite Guest',
-          ),
-          const _ControlButton(
-            icon: Icons.chat_bubble_outline_rounded,
-            label: 'Chat',
+          InkWell(
+            borderRadius: BorderRadius.circular(18),
+            onTap: _toggleMic,
+            child: _ControlButton(
+              icon: micEnabled ? Icons.mic_rounded : Icons.mic_off_rounded,
+              label: micEnabled ? 'Mic' : 'Muted',
+              active: micEnabled,
+            ),
           ),
           InkWell(
             borderRadius: BorderRadius.circular(18),
-            onTap: onToggleTranslate,
+            onTap: _toggleCamera,
+            child: _ControlButton(
+              icon: cameraEnabled
+                  ? Icons.videocam_rounded
+                  : Icons.videocam_off_rounded,
+              label: cameraEnabled ? 'Camera' : 'Cam Off',
+              active: cameraEnabled,
+            ),
+          ),
+          InkWell(
+            borderRadius: BorderRadius.circular(18),
+            onTap: () => _notice(
+              'Share Screen',
+              'Screen sharing is local-preview only. Real screen capture opens in its own approved milestone.',
+            ),
+            child: const _ControlButton(
+              icon: Icons.monitor_rounded,
+              label: 'Share Screen',
+            ),
+          ),
+          InkWell(
+            borderRadius: BorderRadius.circular(18),
+            onTap: () => _notice(
+              'Invite Guest',
+              'Guest invites require backend and verified session support later.',
+            ),
+            child: const _ControlButton(
+              icon: Icons.person_add_alt_1_rounded,
+              label: 'Invite Guest',
+            ),
+          ),
+          InkWell(
+            borderRadius: BorderRadius.circular(18),
+            onTap: () => _notice(
+              'Chat',
+              'Live chat preview is visible in the Studio Panel. Real chat backend opens later.',
+            ),
+            child: const _ControlButton(
+              icon: Icons.chat_bubble_outline_rounded,
+              label: 'Chat',
+            ),
+          ),
+          InkWell(
+            borderRadius: BorderRadius.circular(18),
+            onTap: widget.onToggleTranslate,
             child: _ControlButton(
               icon: Icons.translate_rounded,
               label: 'Translate',
-              active: translateEnabled,
+              active: widget.translateEnabled,
             ),
           ),
-          const _ControlButton(
-            icon: Icons.verified_user_outlined,
-            label: 'Proof',
-            active: true,
+          InkWell(
+            borderRadius: BorderRadius.circular(18),
+            onTap: () => _notice(
+              'Proof',
+              'Proof is visual in local preview. Real CID proof checks open only in the CidenDB/CID milestone.',
+            ),
+            child: const _ControlButton(
+              icon: Icons.verified_user_outlined,
+              label: 'Proof',
+              active: true,
+            ),
           ),
-          const _ControlButton(
-            icon: Icons.fiber_manual_record_rounded,
-            label: 'Record',
+          InkWell(
+            borderRadius: BorderRadius.circular(18),
+            onTap: _toggleRecord,
+            child: _ControlButton(
+              icon: Icons.fiber_manual_record_rounded,
+              label: recording ? 'Recording' : 'Record',
+              active: recording,
+            ),
           ),
-          const _ControlButton(
-            icon: Icons.account_balance_wallet_outlined,
-            label: 'Wallet Support',
+          InkWell(
+            borderRadius: BorderRadius.circular(18),
+            onTap: () => _notice(
+              'Wallet Support',
+              'Wallet support stays locked. No payment, token, balance, or connector is opened here.',
+            ),
+            child: const _ControlButton(
+              icon: Icons.account_balance_wallet_outlined,
+              label: 'Wallet Support',
+            ),
           ),
-          _LiveControlButton(liveReady: liveReady, onTap: onToggleLive),
+          _LiveControlButton(
+            liveReady: widget.liveReady,
+            onTap: widget.onToggleLive,
+          ),
         ],
       ),
     );
@@ -2321,16 +2449,21 @@ class _DestinationManagerDialogState extends State<_DestinationManagerDialog> {
                 ),
                 child: Column(
                   children: [
-                    SwitchListTile(
-                      value: enabled,
-                      onChanged: (value) => setState(() => enabled = value),
-                      title: const Text(
-                        'Destination Enabled',
-                        style: TextStyle(fontWeight: FontWeight.w900),
-                      ),
-                      subtitle: Text(
-                        enabled ? 'Ready for local studio routing' : 'Disabled',
-                        style: const TextStyle(color: _textSoft),
+                    Material(
+                      color: Colors.transparent,
+                      child: SwitchListTile(
+                        value: enabled,
+                        onChanged: (value) => setState(() => enabled = value),
+                        title: const Text(
+                          'Destination Enabled',
+                          style: TextStyle(fontWeight: FontWeight.w900),
+                        ),
+                        subtitle: Text(
+                          enabled
+                              ? 'Ready for local studio routing'
+                              : 'Disabled',
+                          style: const TextStyle(color: _textSoft),
+                        ),
                       ),
                     ),
                     const Divider(color: _line),
@@ -2695,30 +2828,37 @@ class _LiveTranslationHubContentState
           ),
           child: Column(
             children: [
-              SwitchListTile(
-                value: subtitlesEnabled,
-                onChanged: (value) => setState(() => subtitlesEnabled = value),
-                title: const Text(
-                  'Subtitles',
-                  style: TextStyle(fontWeight: FontWeight.w900),
-                ),
-                subtitle: const Text(
-                  'Show translated captions over the live preview.',
-                  style: TextStyle(color: _textSoft),
+              Material(
+                color: Colors.transparent,
+                child: SwitchListTile(
+                  value: subtitlesEnabled,
+                  onChanged: (value) =>
+                      setState(() => subtitlesEnabled = value),
+                  title: const Text(
+                    'Subtitles',
+                    style: TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                  subtitle: const Text(
+                    'Show translated captions over the live preview.',
+                    style: TextStyle(color: _textSoft),
+                  ),
                 ),
               ),
               const Divider(height: 1, color: _line),
-              SwitchListTile(
-                value: voicePreviewEnabled,
-                onChanged: (value) =>
-                    setState(() => voicePreviewEnabled = value),
-                title: const Text(
-                  'Voice Translation Preview',
-                  style: TextStyle(fontWeight: FontWeight.w900),
-                ),
-                subtitle: const Text(
-                  'Local UI placeholder. Real voice engine will be connected later.',
-                  style: TextStyle(color: _textSoft),
+              Material(
+                color: Colors.transparent,
+                child: SwitchListTile(
+                  value: voicePreviewEnabled,
+                  onChanged: (value) =>
+                      setState(() => voicePreviewEnabled = value),
+                  title: const Text(
+                    'Voice Translation Preview',
+                    style: TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                  subtitle: const Text(
+                    'Local UI placeholder. Real voice engine will be connected later.',
+                    style: TextStyle(color: _textSoft),
+                  ),
                 ),
               ),
             ],
