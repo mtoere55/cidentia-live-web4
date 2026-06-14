@@ -50,10 +50,10 @@ class _OriginalInspiredPostCardState extends State<OriginalInspiredPostCard> {
         : post.author.characters.first;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 22),
+      margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
         color: _cardBg,
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: _line),
         boxShadow: const [
           BoxShadow(
@@ -192,7 +192,7 @@ class _PostMedia extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AspectRatio(
-      aspectRatio: 1.05,
+      aspectRatio: 1.18,
       child: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -243,7 +243,7 @@ class _PostMedia extends StatelessWidget {
               right: 18,
               bottom: 18,
               child: Text(
-                'Original-inspired social media block',
+                'Cidentia.Live social preview',
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w900,
@@ -536,7 +536,7 @@ class _LocalPreviewSheet extends StatelessWidget {
       constraints: BoxConstraints(maxHeight: maxSheetHeight),
       decoration: BoxDecoration(
         color: _cardBg,
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: _line),
         boxShadow: const [
           BoxShadow(
