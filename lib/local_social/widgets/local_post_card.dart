@@ -397,25 +397,43 @@ void _showPostOptionsSheet(BuildContext context, LocalPost post) {
           _LocalSheetAction(
             icon: Icons.visibility_rounded,
             title: 'View post details',
-            subtitle: 'Open a local detail preview later.',
+            subtitle: 'Open the future detail route for this post.',
             onTap: () {
               Navigator.of(context).pop();
               _showLocalActionSnack(context, 'Post detail preview');
             },
           ),
           _LocalSheetAction(
-            icon: Icons.person_add_alt_1_rounded,
-            title: 'Creator actions',
-            subtitle: 'Follow, mute, report and proof actions later.',
+            icon: Icons.person_search_rounded,
+            title: 'View creator preview',
+            subtitle: 'Preview ${post.author} before CID profile actions.',
             onTap: () {
               Navigator.of(context).pop();
-              _showLocalActionSnack(context, 'Creator options preview');
+              _showLocalActionSnack(context, 'Creator preview');
             },
           ),
           _LocalSheetAction(
-            icon: Icons.info_outline_rounded,
+            icon: Icons.visibility_off_rounded,
+            title: 'Not interested',
+            subtitle: 'Local feed preference placeholder.',
+            onTap: () {
+              Navigator.of(context).pop();
+              _showLocalActionSnack(context, 'Feed preference preview');
+            },
+          ),
+          _LocalSheetAction(
+            icon: Icons.flag_outlined,
+            title: 'Report preview',
+            subtitle: 'Safety flow placeholder. No report is sent.',
+            onTap: () {
+              Navigator.of(context).pop();
+              _showLocalActionSnack(context, 'Report flow preview');
+            },
+          ),
+          _LocalSheetAction(
+            icon: Icons.verified_user_outlined,
             title: 'CID proof note',
-            subtitle: 'Real CID verification will be connected later.',
+            subtitle: 'Real proof checks will use verified CID sessions later.',
             onTap: () => Navigator.of(context).pop(),
           ),
         ],
@@ -460,18 +478,36 @@ void _showShareSheet(BuildContext context, LocalPost post) {
             },
           ),
           _LocalSheetAction(
-            icon: Icons.send_outlined,
-            title: 'Send to chat',
-            subtitle: 'Chat share path will be connected later.',
+            icon: Icons.chat_bubble_outline_rounded,
+            title: 'Send to Cidentia chat',
+            subtitle: 'Future CID chat share path placeholder.',
             onTap: () {
               Navigator.of(context).pop();
               _showLocalActionSnack(context, 'Chat share preview');
             },
           ),
           _LocalSheetAction(
+            icon: Icons.auto_stories_outlined,
+            title: 'Share to story / replay',
+            subtitle: 'Future story and live replay share surface.',
+            onTap: () {
+              Navigator.of(context).pop();
+              _showLocalActionSnack(context, 'Story share preview');
+            },
+          ),
+          _LocalSheetAction(
+            icon: Icons.ios_share_rounded,
+            title: 'External share preview',
+            subtitle: 'Native share integration will be added later.',
+            onTap: () {
+              Navigator.of(context).pop();
+              _showLocalActionSnack(context, 'External share preview');
+            },
+          ),
+          _LocalSheetAction(
             icon: Icons.qr_code_2_rounded,
             title: 'CID share proof',
-            subtitle: 'Proof-backed share is planned for later.',
+            subtitle: 'Proof-backed share is planned for verified sessions.',
             onTap: () => Navigator.of(context).pop(),
           ),
         ],
@@ -493,9 +529,11 @@ class _LocalPreviewSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final maxSheetHeight = MediaQuery.sizeOf(context).height * 0.82;
+
     return Container(
       margin: const EdgeInsets.all(14),
-      padding: const EdgeInsets.all(18),
+      constraints: BoxConstraints(maxHeight: maxSheetHeight),
       decoration: BoxDecoration(
         color: _cardBg,
         borderRadius: BorderRadius.circular(28),
@@ -510,31 +548,36 @@ class _LocalPreviewSheet extends StatelessWidget {
       ),
       child: SafeArea(
         top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
                     ),
-                  ),
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.close_rounded),
+                    ),
+                  ],
                 ),
-                IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close_rounded),
-                ),
+                Text(subtitle, style: const TextStyle(color: _textSoft)),
+                const SizedBox(height: 16),
+                ...children,
               ],
             ),
-            Text(subtitle, style: const TextStyle(color: _textSoft)),
-            const SizedBox(height: 16),
-            ...children,
-          ],
+          ),
         ),
       ),
     );
