@@ -621,108 +621,260 @@ class SearchPreviewPage extends StatelessWidget {
             '13.9M',
           ][index % 6];
 
-          return Container(
-            clipBehavior: Clip.antiAlias,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: colors,
-              ),
+          return InkWell(
+            onTap: () => _openSearchMediaPreview(
+              context,
+              index: index,
+              label: label,
+              views: views,
+              colors: colors,
+              isLive: isLive,
+              isReel: isReel,
             ),
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.white.withValues(alpha: 0.04),
-                          Colors.black.withValues(alpha: 0.28),
+            child: Container(
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: colors,
+                ),
+              ),
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.white.withValues(alpha: 0.04),
+                            Colors.black.withValues(alpha: 0.28),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  Center(
+                    child: Icon(
+                      isLive
+                          ? Icons.live_tv_rounded
+                          : isReel
+                          ? Icons.play_circle_outline_rounded
+                          : Icons.photo_camera_outlined,
+                      size: 54,
+                      color: Colors.white.withValues(alpha: 0.30),
+                    ),
+                  ),
+                  Positioned(
+                    left: 8,
+                    top: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 7,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.34),
+                        borderRadius: BorderRadius.circular(99),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.16),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            isLive
+                                ? Icons.fiber_manual_record_rounded
+                                : isReel
+                                ? Icons.play_arrow_rounded
+                                : Icons.grid_on_rounded,
+                            color: Colors.white,
+                            size: 12,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            label,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
                         ],
                       ),
                     ),
                   ),
-                ),
-                Center(
-                  child: Icon(
-                    isLive
-                        ? Icons.live_tv_rounded
-                        : isReel
-                        ? Icons.play_circle_outline_rounded
-                        : Icons.photo_camera_outlined,
-                    size: 54,
-                    color: Colors.white.withValues(alpha: 0.30),
-                  ),
-                ),
-                Positioned(
-                  left: 8,
-                  top: 8,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 7,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.34),
-                      borderRadius: BorderRadius.circular(99),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.16),
-                      ),
-                    ),
+                  Positioned(
+                    left: 8,
+                    bottom: 8,
                     child: Row(
-                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          isLive
-                              ? Icons.fiber_manual_record_rounded
-                              : isReel
-                              ? Icons.play_arrow_rounded
-                              : Icons.grid_on_rounded,
+                        const Icon(
+                          Icons.remove_red_eye_rounded,
                           color: Colors.white,
-                          size: 12,
+                          size: 15,
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          label,
+                          views,
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w900,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
                       ],
                     ),
                   ),
-                ),
-                Positioned(
-                  left: 8,
-                  bottom: 8,
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.remove_red_eye_rounded,
-                        color: Colors.white,
-                        size: 15,
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+void _openSearchMediaPreview(
+  BuildContext context, {
+  required int index,
+  required String label,
+  required String views,
+  required List<Color> colors,
+  required bool isLive,
+  required bool isReel,
+}) {
+  showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: Colors.transparent,
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (context) {
+      return Container(
+        margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: _panel,
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(color: _line),
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    isLive
+                        ? Icons.live_tv_rounded
+                        : isReel
+                        ? Icons.play_circle_outline_rounded
+                        : Icons.photo_camera_outlined,
+                    color: Colors.white,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      '$label preview',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        views,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  Text(
+                    views,
+                    style: const TextStyle(
+                      color: _textSoft,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              AspectRatio(
+                aspectRatio: isReel || isLive ? 9 / 14 : 1,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(24),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: colors,
+                    ),
+                    border: Border.all(color: Colors.white12),
+                  ),
+                  child: Stack(
+                    children: [
+                      Center(
+                        child: Icon(
+                          isLive
+                              ? Icons.sensors_rounded
+                              : isReel
+                              ? Icons.play_arrow_rounded
+                              : Icons.grid_on_rounded,
+                          size: 64,
+                          color: Colors.white.withValues(alpha: 0.34),
+                        ),
+                      ),
+                      Positioned(
+                        left: 14,
+                        top: 14,
+                        child: _SearchPreviewPill(label: label),
+                      ),
+                      Positioned(
+                        left: 14,
+                        right: 14,
+                        bottom: 14,
+                        child: Text(
+                          isLive
+                              ? 'Live discovery preview. Real streaming stays locked.'
+                              : isReel
+                              ? 'Reel discovery preview. Playback connects later.'
+                              : 'Post discovery preview. Detail routing connects later.',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            height: 1.3,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
-          );
-        },
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+class _SearchPreviewPill extends StatelessWidget {
+  const _SearchPreviewPill({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.42),
+        borderRadius: BorderRadius.circular(99),
+        border: Border.all(color: Colors.white24),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        child: Text(
+          label,
+          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900),
+        ),
       ),
     );
   }
