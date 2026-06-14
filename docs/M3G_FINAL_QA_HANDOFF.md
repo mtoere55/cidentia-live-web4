@@ -6,7 +6,7 @@ Latest commit before this handoff: 4ba9a00 Polish local share and options sheets
 
 ## Completed scope
 
-M3G completed the local social action preview layer for Cidentia.Live.
+M3G completed the Feed/Post local social action preview layer for Cidentia.Live. It did not complete the full social surface.
 
 Completed items:
 
@@ -22,6 +22,32 @@ Completed items:
 - Post options sheet polish
 - Scroll-safe local preview sheets
 - Flutter Instagram clone reference audit
+
+
+## Scope clarification
+
+M3G should not be read as the full social product being complete.
+
+M3G completed the Feed/Post action surface only:
+
+- Feed post actions
+- Post comment sheet
+- Post local comment composer
+- Post share sheet
+- Post options sheet
+- Feed/Post overflow fixes
+
+Not completed in M3G:
+
+- Chats / Messages interaction polish
+- Story viewer / replay surface
+- Full Reels action behavior
+- Profile action and tab behavior
+- Real share routing
+- Backend-connected social graph
+- CID-authenticated protected social actions
+
+These areas must continue under a new audit and polish package.
 
 ## Reference clone use
 
