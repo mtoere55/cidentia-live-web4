@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../local_social_data.dart';
 
-const _bg = Color(0xFF09090B);
 const _panel = Color(0xFF101114);
 const _panelSoft = Color(0xFF181A20);
 const _line = Color(0xFF262A33);
@@ -29,16 +28,16 @@ class _OriginalInspiredProfilePageState
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.fromLTRB(22, 22, 22, 90),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 90),
       children: [
         const _ProfileHero(),
-        const SizedBox(height: 18),
+        const SizedBox(height: 8),
         const _ProfileStatsRow(),
-        const SizedBox(height: 18),
+        const SizedBox(height: 10),
         const _ProfileActionRow(),
-        const SizedBox(height: 22),
+        const SizedBox(height: 10),
         _ProfileTabs(activeTab: activeTab, onChanged: _setTab),
-        const SizedBox(height: 14),
+        const SizedBox(height: 10),
         _ProfileGrid(activeTab: activeTab),
       ],
     );
@@ -53,16 +52,16 @@ class _ProfileHero extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: _panel,
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: _line),
       ),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 96,
-            height: 96,
+            width: 62,
+            height: 62,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: const LinearGradient(
@@ -73,12 +72,12 @@ class _ProfileHero extends StatelessWidget {
             child: const Center(
               child: Text(
                 'W4',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
+                style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900),
               ),
             ),
           ),
-          const SizedBox(width: 18),
-          const Expanded(
+          const SizedBox(width: 12),
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -106,29 +105,61 @@ class _ProfileHero extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                SizedBox(height: 12),
+                SizedBox(height: 8),
                 Text(
-                  'Cidentia.Live local creator profile. Posts, Reels, wallet, proof and trust layers will be connected step by step.',
-                  style: TextStyle(color: Colors.white, height: 1.35),
+                  'Local creator profile. Reels, wallet, proof and trust layers will connect later.',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: Colors.white, height: 1.25),
                 ),
-                SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    _ProfileBadge(
-                      icon: Icons.badge_outlined,
-                      label: 'CID ready',
-                    ),
-                    _ProfileBadge(
-                      icon: Icons.fingerprint_rounded,
-                      label: 'Proof planned',
-                    ),
-                    _ProfileBadge(
-                      icon: Icons.wallet_outlined,
-                      label: 'Wallet locked',
-                    ),
-                  ],
+                SizedBox(height: 10),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final compact = constraints.maxWidth < 360;
+
+                    if (!compact) {
+                      return Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: const [
+                          _ProfileBadge(
+                            icon: Icons.badge_outlined,
+                            label: 'CID ready',
+                          ),
+                          _ProfileBadge(
+                            icon: Icons.fingerprint_rounded,
+                            label: 'Proof planned',
+                          ),
+                          _ProfileBadge(
+                            icon: Icons.wallet_outlined,
+                            label: 'Wallet locked',
+                          ),
+                        ],
+                      );
+                    }
+
+                    return SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: const Row(
+                        children: [
+                          _ProfileBadge(
+                            icon: Icons.badge_outlined,
+                            label: 'CID ready',
+                          ),
+                          SizedBox(width: 8),
+                          _ProfileBadge(
+                            icon: Icons.fingerprint_rounded,
+                            label: 'Proof planned',
+                          ),
+                          SizedBox(width: 8),
+                          _ProfileBadge(
+                            icon: Icons.wallet_outlined,
+                            label: 'Wallet locked',
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
@@ -181,15 +212,15 @@ class _ProfileStatsRow extends StatelessWidget {
         Expanded(
           child: _StatCard(value: '128', label: 'Posts'),
         ),
-        SizedBox(width: 12),
+        SizedBox(width: 6),
         Expanded(
           child: _StatCard(value: '24.8K', label: 'Followers'),
         ),
-        SizedBox(width: 12),
+        SizedBox(width: 6),
         Expanded(
           child: _StatCard(value: '386', label: 'Following'),
         ),
-        SizedBox(width: 12),
+        SizedBox(width: 6),
         Expanded(
           child: _StatCard(value: '98.4', label: 'Trust'),
         ),
@@ -209,21 +240,24 @@ class _StatCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: _panel,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: _line),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
       child: Column(
         children: [
           Text(
             value,
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
+            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Text(
             label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: _textSoft,
+              fontSize: 10,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -314,7 +348,7 @@ class _ProfileActionButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(18),
           border: Border.all(color: primary ? Colors.white : _line),
         ),
-        padding: const EdgeInsets.symmetric(vertical: 13),
+        padding: const EdgeInsets.symmetric(vertical: 10),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -349,7 +383,7 @@ class _ProfileTabs extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: _panel,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: _line),
       ),
       padding: const EdgeInsets.all(6),
