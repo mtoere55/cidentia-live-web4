@@ -344,8 +344,23 @@ void _showLocalCreatePreviewSheet(BuildContext context) {
   );
 }
 
-class _LocalCreatePreviewSheet extends StatelessWidget {
+class _LocalCreatePreviewSheet extends StatefulWidget {
   const _LocalCreatePreviewSheet();
+
+  @override
+  State<_LocalCreatePreviewSheet> createState() =>
+      _LocalCreatePreviewSheetState();
+}
+
+class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
+  String selectedMode = 'Post';
+  final TextEditingController captionController = TextEditingController();
+
+  @override
+  void dispose() {
+    captionController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -375,11 +390,14 @@ class _LocalCreatePreviewSheet extends StatelessWidget {
             children: [
               const _CreateSheetHeader(),
               const SizedBox(height: 14),
-              const _CreateModeRow(),
+              _CreateModeRow(
+                selectedMode: selectedMode,
+                onModeChanged: (mode) => setState(() => selectedMode = mode),
+              ),
               const SizedBox(height: 14),
-              const _CreateMediaPreview(),
+              _CreateMediaPreview(mode: selectedMode),
               const SizedBox(height: 14),
-              const _CreateCaptionPreview(),
+              _CreateCaptionPreview(controller: captionController),
               const SizedBox(height: 14),
               const _CreateBoundaryNotice(),
               const SizedBox(height: 14),
@@ -387,8 +405,8 @@ class _LocalCreatePreviewSheet extends StatelessWidget {
                 width: double.infinity,
                 child: FilledButton.icon(
                   onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.visibility_outlined),
-                  label: const Text('Preview only'),
+                  icon: const Icon(Icons.save_outlined),
+                  label: const Text('Save local draft'),
                 ),
               ),
             ],
@@ -434,45 +452,83 @@ class _CreateSheetHeader extends StatelessWidget {
 }
 
 class _CreateModeRow extends StatelessWidget {
-  const _CreateModeRow();
+  const _CreateModeRow({
+    required this.selectedMode,
+    required this.onModeChanged,
+  });
+
+  final String selectedMode;
+  final ValueChanged<String> onModeChanged;
 
   @override
   Widget build(BuildContext context) {
-    return const Wrap(
+    return Wrap(
       spacing: 8,
       runSpacing: 8,
       children: [
-        _CreateModeChip(icon: Icons.crop_square_rounded, label: 'Post'),
-        _CreateModeChip(icon: Icons.movie_creation_outlined, label: 'Reel'),
-        _CreateModeChip(icon: Icons.auto_stories_outlined, label: 'Story'),
+        _CreateModeChip(
+          icon: Icons.crop_square_rounded,
+          label: 'Post',
+          active: selectedMode == 'Post',
+          onTap: () => onModeChanged('Post'),
+        ),
+        _CreateModeChip(
+          icon: Icons.movie_creation_outlined,
+          label: 'Reel',
+          active: selectedMode == 'Reel',
+          onTap: () => onModeChanged('Reel'),
+        ),
+        _CreateModeChip(
+          icon: Icons.auto_stories_outlined,
+          label: 'Story',
+          active: selectedMode == 'Story',
+          onTap: () => onModeChanged('Story'),
+        ),
       ],
     );
   }
 }
 
 class _CreateModeChip extends StatelessWidget {
-  const _CreateModeChip({required this.icon, required this.label});
+  const _CreateModeChip({
+    required this.icon,
+    required this.label,
+    required this.active,
+    required this.onTap,
+  });
 
   final IconData icon;
   final String label;
+  final bool active;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: _panelSoft,
-        borderRadius: BorderRadius.circular(99),
-        border: Border.all(color: _line),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 17),
-            const SizedBox(width: 7),
-            Text(label, style: const TextStyle(fontWeight: FontWeight.w900)),
-          ],
+    return InkWell(
+      borderRadius: BorderRadius.circular(99),
+      onTap: onTap,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: active ? Colors.white : _panelSoft,
+          borderRadius: BorderRadius.circular(99),
+          border: Border.all(color: active ? Colors.white : _line),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: active ? Colors.black : Colors.white, size: 17),
+              const SizedBox(width: 7),
+              Text(
+                label,
+                style: TextStyle(
+                  color: active ? Colors.black : Colors.white,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -480,7 +536,9 @@ class _CreateModeChip extends StatelessWidget {
 }
 
 class _CreateMediaPreview extends StatelessWidget {
-  const _CreateMediaPreview();
+  const _CreateMediaPreview({required this.mode});
+
+  final String mode;
 
   @override
   Widget build(BuildContext context) {
@@ -513,13 +571,16 @@ class _CreateMediaPreview extends StatelessWidget {
                 color: Colors.white,
               ),
             ),
-            const Positioned(
+            Positioned(
               left: 14,
               right: 14,
               bottom: 14,
               child: Text(
-                'Local media placeholder',
-                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
+                '$mode local media placeholder',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 18,
+                ),
               ),
             ),
           ],
@@ -530,28 +591,29 @@ class _CreateMediaPreview extends StatelessWidget {
 }
 
 class _CreateCaptionPreview extends StatelessWidget {
-  const _CreateCaptionPreview();
+  const _CreateCaptionPreview({required this.controller});
+
+  final TextEditingController controller;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: _panelSoft,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: _line),
-      ),
-      child: const Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Caption', style: TextStyle(fontWeight: FontWeight.w900)),
-          SizedBox(height: 8),
-          Text(
-            'Write a caption later. This sheet only previews the local create flow.',
-            style: TextStyle(color: _textSoft, height: 1.35),
-          ),
-        ],
+    return TextField(
+      controller: controller,
+      minLines: 3,
+      maxLines: 5,
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: _panelSoft,
+        labelText: 'Caption',
+        hintText: 'Write a local draft caption...',
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: const BorderSide(color: _line),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: const BorderSide(color: _line),
+        ),
       ),
     );
   }
