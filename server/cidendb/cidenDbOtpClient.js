@@ -1,4 +1,8 @@
-﻿const DEFAULT_SEND_URL = 'https://api.cidendb.com/api/v1/auth/otp/send';
+﻿const {
+  buildSafeSessionFromVerify,
+} = require('./cidenDbSessionHandoff');
+
+const DEFAULT_SEND_URL = 'https://api.cidendb.com/api/v1/auth/otp/send';
 const DEFAULT_VERIFY_URL = 'https://api.cidendb.com/api/v1/auth/otp/verify';
 
 const SENSITIVE_KEYS = new Set([
@@ -91,16 +95,8 @@ async function postToCidenDb(url, payload) {
   }
 
   return {
-    statusCode: response.status,
-    payload: {
-      ok: response.ok,
-      code: response.ok ? 'CIDENDB_UPSTREAM_OK' : 'CIDENDB_UPSTREAM_ERROR',
-      upstreamStatus: response.status,
-      upstream: sanitizeValue(upstreamBody),
-      liveCidenDbCall: true,
-      fakeSuccess: false,
-      sessionCreated: false,
-    },
+    response,
+    upstreamBody: sanitizeValue(upstreamBody),
   };
 }
 
@@ -121,10 +117,26 @@ async function sendOtp(body, env = process.env) {
     };
   }
 
-  return postToCidenDb(env.CIDENDB_OTP_SEND_URL || DEFAULT_SEND_URL, {
-    contact,
-    contact_type: body.contact_type || 'email',
-  });
+  const { response, upstreamBody } = await postToCidenDb(
+    env.CIDENDB_OTP_SEND_URL || DEFAULT_SEND_URL,
+    {
+      contact,
+      contact_type: body.contact_type || 'email',
+    },
+  );
+
+  return {
+    statusCode: response.status,
+    payload: {
+      ok: response.ok,
+      code: response.ok ? 'CIDENDB_UPSTREAM_OK' : 'CIDENDB_UPSTREAM_ERROR',
+      upstreamStatus: response.status,
+      upstream: upstreamBody,
+      liveCidenDbCall: true,
+      fakeSuccess: false,
+      sessionCreated: false,
+    },
+  };
 }
 
 async function verifyOtp(body, env = process.env) {
@@ -145,11 +157,47 @@ async function verifyOtp(body, env = process.env) {
     };
   }
 
-  return postToCidenDb(env.CIDENDB_OTP_VERIFY_URL || DEFAULT_VERIFY_URL, {
-    contact,
-    contact_type: body.contact_type || 'email',
-    code,
-  });
+  const { response, upstreamBody } = await postToCidenDb(
+    env.CIDENDB_OTP_VERIFY_URL || DEFAULT_VERIFY_URL,
+    {
+      contact,
+      contact_type: body.contact_type || 'email',
+      code,
+    },
+  );
+
+  if (!response.ok) {
+    return {
+      statusCode: response.status,
+      payload: {
+        ok: false,
+        code: 'CIDENDB_UPSTREAM_ERROR',
+        upstreamStatus: response.status,
+        upstream: upstreamBody,
+        liveCidenDbCall: true,
+        fakeSuccess: false,
+        sessionCreated: false,
+      },
+    };
+  }
+
+  const handoff = buildSafeSessionFromVerify(upstreamBody, contact);
+
+  return {
+    statusCode: response.status,
+    payload: {
+      ok: true,
+      code: handoff.code,
+      message: handoff.message,
+      upstreamStatus: response.status,
+      upstream: upstreamBody,
+      user: handoff.safeUser,
+      session: handoff.safeSession,
+      liveCidenDbCall: true,
+      fakeSuccess: false,
+      sessionCreated: handoff.sessionCreated,
+    },
+  };
 }
 
 module.exports = {
