@@ -35,16 +35,8 @@ function getCidenDbBridgeState(env = process.env) {
   }
 
   return {
-    enabled: false,
-    response: {
-      ok: false,
-      code: 'CIDENDB_UPSTREAM_CLIENT_NOT_IMPLEMENTED',
-      message:
-        'CidenDB OTP contract flags are enabled, but the upstream client is intentionally not implemented in this skeleton.',
-      liveCidenDbCall: false,
-      fakeSuccess: false,
-      sessionCreated: false,
-    },
+    enabled: true,
+    response: null,
   };
 }
 
@@ -58,7 +50,6 @@ function statusForCode(code) {
   switch (code) {
     case 'CIDENDB_BRIDGE_DISABLED':
     case 'CIDENDB_CONTRACT_NOT_CONFIRMED':
-    case 'CIDENDB_UPSTREAM_CLIENT_NOT_IMPLEMENTED':
       return 503;
     default:
       return 500;
