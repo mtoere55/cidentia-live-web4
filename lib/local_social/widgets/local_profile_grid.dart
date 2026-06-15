@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../auth/cidentia_auth_gate_contract.dart';
+import '../auth/cidentia_protected_action_notice.dart';
 import '../local_social_data.dart';
 
 const _panel = Color(0xFF101114);
@@ -281,13 +283,9 @@ class _ProfileActionRow extends StatelessWidget {
             icon: Icons.edit_outlined,
             label: 'Edit Profile',
             primary: true,
-            onTap: () => _openProfileActionSheet(
+            onTap: () => CidentiaProtectedActionNotice.show(
               context,
-              title: 'Edit Profile',
-              subtitle: 'Local profile editor preview',
-              icon: Icons.edit_outlined,
-              text:
-                  'Profile editing will require a verified CID session later. This preview keeps the creator surface visible without opening backend or identity flows.',
+              action: CidentiaProtectedAction.editProfile,
             ),
           ),
         ),
@@ -296,13 +294,9 @@ class _ProfileActionRow extends StatelessWidget {
           child: _ProfileActionButton(
             icon: Icons.account_balance_wallet_outlined,
             label: 'Wallet',
-            onTap: () => _openProfileActionSheet(
+            onTap: () => CidentiaProtectedActionNotice.show(
               context,
-              title: 'Wallet',
-              subtitle: 'Wallet locked preview',
-              icon: Icons.account_balance_wallet_outlined,
-              text:
-                  'Wallet stays locked in this local social package. No payment, token, balance, or wallet connector is opened here.',
+              action: CidentiaProtectedAction.connectWallet,
             ),
           ),
         ),
@@ -311,13 +305,9 @@ class _ProfileActionRow extends StatelessWidget {
           child: _ProfileActionButton(
             icon: Icons.verified_user_outlined,
             label: 'Proof',
-            onTap: () => _openProfileActionSheet(
+            onTap: () => CidentiaProtectedActionNotice.show(
               context,
-              title: 'Proof',
-              subtitle: 'CID proof preview',
-              icon: Icons.verified_user_outlined,
-              text:
-                  'Proof and trust badges are visual only until the CidenDB/CID boundary is resumed in a separate planned track.',
+              action: CidentiaProtectedAction.manageProof,
             ),
           ),
         ),
