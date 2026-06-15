@@ -65,3 +65,24 @@ If the current verify response still returns `user:{}` or no CID field, M4K corr
 ## Next
 
 When CidenDB verify returns `user.cid`, Flutter can store the safe session fields and protected actions can start checking verified session state.
+# Cidentia Ecosystem Authority Rule
+
+Cidentia.Live is one surface inside the wider Cidentia ecosystem.
+
+Ecosystem components:
+
+- `cidentia.com` is the main ecosystem / umbrella layer.
+- `cidendb.com` is the identity databank and CID authority.
+- `cidentiaapp.com` is the onboarding and registration app.
+- `cidenbridge.com` is the bridge/integration layer.
+- `cidentia.live` is the live/social program surface.
+
+Cidentia.Live must not create its own CID identity.
+
+If CidenDB verify succeeds but no CID is returned, Cidentia.Live must not open a fake session. The user must be routed to CidentiaApp onboarding:
+
+- `onboardingRequired:true`
+- `redirectUrl:https://cidentiaapp.com`
+- `sessionCreated:false`
+
+After CidenDB returns a verified CID, Cidentia.Live can open a safe local session reference for protected social/live actions.
