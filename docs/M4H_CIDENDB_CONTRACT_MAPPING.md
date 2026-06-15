@@ -1,0 +1,459 @@
+# M4H — CidenDB OTP Contract & Response Mapping
+**Branch:** `feature/m4h-contract-readiness`  
+**Milestone:** Contract definition → Backend sanitize rules → Safe session handoff  
+**Scope:** /auth/otp/send, /auth/otp/verify, response mapping, session policy, token security
+
+---
+
+## I. ENDPOINT CONTRACT SPECIFICATION
+
+### 1.1 POST /auth/otp/send
+**Purpose:** Initiate OTP flow. Send verification code to user's email.
+
+**Request Body (JSON)**
+```json
+{
+  "contact": "string (email address)",
+  "contact_type": "email"
+}
+```
+
+**Request Rules**
+- `contact`: Required. Valid email format.
+- `contact_type`: Required. Only value: `"email"` (for v1).
+- No identifier / no contact_list / no alternative channels in v1.
+
+**Response 200 OK (Success)**
+```json
+{
+  "status": "success",
+  "message": "OTP sent to your email",
+  "otp_delivery_method": "email",
+  "retry_after_seconds": 60,
+  "code_expires_in_seconds": 300,
+  "request_id": "uuid-v4-string"
+}
+```
+
+**Response 400 (Bad Request)**
+```json
+{
+  "status": "error",
+  "error_code": "INVALID_EMAIL",
+  "message": "Email format invalid or blacklisted."
+}
+```
+
+**Response 429 (Rate Limited)**
+```json
+{
+  "status": "error",
+  "error_code": "RATE_LIMITED",
+  "message": "Too many OTP requests. Try again in 300 seconds.",
+  "retry_after_seconds": 300
+}
+```
+
+**Backend Behavior**
+- Generate 6-digit numeric code (000000–999999).
+- Store in Redis/DB with TTL=300s (5 min), keyed by `contact`.
+- Hash code before storage. Never store plaintext.
+- Log request (audit).
+- Send via email (async, no blocking).
+- Return `request_id` for debugging only (no sensitive data).
+
+**Security Notes**
+- Rate limit per contact: max 3 requests per 5 minutes.
+- Throttle email delivery (no spam).
+- code_expires_in_seconds tells client when to timeout.
+
+---
+
+### 1.2 POST /auth/otp/verify
+**Purpose:** Validate OTP code. Return secure session & user identity.
+
+**Request Body (JSON)**
+```json
+{
+  "contact": "string (email address)",
+  "contact_type": "email",
+  "code": "string (6 digits)"
+}
+```
+
+**Request Rules**
+- `contact`: Required. Must match /otp/send request.
+- `contact_type`: Required. Must be `"email"`.
+- `code`: Required. 6-digit string (no spaces, no dashes).
+
+**Response 200 OK (Success)**
+```json
+{
+  "status": "success",
+  "message": "OTP verified successfully",
+  "user": {
+    "cid": "CID-26-XXXXX",
+    "email": "user@example.com",
+    "display_name": "User Name or null",
+    "trust_score": 20,
+    "profile_complete": false,
+    "is_new_user": true
+  },
+  "session": {
+    "session_id": "uuid-v4-string",
+    "expires_in_seconds": 86400,
+    "safe_claims": {
+      "sub": "CID-26-XXXXX",
+      "iat": 1718466000,
+      "exp": 1718552400,
+      "scope": "user:read,user:profile,marketplace:read"
+    }
+  }
+}
+```
+
+**Response 400 (Bad Request)**
+```json
+{
+  "status": "error",
+  "error_code": "INVALID_CODE",
+  "message": "Code is invalid or expired.",
+  "code_expired": true,
+  "request_new_otp": true
+}
+```
+
+**Response 401 (Unauthorized)**
+```json
+{
+  "status": "error",
+  "error_code": "CODE_MISMATCH",
+  "message": "Incorrect code.",
+  "attempts_remaining": 2,
+  "lockout_seconds": 0
+}
+```
+
+**Response 429 (Rate Limited)**
+```json
+{
+  "status": "error",
+  "error_code": "TOO_MANY_ATTEMPTS",
+  "message": "Too many verification attempts. Account locked for 900 seconds.",
+  "lockout_seconds": 900,
+  "request_new_otp": true
+}
+```
+
+**Backend Behavior**
+- Validate code against stored hash (constant-time comparison).
+- Check expiry (300s from send).
+- If correct: Create new user if not exists, set `is_new_user=true`.
+- Generate `session_id` (random UUID, short-lived storage).
+- Do NOT generate or return JWT in response body.
+- Do NOT return raw access_token.
+- Store session in Redis with TTL=86400s (24h).
+- Log successful verification (audit).
+
+**Security Notes**
+- Max 3 failed attempts per contact. Then lock 15 minutes.
+- session_id is not a token—it's a session reference for backend use.
+- `safe_claims` are metadata only (informational, not signed).
+
+---
+
+## II. RESPONSE SANITIZATION RULES
+
+### 2.1 What Frontend (Flutter) RECEIVES in Verify Response
+
+✅ **SAFE to return:**
+- `user.cid` — Public user identifier.
+- `user.email` — Verified by OTP.
+- `user.display_name` — Public profile.
+- `user.trust_score` — Public reputation.
+- `user.profile_complete` — User state.
+- `user.is_new_user` — Onboarding signal.
+- `session.session_id` — Opaque session ref.
+- `session.expires_in_seconds` — Client-side timeout.
+- `session.safe_claims` — Metadata (not a JWT, no sig).
+
+❌ **NEVER return:**
+- Raw JWT token (access_token, id_token, refresh_token).
+- JWT secret or signing key.
+- Private user data (phone, SSN, internal IDs).
+- Database password or API keys.
+- Unhashed PII beyond email.
+
+---
+
+### 2.2 Backend Session Management (Internal)
+
+**JWT Token (Server-Only)** — NOT sent to client:
+- Generated by backend, stored in secure server-side session store (Redis).
+- Used by backend for subsequent API calls.
+- Example payload:
+  ```json
+  {
+    "sub": "CID-26-XXXXX",
+    "email": "user@example.com",
+    "iat": 1718466000,
+    "exp": 1718552400,
+    "scope": "user:read,user:profile,marketplace:read,marketplace:write",
+    "role": "user"
+  }
+  ```
+
+**Session Store:**
+- Key: `session:{session_id}` in Redis.
+- Value: serialized JWT + metadata.
+- TTL: 86400 seconds (24h).
+- No refresh tokens in v1.
+
+---
+
+### 2.3 Flutter Client: Safe Session Handoff
+
+**What Flutter Stores Locally:**
+1. `session_id` (opaque reference, not secret).
+2. `cid` (public user ID).
+3. `email` (verified).
+4. `trust_score` (public).
+5. `expires_in_seconds` (for local countdown/expiry UI).
+
+**What Flutter Does NOT Store:**
+- No JWT.
+- No raw tokens.
+- No secrets.
+- No sensitive keys.
+
+**How Flutter Calls Subsequent Endpoints:**
+1. Include `session_id` in request header: `X-Session-ID: {session_id}`.
+2. Backend retrieves JWT from Redis using session_id.
+3. Backend validates JWT, checks scope, executes action.
+4. Response contains updated `safe_claims` if needed.
+
+**Example Flutter Authenticated Request:**
+```
+POST /api/v1/profile/photo
+Headers:
+  X-Session-ID: 550e8400-e29b-41d4-a716-446655440000
+  Content-Type: application/json
+Body: { photo_data: "...", mime_type: "image/jpeg" }
+```
+
+---
+
+## III. SESSION LIFECYCLE & EXPIRY
+
+### 3.1 Timeline
+
+| Event | Timestamp | TTL | Action |
+|-------|-----------|-----|--------|
+| OTP sent | T+0s | 300s | Code valid until T+300 |
+| OTP verified | T+150s | — | Session created |
+| Session created | T+150s | 86400s | Valid until T+86550 |
+| Session expires | T+86550s | — | Force re-auth (OTP) |
+
+### 3.2 Expiry Behavior
+
+**Server-Side (Redis):**
+- Session key auto-expires after 86400s.
+- Subsequent requests with expired session_id → 401 Unauthorized.
+- No refresh token. Client must re-authenticate (send new OTP).
+
+**Client-Side (Flutter):**
+- On app launch, check local stored `expires_in_seconds`.
+- If > 60s remaining, use existing session.
+- If < 60s or expired, clear session, show login screen.
+- Optional: Implement silent re-auth if token near expiry.
+
+### 3.3 Multi-Device / Multi-Session
+
+**v1 Policy:** One session per user.
+- New login invalidates previous session.
+- Session stored as `session:{user_cid}` (not per device).
+- Example: User logs in on phone → old browser session invalidates.
+
+**Future (v2+):** Implement per-device session management.
+
+---
+
+## IV. ENDPOINT INTEGRATION CHECKLIST
+
+### Backend (Node.js/Express)
+- [ ] POST /auth/otp/send → Validate email, generate code, store hash, send email, return request_id.
+- [ ] POST /auth/otp/verify → Validate code, create/update user, generate session, return safe response.
+- [ ] Session middleware → Check X-Session-ID header, validate Redis entry, attach JWT to req.user.
+- [ ] Rate limiter → 3 OTPs per 5min per email; 3 verify attempts per email, then 15min lock.
+- [ ] Audit logging → Log all auth events (send, verify success/fail, lockout).
+
+### Frontend (Flutter)
+- [ ] OTP input UI (6-digit numeric keyboard).
+- [ ] OTP send button + retry countdown (60s).
+- [ ] OTP verify button + error handling (invalid, expired, locked).
+- [ ] Local session storage (session_id, cid, email, expires_in_seconds).
+- [ ] Session expiry check on app resume.
+- [ ] X-Session-ID header injection for all authenticated requests.
+
+### API Client Library (cidendb-sdk)
+- [ ] sendOtp(contact: string, contact_type: string) → Promise<OtpSendResponse>.
+- [ ] verifyOtp(contact: string, contact_type: string, code: string) → Promise<OtpVerifyResponse>.
+- [ ] getSessionId() → string | null.
+- [ ] setSessionId(session_id: string, expiresIn: number) → void.
+- [ ] clearSession() → void.
+- [ ] attachSessionHeader(request: Request) → Request.
+
+---
+
+## V. ERROR CODES & HANDLING
+
+### OTP Send Errors
+| Code | Status | Meaning | Client Action |
+|------|--------|---------|---|
+| INVALID_EMAIL | 400 | Email format bad | Show error, retry |
+| RATE_LIMITED | 429 | Too many requests | Show countdown, disable retry button |
+| SERVICE_UNAVAILABLE | 503 | Email service down | Retry later, notify support |
+
+### OTP Verify Errors
+| Code | Status | Meaning | Client Action |
+|------|--------|---------|---|
+| INVALID_CODE | 400 | Code wrong or expired | Show error, request new OTP |
+| CODE_MISMATCH | 401 | Code incorrect | Show attempts_remaining, retry |
+| TOO_MANY_ATTEMPTS | 429 | Lockout triggered | Show lockout_seconds, disable input |
+
+---
+
+## VI. SECURITY GUARDRAILS
+
+### 6.1 Code Protection
+- Generate code as random 6-digit number (not sequential, not predictable).
+- Hash before storage: bcrypt or scrypt (cost=10+).
+- Validate via constant-time comparison (timing-safe).
+- Never log plaintext code (hash only).
+
+### 6.2 Session Protection
+- session_id: 36-char UUID (cryptographically random).
+- Stored in Redis with TTL (auto-expire).
+- No session_id in URL (always header or secure cookie).
+- HTTPS only (TLS 1.3+).
+
+### 6.3 JWT Protection
+- Sign JWT with RS256 (RSA public/private key, not HS256 with shared secret).
+- Store private key in env var, never in code.
+- Verify signature on every protected endpoint.
+- Include `iat`, `exp`, `scope` in claims.
+- No sensitive data in JWT (no passwords, no secrets).
+
+### 6.4 Token Handling
+- Backend generates JWT, stores in Redis session, does NOT return to client.
+- Flutter receives only session_id (not a token).
+- Flutter includes session_id in header for auth.
+- Backend retrieves JWT from Redis, validates, executes.
+
+### 6.5 Audit Trail
+- Log all OTP send (email, request_id, timestamp).
+- Log all verify attempts (email, code_match, success/fail, timestamp).
+- Log rate limits and lockouts.
+- Retain logs 90 days minimum.
+
+---
+
+## VII. RESPONSE MAPPING: REQUEST → RESPONSE FLOW
+
+### 7.1 OTP Send Flow
+```
+Frontend Input:
+  { contact: "user@example.com", contact_type: "email" }
+        ↓
+Backend:
+  1. Validate email format + blacklist.
+  2. Rate-limit check (max 3/5min).
+  3. Generate 6-digit code.
+  4. Hash code + store in Redis(TTL=300s).
+  5. Send email async (no blocking).
+  6. Log audit event.
+  7. Return request_id.
+        ↓
+Response:
+  {
+    "status": "success",
+    "message": "OTP sent to your email",
+    "otp_delivery_method": "email",
+    "retry_after_seconds": 60,
+    "code_expires_in_seconds": 300,
+    "request_id": "uuid"
+  }
+        ↓
+Frontend:
+  1. Start 60s countdown (can't click retry).
+  2. Show input field for 6-digit code.
+  3. If error, show message + retry option.
+```
+
+### 7.2 OTP Verify Flow
+```
+Frontend Input:
+  { contact: "user@example.com", contact_type: "email", code: "123456" }
+        ↓
+Backend:
+  1. Validate input format.
+  2. Attempt count check (max 3, then 15min lock).
+  3. Fetch stored hash from Redis.
+  4. Constant-time compare(input_code, stored_hash).
+  5. If match:
+     a. Delete Redis entry (code consumed).
+     b. Query/create user (is_new_user flag).
+     c. Generate session_id (UUID).
+     d. Generate JWT (RS256 signed).
+     e. Store session in Redis(TTL=86400s): { session_id → JWT + metadata }.
+     f. Log success.
+     g. Return safe_response (CID, email, session_id, expires_in, NOT JWT).
+  6. If mismatch:
+     a. Increment attempt count.
+     b. If attempts > 3, lock 15min.
+     c. Log failure.
+     d. Return error with attempts_remaining.
+        ↓
+Response (Success):
+  {
+    "status": "success",
+    "user": { "cid": "CID-26-...", "email": "...", "trust_score": 20, ... },
+    "session": {
+      "session_id": "uuid",
+      "expires_in_seconds": 86400,
+      "safe_claims": { "sub": "CID-26-...", "iat": ..., "exp": ... }
+    }
+  }
+        ↓
+Frontend:
+  1. Store locally: session_id, cid, email, expires_in_seconds.
+  2. Clear OTP input.
+  3. Navigate to home screen (authenticated).
+  4. Inject X-Session-ID header in all subsequent requests.
+```
+
+---
+
+## VIII. CIDENDB CONTRACT VERSION
+
+**Version:** 1.0.0  
+**Effective Date:** 2026-06-15  
+**Last Updated:** 2026-06-15  
+**Reviewed By:** Murat Töre (CID-26-00004), David Etim (CID-26-00001)  
+
+**Approval Status:** ⏳ Pending David's CORS whitelist confirmation + backend implementation.
+
+---
+
+## IX. NEXT STEPS (M4I → M4L)
+
+- **M4I:** Backend upstream client skeleton (env-disabled).
+- **M4J:** Local/dev OTP test (CIDENDB_CONTRACT_CONFIRMED=true).
+- **M4K:** Verify → safe session handoff (no raw token).
+- **M4L:** Protected endpoints now require valid session_id.
+
+---
+
+**Branch:** `feature/m4h-contract-readiness`  
+**Checklist:** Contract ✅ | Response Mapping ✅ | Session Policy ✅ | Security Guardrails ✅  
+**Ready for:** Backend implementation (M4I)
