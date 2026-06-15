@@ -546,23 +546,67 @@ class _EntryResult {
     required Object decoded,
     required String rawBody,
   }) {
+    Map<String, dynamic>? asMap(Object? value) {
+      return value is Map<String, dynamic> ? value : null;
+    }
+
+    String? readText(Map<String, dynamic>? map, List<String> keys) {
+      if (map == null) {
+        return null;
+      }
+
+      for (final key in keys) {
+        final value = map[key];
+        if (value != null && '$value'.trim().isNotEmpty) {
+          return '$value'.trim();
+        }
+      }
+
+      return null;
+    }
+
     if (decoded is! Map<String, dynamic>) {
       return _EntryResult(
         title: language.serviceUnavailableTitle,
-        message: rawBody,
+        message: language.serviceUnavailableBody,
         code: 'UNKNOWN_RESPONSE',
         kind: _EntryResultKind.unavailable,
+        details: rawBody,
       );
     }
 
     final code = '${decoded['code'] ?? 'UNKNOWN'}';
-    final message = '${decoded['message'] ?? decoded['upstream'] ?? rawBody}';
+    final upstream = asMap(decoded['upstream']);
+    final user = asMap(decoded['user']) ?? asMap(upstream?['user']);
     final details = const JsonEncoder.withIndent('  ').convert(decoded);
 
-    if (code == 'CIDENDB_SAFE_SESSION_CREATED') {
+    final cid = readText(user, [
+      'cid',
+      'cid_number',
+      'cidNumber',
+      'ciden_id',
+      'cidenId',
+    ]);
+
+    final displayName = readText(user, [
+      'display_name',
+      'full_name',
+      'name',
+      'email',
+    ]);
+
+    final hasSafeSession =
+        decoded['sessionCreated'] == true ||
+        code == 'CIDENDB_SAFE_SESSION_CREATED' ||
+        (code == 'CIDENDB_UPSTREAM_OK' && cid != null);
+
+    if (hasSafeSession) {
+      final cidLine = cid == null ? '' : '\nCID: $cid';
+      final nameLine = displayName == null ? '' : '\nUser: $displayName';
+
       return _EntryResult(
         title: language.verifiedTitle,
-        message: language.verifiedBody,
+        message: '${language.verifiedBody}$cidLine$nameLine',
         code: code,
         kind: _EntryResultKind.verified,
         details: details,
@@ -570,7 +614,8 @@ class _EntryResult {
     }
 
     if (code == 'CIDENDB_VERIFY_OK_CID_REQUIRED' ||
-        decoded['onboardingRequired'] == true) {
+        decoded['onboardingRequired'] == true ||
+        (code == 'CIDENDB_UPSTREAM_OK' && cid == null)) {
       return _EntryResult(
         title: language.cidSetupTitle,
         message: language.cidSetupBody,
@@ -580,7 +625,9 @@ class _EntryResult {
       );
     }
 
-    if (statusCode == 401 || code == 'CIDENDB_UPSTREAM_ERROR') {
+    if (statusCode == 401 ||
+        code == 'CIDENDB_UPSTREAM_ERROR' ||
+        code == 'CIDENDB_INVALID_OTP') {
       return _EntryResult(
         title: language.invalidCodeTitle,
         message: language.invalidCodeBody,
@@ -591,7 +638,8 @@ class _EntryResult {
     }
 
     if (code == 'CIDENDB_BRIDGE_DISABLED' ||
-        code == 'CIDENDB_CONTRACT_NOT_CONFIRMED') {
+        code == 'CIDENDB_CONTRACT_NOT_CONFIRMED' ||
+        code == 'CIDENDB_UPSTREAM_CLIENT_NOT_IMPLEMENTED') {
       return _EntryResult(
         title: language.serviceUnavailableTitle,
         message: language.serviceUnavailableBody,
@@ -602,14 +650,10 @@ class _EntryResult {
     }
 
     return _EntryResult(
-      title: decoded['ok'] == true
-          ? language.verifiedTitle
-          : language.serviceUnavailableTitle,
-      message: message,
+      title: language.serviceUnavailableTitle,
+      message: language.serviceUnavailableBody,
       code: code,
-      kind: decoded['ok'] == true
-          ? _EntryResultKind.verified
-          : _EntryResultKind.unavailable,
+      kind: _EntryResultKind.unavailable,
       details: details,
     );
   }
@@ -1059,8 +1103,6 @@ class _StatusCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(body),
-                const SizedBox(height: 4),
-                Text(code, style: const TextStyle(color: Colors.white54)),
               ],
             ),
           ),
