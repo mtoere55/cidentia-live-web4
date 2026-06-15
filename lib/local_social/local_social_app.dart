@@ -334,14 +334,46 @@ void _showLocalShellNotice(BuildContext context, String title, String message) {
   );
 }
 
-void _showLocalCreatePreviewSheet(BuildContext context) {
-  showModalBottomSheet<void>(
+Future<void> _showLocalCreatePreviewSheet(BuildContext context) async {
+  final draft = await showModalBottomSheet<_LocalDraftPreview>(
     context: context,
     backgroundColor: Colors.transparent,
     isScrollControlled: true,
     useSafeArea: true,
     builder: (context) => const _LocalCreatePreviewSheet(),
   );
+
+  if (!context.mounted || draft == null) {
+    return;
+  }
+
+  final captionPreview = draft.caption.trim().isEmpty
+      ? 'No caption yet'
+      : draft.caption.trim();
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      behavior: SnackBarBehavior.floating,
+      content: Text(
+        'Local draft saved: ${draft.mode} ${draft.mediaType} - '
+        '${draft.mediaLabel} - $captionPreview',
+      ),
+    ),
+  );
+}
+
+class _LocalDraftPreview {
+  const _LocalDraftPreview({
+    required this.mode,
+    required this.mediaType,
+    required this.mediaLabel,
+    required this.caption,
+  });
+
+  final String mode;
+  final String mediaType;
+  final String mediaLabel;
+  final String caption;
 }
 
 class _LocalCreatePreviewSheet extends StatefulWidget {
@@ -419,7 +451,16 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
               SizedBox(
                 width: double.infinity,
                 child: FilledButton.icon(
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: () {
+                    Navigator.of(context).pop(
+                      _LocalDraftPreview(
+                        mode: selectedMode,
+                        mediaType: selectedMediaType,
+                        mediaLabel: selectedMediaLabel,
+                        caption: captionController.text,
+                      ),
+                    );
+                  },
                   icon: const Icon(Icons.save_outlined),
                   label: const Text('Save local draft'),
                 ),
@@ -899,32 +940,25 @@ class _DesktopCreatePreviewButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(18),
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Colors.white),
+    return SizedBox(
+      width: double.infinity,
+      child: FilledButton.icon(
+        onPressed: onTap,
+        icon: const Icon(Icons.add_box_outlined, size: 20),
+        label: const Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'Create preview',
+            style: TextStyle(fontWeight: FontWeight.w900),
+          ),
         ),
-        child: const Row(
-          children: [
-            Icon(Icons.add_box_outlined, color: Colors.black, size: 20),
-            SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'Create preview',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ),
-            Icon(Icons.lock_outline_rounded, color: Colors.black54, size: 16),
-          ],
+        style: FilledButton.styleFrom(
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
         ),
       ),
     );
