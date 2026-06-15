@@ -7,6 +7,7 @@ import 'widgets/local_profile_grid.dart';
 import 'widgets/local_stories_bar.dart';
 import 'widgets/cidentia_brand_header.dart';
 import 'widgets/cidentia_cidendb_entry.dart';
+import 'widgets/cidentia_ecosystem_entry_gate.dart';
 import 'widgets/local_chat_detail.dart';
 import 'widgets/local_reels_page.dart';
 import 'widgets/local_live_studio_page.dart';
@@ -21,8 +22,16 @@ const _panelSoft = Color(0xFF18181B);
 const _line = Color(0xFF29292E);
 const _textSoft = Color(0xFFA1A1AA);
 
-class LocalSocialApp extends StatelessWidget {
+class LocalSocialApp extends StatefulWidget {
   const LocalSocialApp({super.key});
+
+  @override
+  State<LocalSocialApp> createState() => _LocalSocialAppState();
+}
+
+class _LocalSocialAppState extends State<LocalSocialApp> {
+  var _language = CidentiaUiLanguage.en;
+  var _entered = false;
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +54,14 @@ class LocalSocialApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const LocalShell(),
+      home: _entered
+          ? LocalShell(language: _language)
+          : CidentiaEcosystemEntryGate(
+              language: _language,
+              onLanguageChanged: (language) =>
+                  setState(() => _language = language),
+              onEnter: () => setState(() => _entered = true),
+            ),
     );
   }
 }
@@ -149,7 +165,9 @@ extension LocalSectionMeta on LocalSection {
 }
 
 class LocalShell extends StatefulWidget {
-  const LocalShell({super.key});
+  const LocalShell({required this.language, super.key});
+
+  final CidentiaUiLanguage language;
 
   @override
   State<LocalShell> createState() => _LocalShellState();
@@ -276,7 +294,9 @@ class _LocalShellState extends State<LocalShell> {
             backgroundColor: _bg,
             surfaceTintColor: Colors.transparent,
             title: Text(
-              selected == LocalSection.feed ? 'Cidentia.Live' : selected.label,
+              selected == LocalSection.feed
+                  ? widget.language.appTitle
+                  : selected.label,
               style: const TextStyle(fontWeight: FontWeight.w800),
             ),
             actions: [
