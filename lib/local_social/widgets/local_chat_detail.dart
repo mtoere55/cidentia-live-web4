@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../auth/cidentia_auth_gate_contract.dart';
+import '../auth/cidentia_protected_action_notice.dart';
 import '../local_social_data.dart';
 
 const _panel = Color(0xFF101114);
@@ -30,13 +32,10 @@ class _OriginalInspiredChatsPageState extends State<OriginalInspiredChatsPage> {
     final trimmed = text.trim();
     if (trimmed.isEmpty) return;
 
-    setState(() {
-      threads[selectedIndex]!.add(
-        _LocalMessage(text: trimmed, time: 'Now', incoming: false),
-      );
-    });
-
-    _showChatSnack(context, 'Local message added');
+    CidentiaProtectedActionNotice.show(
+      context,
+      action: CidentiaProtectedAction.sendMessage,
+    );
   }
 
   @override
