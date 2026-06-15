@@ -193,6 +193,8 @@ async function verifyOtp(body, env = process.env) {
       upstream: upstreamBody,
       user: handoff.safeUser,
       session: handoff.safeSession,
+      onboardingRequired: handoff.onboardingRequired,
+      redirectUrl: handoff.redirectUrl,
       liveCidenDbCall: true,
       fakeSuccess: false,
       sessionCreated: handoff.sessionCreated,

@@ -1,6 +1,7 @@
 ﻿const crypto = require('crypto');
 
 const localSessions = new Map();
+const CIDENTIA_APP_ONBOARDING_URL = 'https://cidentiaapp.com';
 
 function nowSeconds() {
   return Math.floor(Date.now() / 1000);
@@ -30,9 +31,11 @@ function buildSafeSessionFromVerify(upstream, fallbackContact) {
   if (!cid) {
     return {
       sessionCreated: false,
-      code: 'CIDENDB_VERIFY_OK_SESSION_PENDING',
+      onboardingRequired: true,
+      redirectUrl: CIDENTIA_APP_ONBOARDING_URL,
+      code: 'CIDENDB_VERIFY_OK_CID_REQUIRED',
       message:
-        'CidenDB verify succeeded, but user.cid was not returned. Safe session handoff is waiting for final CidenDB verify response contract.',
+        'CidenDB verify succeeded, but no CID was returned. User must complete CidentiaApp onboarding before Cidentia.Live can create a verified session.',
       safeUser: {
         email,
         is_new_user: upstream ? upstream.is_new_user : null,
@@ -47,15 +50,15 @@ function buildSafeSessionFromVerify(upstream, fallbackContact) {
       : {};
 
   const expiresInSeconds = Number(
-    upstreamSession.expires_in_seconds || upstreamSession.expiresInSeconds || 86400,
+    upstreamSession.expires_in_seconds ||
+      upstreamSession.expiresInSeconds ||
+      86400,
   );
 
   const issuedAt = nowSeconds();
   const expiresAt = issuedAt + expiresInSeconds;
   const sessionId =
-    upstreamSession.session_id ||
-    upstreamSession.sessionId ||
-    crypto.randomUUID();
+    upstreamSession.session_id || upstreamSession.sessionId || crypto.randomUUID();
 
   const safeUser = {
     cid,
@@ -95,8 +98,11 @@ function buildSafeSessionFromVerify(upstream, fallbackContact) {
 
   return {
     sessionCreated: true,
+    onboardingRequired: false,
+    redirectUrl: null,
     code: 'CIDENDB_SAFE_SESSION_CREATED',
-    message: 'Safe Cidentia.Live session reference created after CidenDB verify success.',
+    message:
+      'Safe Cidentia.Live session reference created after CidenDB verify success.',
     safeUser,
     safeSession,
   };

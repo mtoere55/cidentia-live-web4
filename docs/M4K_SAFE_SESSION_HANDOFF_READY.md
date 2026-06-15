@@ -10,10 +10,24 @@ This milestone does not create fake CID, fake login, raw token storage, upload, 
 
 If CidenDB verify succeeds and returns a usable `user.cid`, Cidentia.Live backend can create or forward a safe opaque `session_id`.
 
-If CidenDB verify succeeds but returns an empty user object, Cidentia.Live does not create a fake session. It returns:
+If CidenDB verify succeeds but no CID is returned, Cidentia.Live does not create a fake session.
 
-- `CIDENDB_VERIFY_OK_SESSION_PENDING`
+Instead it returns:
+
+- `CIDENDB_VERIFY_OK_CID_REQUIRED`
 - `sessionCreated:false`
+- `onboardingRequired:true`
+- `redirectUrl:https://cidentiaapp.com`
+
+That means the user must complete CidentiaApp onboarding before Cidentia.Live can open a verified session.
+
+## Identity authority rule
+
+CidenDB remains the identity/databank authority.
+
+CidentiaApp remains the onboarding/registration authority.
+
+Cidentia.Live must not create its own CID identity and must not fake a verified CID session.
 
 ## Safe fields
 
@@ -28,6 +42,8 @@ Allowed to return to Flutter:
 - `session.session_id`
 - `session.expires_in_seconds`
 - `session.safe_claims`
+- `onboardingRequired`
+- `redirectUrl`
 
 Never return to Flutter:
 
@@ -44,7 +60,7 @@ Never return to Flutter:
 
 Live OTP send and verify are working.
 
-Current verify response may still return `user:{}`. In that case M4K correctly refuses to create a fake verified session.
+If the current verify response still returns `user:{}` or no CID field, M4K correctly refuses to create a fake verified session and points the user to CidentiaApp onboarding.
 
 ## Next
 
