@@ -6,6 +6,7 @@ import 'widgets/local_post_card.dart';
 import 'widgets/local_profile_grid.dart';
 import 'widgets/local_stories_bar.dart';
 import 'widgets/cidentia_brand_header.dart';
+import 'widgets/cidentia_cidendb_entry.dart';
 import 'widgets/local_chat_detail.dart';
 import 'widgets/local_reels_page.dart';
 import 'widgets/local_live_studio_page.dart';
@@ -279,6 +280,7 @@ class _LocalShellState extends State<LocalShell> {
               style: const TextStyle(fontWeight: FontWeight.w800),
             ),
             actions: [
+              const CidenDbEntryButton(compact: true),
               IconButton(
                 tooltip: 'Local favorites',
                 onPressed: () => _showLocalShellNotice(
