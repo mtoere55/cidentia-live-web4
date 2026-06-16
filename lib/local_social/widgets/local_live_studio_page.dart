@@ -2,11 +2,64 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
+import '../auth/cidentia_session_scope.dart';
+
 const _bg = Color(0xFF09090B);
 const _panel = Color(0xFF101114);
 const _panelSoft = Color(0xFF181A20);
 const _line = Color(0xFF262A33);
 const _textSoft = Color(0xFFA1A1AA);
+
+String _studioDisplayName(String? rawDisplayName) {
+  final value = rawDisplayName?.trim();
+
+  if (value == null || value.isEmpty || value.contains('@')) {
+    return 'Murat Toere';
+  }
+
+  return value;
+}
+
+String _studioInitials(String value) {
+  final parts = value
+      .trim()
+      .split(RegExp(r'\s+'))
+      .where((part) => part.isNotEmpty)
+      .toList();
+
+  if (parts.isEmpty) {
+    return 'MT';
+  }
+
+  if (parts.length == 1) {
+    final part = parts.first;
+    if (part.length == 1) {
+      return part.toUpperCase();
+    }
+    return part.substring(0, 2).toUpperCase();
+  }
+
+  return '${parts.first.substring(0, 1)}${parts.last.substring(0, 1)}'
+      .toUpperCase();
+}
+
+String _studioStageLabel(String value) {
+  final parts = value
+      .trim()
+      .split(RegExp(r'\s+'))
+      .where((part) => part.isNotEmpty)
+      .toList();
+
+  if (parts.length >= 2) {
+    return '${parts.first}\n${parts.last}'.toUpperCase();
+  }
+
+  if (parts.isEmpty) {
+    return 'LIVE\nHOST';
+  }
+
+  return parts.first.toUpperCase();
+}
 
 void _showLiveStudioNotice(BuildContext context, String title, String message) {
   ScaffoldMessenger.of(context).showSnackBar(
@@ -608,6 +661,12 @@ class _StudioVideoStage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final session = CidentiaSessionScope.maybeOf(context);
+    final verified = session?.hasVerifiedCid ?? false;
+    final stageLabel = verified
+        ? _studioStageLabel(_studioDisplayName(session?.displayName))
+        : 'LIVE\nHOST';
+
     return DecoratedBox(
       decoration: const BoxDecoration(
         gradient: RadialGradient(
@@ -632,11 +691,11 @@ class _StudioVideoStage extends StatelessWidget {
                 BoxShadow(blurRadius: 60, color: Color(0x66EC4899)),
               ],
             ),
-            child: const Center(
+            child: Center(
               child: Text(
-                'LIVE\nHOST',
+                stageLabel,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 34,
                   height: 1.05,
                   fontWeight: FontWeight.w900,
@@ -787,6 +846,17 @@ class _HostOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final session = CidentiaSessionScope.maybeOf(context);
+    final verified = session?.hasVerifiedCid ?? false;
+    final cid = session?.cid;
+    final displayName = _studioDisplayName(session?.displayName);
+    final initials = _studioInitials(displayName);
+    final hostStatus = verified && cid != null
+        ? 'CID $cid Host'
+        : verified
+        ? 'CID verified host'
+        : 'Local preview host';
+
     return Container(
       width: 330,
       padding: const EdgeInsets.all(14),
@@ -806,31 +876,41 @@ class _HostOverlay extends StatelessWidget {
                 colors: [Color(0xFFE879F9), Color(0xFFF97316)],
               ),
             ),
-            child: const Center(
+            child: Center(
               child: Text(
-                'W4',
-                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
+                initials,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 18,
+                ),
               ),
             ),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'web4.creator',
-                  style: TextStyle(fontWeight: FontWeight.w900),
+                  displayName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontWeight: FontWeight.w900),
                 ),
-                SizedBox(height: 3),
+                const SizedBox(height: 3),
                 Text(
-                  'CID Verified Host',
-                  style: TextStyle(color: _textSoft, fontSize: 12),
+                  hostStatus,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: _textSoft, fontSize: 12),
                 ),
               ],
             ),
           ),
-          const Icon(Icons.verified_rounded, color: Color(0xFF60A5FA)),
+          Icon(
+            verified ? Icons.verified_rounded : Icons.shield_outlined,
+            color: verified ? const Color(0xFF60A5FA) : _textSoft,
+          ),
         ],
       ),
     );
@@ -1995,6 +2075,12 @@ class _MobileVideoPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final session = CidentiaSessionScope.maybeOf(context);
+    final verified = session?.hasVerifiedCid ?? false;
+    final stageLabel = verified
+        ? _studioStageLabel(_studioDisplayName(session?.displayName))
+        : 'LIVE\nHOST';
+
     return DecoratedBox(
       decoration: const BoxDecoration(
         gradient: RadialGradient(
@@ -2021,11 +2107,11 @@ class _MobileVideoPreview extends StatelessWidget {
                     BoxShadow(blurRadius: 70, color: Color(0x66EC4899)),
                   ],
                 ),
-                child: const Center(
+                child: Center(
                   child: Text(
-                    'LIVE\nHOST',
+                    stageLabel,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 30,
                       height: 1.0,
                       fontWeight: FontWeight.w900,
@@ -2053,6 +2139,17 @@ class _MobileHostBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final session = CidentiaSessionScope.maybeOf(context);
+    final verified = session?.hasVerifiedCid ?? false;
+    final cid = session?.cid;
+    final displayName = _studioDisplayName(session?.displayName);
+    final initials = _studioInitials(displayName);
+    final hostStatus = verified && cid != null
+        ? 'CID $cid Host'
+        : verified
+        ? 'CID verified host'
+        : 'Local preview host';
+
     return Container(
       width: 218,
       padding: const EdgeInsets.all(10),
@@ -2072,32 +2169,37 @@ class _MobileHostBadge extends StatelessWidget {
                 colors: [Color(0xFFE879F9), Color(0xFFF97316)],
               ),
             ),
-            child: const Center(
-              child: Text('W4', style: TextStyle(fontWeight: FontWeight.w900)),
+            child: Center(
+              child: Text(
+                initials,
+                style: const TextStyle(fontWeight: FontWeight.w900),
+              ),
             ),
           ),
           const SizedBox(width: 10),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'web4.creator',
+                  displayName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontWeight: FontWeight.w900),
+                  style: const TextStyle(fontWeight: FontWeight.w900),
                 ),
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 Text(
-                  'CID Verified Host',
-                  style: TextStyle(color: _textSoft, fontSize: 11),
+                  hostStatus,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: _textSoft, fontSize: 11),
                 ),
               ],
             ),
           ),
-          const Icon(
-            Icons.verified_rounded,
-            color: Color(0xFF60A5FA),
+          Icon(
+            verified ? Icons.verified_rounded : Icons.shield_outlined,
+            color: verified ? const Color(0xFF60A5FA) : _textSoft,
             size: 18,
           ),
         ],
