@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'cidentia_cidendb_entry.dart';
-
 const _textSoft = Color(0xFFA1A1AA);
 
 class CidentiaBrandHeader extends StatelessWidget {
@@ -46,8 +44,6 @@ class CidentiaBrandHeader extends StatelessWidget {
             ),
           ],
         ),
-        SizedBox(height: 12),
-        CidenDbEntryButton(),
       ],
     );
   }
