@@ -907,6 +907,10 @@ void _openProfileActionSheet(
         subtitle: subtitle,
         icon: icon,
         children: [
+          if (title == 'Edit Profile') ...[
+            const _ProfileEditPreviewForm(),
+            const SizedBox(height: 10),
+          ],
           _ProfileInfoCard(icon: icon, title: title, text: text),
           const SizedBox(height: 10),
           const _ProfileInfoCard(
@@ -962,6 +966,153 @@ void _openGridPreview(
       );
     },
   );
+}
+
+class _ProfileEditPreviewForm extends StatefulWidget {
+  const _ProfileEditPreviewForm();
+
+  @override
+  State<_ProfileEditPreviewForm> createState() =>
+      _ProfileEditPreviewFormState();
+}
+
+class _ProfileEditPreviewFormState extends State<_ProfileEditPreviewForm> {
+  late final TextEditingController nameController;
+  late final TextEditingController handleController;
+  late final TextEditingController bioController;
+  late final TextEditingController initialsController;
+
+  @override
+  void initState() {
+    super.initState();
+    nameController = TextEditingController(text: 'Murat Toere');
+    handleController = TextEditingController(text: 'murat.toere.cid');
+    bioController = TextEditingController(
+      text:
+          'Cidentia.Live creator profile connected to verified CidenDB/CID session.',
+    );
+    initialsController = TextEditingController(text: 'MT');
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    handleController.dispose();
+    bioController.dispose();
+    initialsController.dispose();
+    super.dispose();
+  }
+
+  void _saveLocalDraft() {
+    FocusScope.of(context).unfocus();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Local profile draft saved. Production backend save is still locked.',
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: _line),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Local profile editor',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'These fields are local preview controls only. Real profile save will connect to the production backend later.',
+            style: TextStyle(color: _textSoft, height: 1.35),
+          ),
+          const SizedBox(height: 14),
+          _ProfileDraftField(
+            controller: nameController,
+            label: 'Display name',
+            icon: Icons.badge_outlined,
+          ),
+          const SizedBox(height: 10),
+          _ProfileDraftField(
+            controller: handleController,
+            label: 'Handle',
+            icon: Icons.alternate_email_rounded,
+          ),
+          const SizedBox(height: 10),
+          _ProfileDraftField(
+            controller: initialsController,
+            label: 'Avatar initials',
+            icon: Icons.account_circle_outlined,
+          ),
+          const SizedBox(height: 10),
+          _ProfileDraftField(
+            controller: bioController,
+            label: 'Bio',
+            icon: Icons.notes_rounded,
+            maxLines: 3,
+          ),
+          const SizedBox(height: 14),
+          FilledButton.icon(
+            onPressed: _saveLocalDraft,
+            icon: const Icon(Icons.save_outlined),
+            label: const Text('Save local draft'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileDraftField extends StatelessWidget {
+  const _ProfileDraftField({
+    required this.controller,
+    required this.label,
+    required this.icon,
+    this.maxLines = 1,
+  });
+
+  final TextEditingController controller;
+  final String label;
+  final IconData icon;
+  final int maxLines;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      maxLines: maxLines,
+      style: const TextStyle(fontWeight: FontWeight.w700),
+      decoration: InputDecoration(
+        labelText: label,
+        alignLabelWithHint: maxLines > 1,
+        prefixIcon: Icon(icon),
+        filled: true,
+        fillColor: Colors.black26,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: const BorderSide(color: _line),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: const BorderSide(color: _line),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: const BorderSide(color: Color(0xFF60A5FA)),
+        ),
+      ),
+    );
+  }
 }
 
 class _ProfilePreviewSheet extends StatelessWidget {
