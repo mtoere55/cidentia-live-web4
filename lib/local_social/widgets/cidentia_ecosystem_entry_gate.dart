@@ -617,12 +617,7 @@ class _EntryResult {
       'cidenId',
     ]);
 
-    final displayName = readText(user, [
-      'display_name',
-      'full_name',
-      'name',
-      'email',
-    ]);
+    final displayName = readText(user, ['display_name', 'full_name', 'name']);
 
     final email = readText(user, ['email', 'mail', 'contact']);
 
