@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'auth/cidentia_session_scope.dart';
+import 'auth/cidentia_auth_gate_contract.dart';
+import 'auth/cidentia_protected_action_notice.dart';
 import 'auth/cidentia_session_state.dart';
 
 import 'local_social_data.dart';
@@ -492,6 +494,8 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
               const SizedBox(height: 14),
               const _CreateBoundaryNotice(),
               const SizedBox(height: 14),
+              const _CreateProductionBoundaryActions(),
+              const SizedBox(height: 14),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton.icon(
@@ -898,6 +902,113 @@ class _CreateCaptionPreview extends StatelessWidget {
           borderRadius: BorderRadius.circular(18),
           borderSide: const BorderSide(color: _line),
         ),
+      ),
+    );
+  }
+}
+
+class _CreateProductionBoundaryActions extends StatelessWidget {
+  const _CreateProductionBoundaryActions();
+
+  void _showLockedBoundary(
+    BuildContext context,
+    CidentiaProtectedAction action,
+  ) {
+    CidentiaProtectedActionNotice.show(context, action: action);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.black26,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _line),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Upload / Publish boundary',
+            style: TextStyle(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'These buttons test the protected action boundary only. No file, storage, backend, or publish call is opened.',
+            style: TextStyle(color: _textSoft, height: 1.3),
+          ),
+          const SizedBox(height: 12),
+          _CreateLockedActionTile(
+            icon: Icons.cloud_upload_outlined,
+            title: 'Upload media',
+            subtitle: 'Protected upload route preview',
+            onTap: () => _showLockedBoundary(
+              context,
+              CidentiaProtectedAction.uploadMedia,
+            ),
+          ),
+          const SizedBox(height: 8),
+          _CreateLockedActionTile(
+            icon: Icons.publish_outlined,
+            title: 'Publish media',
+            subtitle: 'Protected publishing route preview',
+            onTap: () => _showLockedBoundary(
+              context,
+              CidentiaProtectedAction.publishMedia,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CreateLockedActionTile extends StatelessWidget {
+  const _CreateLockedActionTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton(
+      onPressed: onTap,
+      style: OutlinedButton.styleFrom(
+        alignment: Alignment.centerLeft,
+        padding: const EdgeInsets.all(12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(fontWeight: FontWeight.w900),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: const TextStyle(color: _textSoft, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.lock_outline_rounded, size: 18),
+        ],
       ),
     );
   }
