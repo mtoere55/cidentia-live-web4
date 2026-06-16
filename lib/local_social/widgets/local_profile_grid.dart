@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../auth/cidentia_auth_gate_contract.dart';
 import '../auth/cidentia_protected_action_notice.dart';
+import '../auth/cidentia_session_scope.dart';
 import '../local_social_data.dart';
 
 const _panel = Color(0xFF101114);
@@ -53,6 +54,22 @@ class _ProfileHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final session = CidentiaSessionScope.maybeOf(context);
+    final verified = session?.hasVerifiedCid ?? false;
+    final cid = session?.cid;
+    final email = session?.email;
+
+    final identityLine = verified && cid != null
+        ? 'Verified CID: $cid'
+        : 'CID Local - Social identity preview';
+
+    final profileDescription = verified && email != null
+        ? 'Signed in as $email. Reels, wallet, proof and trust layers will connect later.'
+        : 'Local creator profile. Reels, wallet, proof and trust layers will connect later.';
+
+    final cidBadgeLabel = verified && cid != null ? 'CID $cid' : 'CID ready';
+    final proofBadgeLabel = verified ? 'Proof verified' : 'Proof planned';
+
     return Container(
       decoration: BoxDecoration(
         color: _panel,
@@ -85,7 +102,7 @@ class _ProfileHero extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                const Row(
                   children: [
                     Flexible(
                       child: Text(
@@ -101,22 +118,22 @@ class _ProfileHero extends StatelessWidget {
                     Icon(Icons.verified_rounded, color: Color(0xFF60A5FA)),
                   ],
                 ),
-                SizedBox(height: 6),
+                const SizedBox(height: 6),
                 Text(
-                  'CID Local - Social identity preview',
-                  style: TextStyle(
+                  identityLine,
+                  style: const TextStyle(
                     color: _textSoft,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Text(
-                  'Local creator profile. Reels, wallet, proof and trust layers will connect later.',
+                  profileDescription,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: Colors.white, height: 1.25),
+                  style: const TextStyle(color: Colors.white, height: 1.25),
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 LayoutBuilder(
                   builder: (context, constraints) {
                     final compact = constraints.maxWidth < 360;
@@ -125,16 +142,16 @@ class _ProfileHero extends StatelessWidget {
                       return Wrap(
                         spacing: 8,
                         runSpacing: 8,
-                        children: const [
+                        children: [
                           _ProfileBadge(
                             icon: Icons.badge_outlined,
-                            label: 'CID ready',
+                            label: cidBadgeLabel,
                           ),
                           _ProfileBadge(
                             icon: Icons.fingerprint_rounded,
-                            label: 'Proof planned',
+                            label: proofBadgeLabel,
                           ),
-                          _ProfileBadge(
+                          const _ProfileBadge(
                             icon: Icons.wallet_outlined,
                             label: 'Wallet locked',
                           ),
@@ -144,19 +161,19 @@ class _ProfileHero extends StatelessWidget {
 
                     return SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
-                      child: const Row(
+                      child: Row(
                         children: [
                           _ProfileBadge(
                             icon: Icons.badge_outlined,
-                            label: 'CID ready',
+                            label: cidBadgeLabel,
                           ),
-                          SizedBox(width: 8),
+                          const SizedBox(width: 8),
                           _ProfileBadge(
                             icon: Icons.fingerprint_rounded,
-                            label: 'Proof planned',
+                            label: proofBadgeLabel,
                           ),
-                          SizedBox(width: 8),
-                          _ProfileBadge(
+                          const SizedBox(width: 8),
+                          const _ProfileBadge(
                             icon: Icons.wallet_outlined,
                             label: 'Wallet locked',
                           ),
