@@ -992,15 +992,32 @@ class _ProfileEditPreviewFormState extends State<_ProfileEditPreviewForm> {
           'Cidentia.Live creator profile connected to verified CidenDB/CID session.',
     );
     initialsController = TextEditingController(text: 'MT');
+    initialsController.addListener(_refreshAvatarPreview);
   }
 
   @override
   void dispose() {
+    initialsController.removeListener(_refreshAvatarPreview);
     nameController.dispose();
     handleController.dispose();
     bioController.dispose();
     initialsController.dispose();
     super.dispose();
+  }
+
+  void _refreshAvatarPreview() {
+    if (!mounted) return;
+    setState(() {});
+  }
+
+  void _showPhotoPreviewNotice() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Profile photo picker is preview-only. Upload and storage are still locked.',
+        ),
+      ),
+    );
   }
 
   void _saveLocalDraft() {
@@ -1037,6 +1054,11 @@ class _ProfileEditPreviewFormState extends State<_ProfileEditPreviewForm> {
             style: TextStyle(color: _textSoft, height: 1.35),
           ),
           const SizedBox(height: 14),
+          _ProfileAvatarPreviewCard(
+            initials: initialsController.text,
+            onChangePhoto: _showPhotoPreviewNotice,
+          ),
+          const SizedBox(height: 14),
           _ProfileDraftField(
             controller: nameController,
             label: 'Display name',
@@ -1066,6 +1088,82 @@ class _ProfileEditPreviewFormState extends State<_ProfileEditPreviewForm> {
             onPressed: _saveLocalDraft,
             icon: const Icon(Icons.save_outlined),
             label: const Text('Save local draft'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileAvatarPreviewCard extends StatelessWidget {
+  const _ProfileAvatarPreviewCard({
+    required this.initials,
+    required this.onChangePhoto,
+  });
+
+  final String initials;
+  final VoidCallback onChangePhoto;
+
+  String get safeInitials {
+    final value = initials.trim().toUpperCase();
+    if (value.isEmpty) return 'MT';
+    if (value.length == 1) return value;
+    return value.substring(0, 2);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.black26,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: _line),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 68,
+            height: 68,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const LinearGradient(
+                colors: [Color(0xFFE879F9), Color(0xFFF97316)],
+              ),
+              border: Border.all(color: Colors.white30, width: 3),
+            ),
+            child: Center(
+              child: Text(
+                safeInitials,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Profile image preview',
+                  style: TextStyle(fontWeight: FontWeight.w900),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Local avatar preview only. Real photo upload and storage will connect later.',
+                  style: TextStyle(color: _textSoft, height: 1.35),
+                ),
+                const SizedBox(height: 10),
+                OutlinedButton.icon(
+                  onPressed: onChangePhoto,
+                  icon: const Icon(Icons.photo_camera_outlined, size: 18),
+                  label: const Text('Change photo preview'),
+                ),
+              ],
+            ),
           ),
         ],
       ),
