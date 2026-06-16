@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'auth/cidentia_session_scope.dart';
+import 'auth/cidentia_session_state.dart';
+
 import 'local_social_data.dart';
 import 'local_social_modules.dart';
 import 'widgets/local_post_card.dart';
@@ -31,6 +34,7 @@ class LocalSocialApp extends StatefulWidget {
 class _LocalSocialAppState extends State<LocalSocialApp> {
   var _language = CidentiaUiLanguage.en;
   var _entered = false;
+  CidentiaSessionState _session = const CidentiaSessionState.signedOut();
 
   @override
   Widget build(BuildContext context) {
@@ -54,12 +58,32 @@ class _LocalSocialAppState extends State<LocalSocialApp> {
         ),
       ),
       home: _entered
-          ? LocalShell(language: _language)
+          ? CidentiaSessionScope(
+              session: _session,
+              onSignInRequested: () {
+                setState(() {
+                  _session = const CidentiaSessionState.signedOut();
+                  _entered = false;
+                });
+              },
+              child: LocalShell(language: _language),
+            )
           : CidentiaEcosystemEntryGate(
               language: _language,
               onLanguageChanged: (language) =>
                   setState(() => _language = language),
-              onEnter: () => setState(() => _entered = true),
+              onEnter: () {
+                setState(() {
+                  _session = const CidentiaSessionState.signedOut();
+                  _entered = true;
+                });
+              },
+              onVerifiedEnter: (session) {
+                setState(() {
+                  _session = session;
+                  _entered = true;
+                });
+              },
             ),
     );
   }
