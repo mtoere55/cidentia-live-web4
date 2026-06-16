@@ -1159,15 +1159,18 @@ class _HowItWorks extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ExpansionTile(
-      tilePadding: EdgeInsets.zero,
-      title: const Text('How it works?'),
-      children: [
-        Text(
-          '${language.appTitle} uses CidenDB for identity verification. If a CID is missing, CidentiaApp completes onboarding.',
-          style: const TextStyle(color: Colors.white70),
-        ),
-      ],
+    return Material(
+      color: Colors.transparent,
+      child: ExpansionTile(
+        tilePadding: EdgeInsets.zero,
+        title: const Text('How it works?'),
+        children: [
+          Text(
+            '${language.appTitle} uses CidenDB for identity verification. If a CID is missing, CidentiaApp completes onboarding.',
+            style: const TextStyle(color: Colors.white70),
+          ),
+        ],
+      ),
     );
   }
 }
