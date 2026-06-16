@@ -1,4 +1,4 @@
-﻿const crypto = require('crypto');
+const crypto = require('crypto');
 
 const localSessions = new Map();
 const CIDENTIA_APP_ONBOARDING_URL = 'https://cidentiaapp.com';
@@ -20,7 +20,17 @@ function pickUser(upstream) {
 }
 
 function pickCid(user) {
-  return user.cid || user.cidentia_id || user.cidentiaId || user.id || null;
+  return (
+    user.cid ||
+    user.cid_number ||
+    user.cidNumber ||
+    user.ciden_id ||
+    user.cidenId ||
+    user.cidentia_id ||
+    user.cidentiaId ||
+    user.id ||
+    null
+  );
 }
 
 function buildSafeSessionFromVerify(upstream, fallbackContact) {
