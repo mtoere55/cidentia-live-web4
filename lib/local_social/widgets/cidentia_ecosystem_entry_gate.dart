@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
+import '../auth/cidentia_session_state.dart';
+
 const cidentiaEntryBridgeBaseUrl = 'http://localhost:3000';
 const cidentiaAppOnboardingUrl = 'https://cidentiaapp.com';
 
@@ -250,12 +252,14 @@ class CidentiaEcosystemEntryGate extends StatefulWidget {
     required this.language,
     required this.onLanguageChanged,
     required this.onEnter,
+    this.onVerifiedEnter,
     super.key,
   });
 
   final CidentiaUiLanguage language;
   final ValueChanged<CidentiaUiLanguage> onLanguageChanged;
   final VoidCallback onEnter;
+  final ValueChanged<CidentiaSessionState>? onVerifiedEnter;
 
   @override
   State<CidentiaEcosystemEntryGate> createState() =>
@@ -341,7 +345,11 @@ class _CidentiaEcosystemEntryGateState
       if (result.kind == _EntryResultKind.verified) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
-            widget.onEnter();
+            if (result.session != null && widget.onVerifiedEnter != null) {
+              widget.onVerifiedEnter!(result.session!);
+            } else {
+              widget.onEnter();
+            }
           }
         });
       }
@@ -515,6 +523,7 @@ class _EntryResult {
     required this.code,
     required this.kind,
     this.details = '',
+    this.session,
   });
 
   factory _EntryResult.idle() => const _EntryResult(
@@ -615,13 +624,15 @@ class _EntryResult {
       'email',
     ]);
 
+    final email = readText(user, ['email', 'mail', 'contact']);
+
     final hasSafeSession =
         decoded['sessionCreated'] == true ||
         code == 'CIDENDB_SAFE_SESSION_CREATED' ||
         (code == 'CIDENDB_UPSTREAM_OK' && cid != null);
 
-    if (hasSafeSession) {
-      final cidLine = cid == null ? '' : '\nCID: $cid';
+    if (hasSafeSession && cid != null) {
+      final cidLine = '\nCID: $cid';
       final nameLine = displayName == null ? '' : '\nUser: $displayName';
 
       return _EntryResult(
@@ -630,6 +641,12 @@ class _EntryResult {
         code: code,
         kind: _EntryResultKind.verified,
         details: details,
+        session: CidentiaSessionState.verified(
+          cid: cid,
+          displayName: displayName,
+          email: email,
+          message: language.verifiedBody,
+        ),
       );
     }
 
@@ -683,6 +700,7 @@ class _EntryResult {
   final String code;
   final String details;
   final _EntryResultKind kind;
+  final CidentiaSessionState? session;
 }
 
 enum _EntryResultKind {
