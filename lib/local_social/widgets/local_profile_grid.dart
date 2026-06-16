@@ -911,6 +911,65 @@ void _openProfileActionSheet(
             const _ProfileEditPreviewForm(),
             const SizedBox(height: 10),
           ],
+          if (title == 'Wallet') ...[
+            const _ProfileGatewayStatusCard(
+              title: 'Wallet gateway locked',
+              subtitle: 'Verified CID is ready. Real wallet remains closed.',
+              icon: Icons.account_balance_wallet_outlined,
+              accent: Color(0xFFF97316),
+              items: [
+                _ProfileGatewayItem(
+                  icon: Icons.verified_user_outlined,
+                  label: 'CID session',
+                  description:
+                      'Verified identity can request wallet access later.',
+                ),
+                _ProfileGatewayItem(
+                  icon: Icons.lock_outline_rounded,
+                  label: 'No balance shown',
+                  description:
+                      'No fake token, reward, payment or balance is created.',
+                ),
+                _ProfileGatewayItem(
+                  icon: Icons.hub_outlined,
+                  label: 'CidenBridge required',
+                  description:
+                      'Production wallet routing must pass through CidenBridge.',
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+          ],
+          if (title == 'Proof') ...[
+            const _ProfileGatewayStatusCard(
+              title: 'Proof gateway ready',
+              subtitle:
+                  'Verified CID proof preview. Real proof backend remains closed.',
+              icon: Icons.verified_user_outlined,
+              accent: Color(0xFF60A5FA),
+              items: [
+                _ProfileGatewayItem(
+                  icon: Icons.badge_outlined,
+                  label: 'CID verified',
+                  description:
+                      'The local profile can display verified CidenDB identity.',
+                ),
+                _ProfileGatewayItem(
+                  icon: Icons.fingerprint_rounded,
+                  label: 'Proof module locked',
+                  description:
+                      'No document, biometric, audit or trust backend is opened.',
+                ),
+                _ProfileGatewayItem(
+                  icon: Icons.token_outlined,
+                  label: 'No minting',
+                  description:
+                      'Blockchain, NFT, payment and token actions stay closed.',
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+          ],
           _ProfileInfoCard(icon: icon, title: title, text: text),
           const SizedBox(height: 10),
           const _ProfileInfoCard(
@@ -966,6 +1025,114 @@ void _openGridPreview(
       );
     },
   );
+}
+
+class _ProfileGatewayStatusCard extends StatelessWidget {
+  const _ProfileGatewayStatusCard({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.accent,
+    required this.items,
+  });
+
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color accent;
+  final List<_ProfileGatewayItem> items;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: _line),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: accent.withValues(alpha: 0.45)),
+                ),
+                child: Icon(icon, color: accent),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(color: _textSoft, height: 1.3),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          ...items.map(
+            (item) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(item.icon, size: 19, color: accent),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.label,
+                          style: const TextStyle(fontWeight: FontWeight.w900),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          item.description,
+                          style: const TextStyle(color: _textSoft, height: 1.3),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileGatewayItem {
+  const _ProfileGatewayItem({
+    required this.icon,
+    required this.label,
+    required this.description,
+  });
+
+  final IconData icon;
+  final String label;
+  final String description;
 }
 
 class _ProfileEditPreviewForm extends StatefulWidget {
