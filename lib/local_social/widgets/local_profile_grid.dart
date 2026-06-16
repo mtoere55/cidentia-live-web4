@@ -10,6 +10,43 @@ const _panelSoft = Color(0xFF181A20);
 const _line = Color(0xFF262A33);
 const _textSoft = Color(0xFFA1A1AA);
 
+String _profileInitials(String value) {
+  final parts = value
+      .trim()
+      .split(RegExp(r'\s+'))
+      .where((part) => part.isNotEmpty)
+      .toList();
+
+  if (parts.isEmpty) {
+    return 'MT';
+  }
+
+  if (parts.length == 1) {
+    final part = parts.first;
+    if (part.length == 1) {
+      return part.toUpperCase();
+    }
+    return part.substring(0, 2).toUpperCase();
+  }
+
+  return '${parts.first.substring(0, 1)}${parts.last.substring(0, 1)}'
+      .toUpperCase();
+}
+
+String _profileHandle(String value) {
+  var normalized = value
+      .toLowerCase()
+      .replaceAll(RegExp(r'[^a-z0-9]+'), '.')
+      .replaceAll(RegExp(r'^\.+'), '')
+      .replaceAll(RegExp(r'\.+$'), '');
+
+  if (normalized.isEmpty) {
+    normalized = 'murat.toere';
+  }
+
+  return '@$normalized.cid';
+}
+
 enum _ProfileTabKind { posts, reels, tagged }
 
 class OriginalInspiredProfilePage extends StatefulWidget {
@@ -58,13 +95,30 @@ class _ProfileHero extends StatelessWidget {
     final verified = session?.hasVerifiedCid ?? false;
     final cid = session?.cid;
     final email = session?.email;
+    final rawDisplayName = session?.displayName?.trim();
+    final displayNameLooksLikeEmail =
+        rawDisplayName != null && rawDisplayName.contains('@');
+
+    final profileName =
+        verified &&
+            rawDisplayName != null &&
+            rawDisplayName.isNotEmpty &&
+            !displayNameLooksLikeEmail
+        ? rawDisplayName
+        : 'Murat Toere';
+
+    final profileHandle = verified
+        ? _profileHandle(profileName)
+        : '@murat.toere.preview';
+
+    final avatarLabel = _profileInitials(profileName);
 
     final identityLine = verified && cid != null
         ? 'Verified CID: $cid'
         : 'CID Local - Social identity preview';
 
     final profileDescription = verified && email != null
-        ? 'Signed in as $email. Reels, wallet, proof and trust layers will connect later.'
+        ? 'Signed in as $email. Wallet, proof and creator economy modules stay locked until production backend is connected.'
         : 'Local creator profile. Reels, wallet, proof and trust layers will connect later.';
 
     final cidBadgeLabel = verified && cid != null ? 'CID $cid' : 'CID ready';
@@ -90,10 +144,13 @@ class _ProfileHero extends StatelessWidget {
               ),
               border: Border.all(color: Colors.white30, width: 3),
             ),
-            child: const Center(
+            child: Center(
               child: Text(
-                'W4',
-                style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900),
+                avatarLabel,
+                style: const TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.w900,
+                ),
               ),
             ),
           ),
@@ -102,21 +159,33 @@ class _ProfileHero extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Row(
+                Row(
                   children: [
                     Flexible(
                       child: Text(
-                        'web4.creator',
-                        style: TextStyle(
+                        profileName,
+                        style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.w900,
                           letterSpacing: -0.7,
                         ),
                       ),
                     ),
-                    SizedBox(width: 8),
-                    Icon(Icons.verified_rounded, color: Color(0xFF60A5FA)),
+                    const SizedBox(width: 8),
+                    if (verified)
+                      const Icon(
+                        Icons.verified_rounded,
+                        color: Color(0xFF60A5FA),
+                      ),
                   ],
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  profileHandle,
+                  style: const TextStyle(
+                    color: _textSoft,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
                 const SizedBox(height: 6),
                 Text(
@@ -293,6 +362,11 @@ class _ProfileActionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final session = CidentiaSessionScope.maybeOf(context);
+    final verified = session?.hasVerifiedCid ?? false;
+    final cid = session?.cid ?? 'CID pending';
+    final email = session?.email ?? 'verified CidenDB user';
+
     return Row(
       children: [
         Expanded(
@@ -300,10 +374,24 @@ class _ProfileActionRow extends StatelessWidget {
             icon: Icons.edit_outlined,
             label: 'Edit Profile',
             primary: true,
-            onTap: () => CidentiaProtectedActionNotice.show(
-              context,
-              action: CidentiaProtectedAction.editProfile,
-            ),
+            onTap: () {
+              if (!verified) {
+                CidentiaProtectedActionNotice.show(
+                  context,
+                  action: CidentiaProtectedAction.editProfile,
+                );
+                return;
+              }
+
+              _openProfileActionSheet(
+                context,
+                title: 'Edit Profile',
+                subtitle: 'Verified CID profile workspace',
+                icon: Icons.edit_outlined,
+                text:
+                    'Murat Toere profile is connected to $cid. Signed in as $email. Local profile editing controls come next; production save remains locked until the backend profile route is connected.',
+              );
+            },
           ),
         ),
         const SizedBox(width: 12),
@@ -311,10 +399,24 @@ class _ProfileActionRow extends StatelessWidget {
           child: _ProfileActionButton(
             icon: Icons.account_balance_wallet_outlined,
             label: 'Wallet',
-            onTap: () => CidentiaProtectedActionNotice.show(
-              context,
-              action: CidentiaProtectedAction.connectWallet,
-            ),
+            onTap: () {
+              if (!verified) {
+                CidentiaProtectedActionNotice.show(
+                  context,
+                  action: CidentiaProtectedAction.connectWallet,
+                );
+                return;
+              }
+
+              _openProfileActionSheet(
+                context,
+                title: 'Wallet',
+                subtitle: 'CidenBridge wallet gateway',
+                icon: Icons.account_balance_wallet_outlined,
+                text:
+                    'Verified CID session is ready for wallet access. Real wallet, balance, token, payment and blockchain actions stay locked until the CidenBridge wallet module is connected.',
+              );
+            },
           ),
         ),
         const SizedBox(width: 12),
@@ -322,10 +424,24 @@ class _ProfileActionRow extends StatelessWidget {
           child: _ProfileActionButton(
             icon: Icons.verified_user_outlined,
             label: 'Proof',
-            onTap: () => CidentiaProtectedActionNotice.show(
-              context,
-              action: CidentiaProtectedAction.manageProof,
-            ),
+            onTap: () {
+              if (!verified) {
+                CidentiaProtectedActionNotice.show(
+                  context,
+                  action: CidentiaProtectedAction.manageProof,
+                );
+                return;
+              }
+
+              _openProfileActionSheet(
+                context,
+                title: 'Proof',
+                subtitle: 'CidenDB proof gateway',
+                icon: Icons.verified_user_outlined,
+                text:
+                    'Verified CID proof state is available for this local profile. Real proof documents, trust audit and CidenDB proof details will connect through the production backend.',
+              );
+            },
           ),
         ),
       ],
