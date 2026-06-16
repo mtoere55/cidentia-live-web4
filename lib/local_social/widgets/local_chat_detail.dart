@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../auth/cidentia_auth_gate_contract.dart';
 import '../auth/cidentia_protected_action_notice.dart';
+import '../auth/cidentia_session_scope.dart';
 import '../local_social_data.dart';
 
 const _panel = Color(0xFF101114);
@@ -32,9 +33,29 @@ class _OriginalInspiredChatsPageState extends State<OriginalInspiredChatsPage> {
     final trimmed = text.trim();
     if (trimmed.isEmpty) return;
 
-    CidentiaProtectedActionNotice.show(
+    final session = CidentiaSessionScope.maybeOf(context);
+    final verified = session?.hasVerifiedCid ?? false;
+
+    if (!verified) {
+      CidentiaProtectedActionNotice.show(
+        context,
+        action: CidentiaProtectedAction.sendMessage,
+      );
+      return;
+    }
+
+    final currentMessages = threads[selectedIndex] ?? const <_LocalMessage>[];
+
+    setState(() {
+      threads[selectedIndex] = [
+        ...currentMessages,
+        _LocalMessage(text: trimmed, time: 'Now', incoming: false),
+      ];
+    });
+
+    _showChatSnack(
       context,
-      action: CidentiaProtectedAction.sendMessage,
+      'Local message preview saved. Real chat backend is still locked.',
     );
   }
 
