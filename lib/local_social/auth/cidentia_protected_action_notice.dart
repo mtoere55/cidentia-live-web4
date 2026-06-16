@@ -24,8 +24,16 @@ class CidentiaProtectedActionNotice {
     CidentiaGateLanguage language = CidentiaGateLanguage.tr,
   }) {
     final title = CidentiaAuthGateContract.titleFor(action);
-    final message = CidentiaAuthGateContract.messageFor(action, language);
-    final requestSignIn = CidentiaSessionScope.onSignInRequestedOf(context);
+    final session = CidentiaSessionScope.maybeOf(context);
+    final verified = session?.hasVerifiedCid ?? false;
+
+    final message = verified
+        ? _verifiedPreviewMessage(title, session?.cid)
+        : CidentiaAuthGateContract.messageFor(action, language);
+
+    final requestSignIn = verified
+        ? null
+        : CidentiaSessionScope.onSignInRequestedOf(context);
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -37,6 +45,18 @@ class CidentiaProtectedActionNotice {
       ),
     );
 
-    debugPrint('Protected action blocked: $title');
+    debugPrint(
+      verified
+          ? 'Protected module preview locked after CID verify: $title'
+          : 'Protected action blocked: $title',
+    );
+  }
+
+  static String _verifiedPreviewMessage(String title, String? cid) {
+    final cidLine = cid == null ? '' : ' CID: $cid.';
+    return '$title is CID verified.$cidLine '
+        'This real module is still locked in local preview. '
+        'No wallet, payment, token, blockchain, upload, RTMP, or production '
+        'backend action is opened here.';
   }
 }
