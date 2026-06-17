@@ -10,14 +10,50 @@ const _panelSoft = Color(0xFF181A20);
 const _line = Color(0xFF262A33);
 const _textSoft = Color(0xFFA1A1AA);
 
-String _studioDisplayName(String? rawDisplayName) {
-  final value = rawDisplayName?.trim();
-
-  if (value == null || value.isEmpty || value.contains('@')) {
-    return 'Murat Toere';
+String _studioNameFromEmail(String? email) {
+  final value = email?.trim();
+  if (value == null || value.isEmpty || !value.contains('@')) {
+    return 'Live Host';
   }
 
-  return value;
+  final localPart = value.split('@').first.trim();
+  if (localPart.isEmpty) {
+    return 'Live Host';
+  }
+
+  final parts = localPart
+      .split(RegExp(r'[._\-]+'))
+      .where((part) => part.isNotEmpty)
+      .map(
+        (part) => part.length == 1
+            ? part.toUpperCase()
+            : '${part.substring(0, 1).toUpperCase()}${part.substring(1)}',
+      )
+      .toList();
+
+  return parts.isEmpty ? localPart : parts.join(' ');
+}
+
+String _studioDisplayName({
+  String? rawDisplayName,
+  String? email,
+  String? cid,
+}) {
+  final value = rawDisplayName?.trim();
+
+  if (value != null && value.isNotEmpty && !value.contains('@')) {
+    return value;
+  }
+
+  if (email != null && email.trim().isNotEmpty) {
+    return _studioNameFromEmail(email);
+  }
+
+  if (cid != null && cid.trim().isNotEmpty) {
+    return 'CID ${cid.trim()}';
+  }
+
+  return 'Live Host';
 }
 
 String _studioInitials(String value) {
@@ -28,7 +64,7 @@ String _studioInitials(String value) {
       .toList();
 
   if (parts.isEmpty) {
-    return 'MT';
+    return 'LH';
   }
 
   if (parts.length == 1) {
@@ -664,7 +700,13 @@ class _StudioVideoStage extends StatelessWidget {
     final session = CidentiaSessionScope.maybeOf(context);
     final verified = session?.hasVerifiedCid ?? false;
     final stageLabel = verified
-        ? _studioStageLabel(_studioDisplayName(session?.displayName))
+        ? _studioStageLabel(
+            _studioDisplayName(
+              rawDisplayName: session?.displayName,
+              email: session?.email,
+              cid: session?.cid,
+            ),
+          )
         : 'LIVE\nHOST';
 
     return DecoratedBox(
@@ -849,7 +891,11 @@ class _HostOverlay extends StatelessWidget {
     final session = CidentiaSessionScope.maybeOf(context);
     final verified = session?.hasVerifiedCid ?? false;
     final cid = session?.cid;
-    final displayName = _studioDisplayName(session?.displayName);
+    final displayName = _studioDisplayName(
+      rawDisplayName: session?.displayName,
+      email: session?.email,
+      cid: session?.cid,
+    );
     final initials = _studioInitials(displayName);
     final hostStatus = verified && cid != null
         ? 'CID $cid Host'
@@ -2078,7 +2124,13 @@ class _MobileVideoPreview extends StatelessWidget {
     final session = CidentiaSessionScope.maybeOf(context);
     final verified = session?.hasVerifiedCid ?? false;
     final stageLabel = verified
-        ? _studioStageLabel(_studioDisplayName(session?.displayName))
+        ? _studioStageLabel(
+            _studioDisplayName(
+              rawDisplayName: session?.displayName,
+              email: session?.email,
+              cid: session?.cid,
+            ),
+          )
         : 'LIVE\nHOST';
 
     return DecoratedBox(
@@ -2142,7 +2194,11 @@ class _MobileHostBadge extends StatelessWidget {
     final session = CidentiaSessionScope.maybeOf(context);
     final verified = session?.hasVerifiedCid ?? false;
     final cid = session?.cid;
-    final displayName = _studioDisplayName(session?.displayName);
+    final displayName = _studioDisplayName(
+      rawDisplayName: session?.displayName,
+      email: session?.email,
+      cid: session?.cid,
+    );
     final initials = _studioInitials(displayName);
     final hostStatus = verified && cid != null
         ? 'CID $cid Host'

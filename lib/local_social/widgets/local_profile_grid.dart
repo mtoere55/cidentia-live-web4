@@ -10,6 +10,57 @@ const _panelSoft = Color(0xFF181A20);
 const _line = Color(0xFF262A33);
 const _textSoft = Color(0xFFA1A1AA);
 
+String _identityNameFromEmail(String? email) {
+  final value = email?.trim();
+  if (value == null || value.isEmpty || !value.contains('@')) {
+    return 'Verified CidenDB User';
+  }
+
+  final localPart = value.split('@').first.trim();
+  if (localPart.isEmpty) {
+    return 'Verified CidenDB User';
+  }
+
+  final parts = localPart
+      .split(RegExp(r'[._\\-]+'))
+      .where((part) => part.isNotEmpty)
+      .map(
+        (part) => part.length == 1
+            ? part.toUpperCase()
+            : '${part.substring(0, 1).toUpperCase()}${part.substring(1)}',
+      )
+      .toList();
+
+  return parts.isEmpty ? localPart : parts.join(' ');
+}
+
+String _profileDisplayName({
+  required bool verified,
+  String? rawDisplayName,
+  String? email,
+  String? cid,
+}) {
+  final value = rawDisplayName?.trim();
+
+  if (verified) {
+    if (value != null && value.isNotEmpty && !value.contains('@')) {
+      return value;
+    }
+
+    if (email != null && email.trim().isNotEmpty) {
+      return _identityNameFromEmail(email);
+    }
+
+    if (cid != null && cid.trim().isNotEmpty) {
+      return 'CID ${cid.trim()}';
+    }
+
+    return 'Verified CidenDB User';
+  }
+
+  return 'Local Creator';
+}
+
 String _profileInitials(String value) {
   final parts = value
       .trim()
@@ -18,7 +69,7 @@ String _profileInitials(String value) {
       .toList();
 
   if (parts.isEmpty) {
-    return 'MT';
+    return 'LC';
   }
 
   if (parts.length == 1) {
@@ -41,7 +92,7 @@ String _profileHandle(String value) {
       .replaceAll(RegExp(r'\.+$'), '');
 
   if (normalized.isEmpty) {
-    normalized = 'murat.toere';
+    normalized = 'local.creator';
   }
 
   return '@$normalized.cid';
@@ -95,21 +146,16 @@ class _ProfileHero extends StatelessWidget {
     final verified = session?.hasVerifiedCid ?? false;
     final cid = session?.cid;
     final email = session?.email;
-    final rawDisplayName = session?.displayName?.trim();
-    final displayNameLooksLikeEmail =
-        rawDisplayName != null && rawDisplayName.contains('@');
-
-    final profileName =
-        verified &&
-            rawDisplayName != null &&
-            rawDisplayName.isNotEmpty &&
-            !displayNameLooksLikeEmail
-        ? rawDisplayName
-        : 'Murat Toere';
+    final profileName = _profileDisplayName(
+      verified: verified,
+      rawDisplayName: session?.displayName,
+      email: email,
+      cid: cid,
+    );
 
     final profileHandle = verified
         ? _profileHandle(profileName)
-        : '@murat.toere.preview';
+        : '@local.creator.preview';
 
     final avatarLabel = _profileInitials(profileName);
 
@@ -366,6 +412,12 @@ class _ProfileActionRow extends StatelessWidget {
     final verified = session?.hasVerifiedCid ?? false;
     final cid = session?.cid ?? 'CID pending';
     final email = session?.email ?? 'verified CidenDB user';
+    final profileName = _profileDisplayName(
+      verified: verified,
+      rawDisplayName: session?.displayName,
+      email: session?.email,
+      cid: session?.cid,
+    );
 
     return Row(
       children: [
@@ -389,7 +441,7 @@ class _ProfileActionRow extends StatelessWidget {
                 subtitle: 'Verified CID profile workspace',
                 icon: Icons.edit_outlined,
                 text:
-                    'Murat Toere profile is connected to $cid. Signed in as $email. Local profile editing controls come next; production save remains locked until the backend profile route is connected.',
+                    '$profileName profile is connected to $cid. Signed in as $email. Local profile editing controls come next; production save remains locked until the backend profile route is connected.',
               );
             },
           ),
@@ -1149,17 +1201,38 @@ class _ProfileEditPreviewFormState extends State<_ProfileEditPreviewForm> {
   late final TextEditingController bioController;
   late final TextEditingController initialsController;
 
+  String initials = 'LC';
+  bool _initialized = false;
+
   @override
-  void initState() {
-    super.initState();
-    nameController = TextEditingController(text: 'Murat Toere');
-    handleController = TextEditingController(text: 'murat.toere.cid');
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (_initialized) {
+      return;
+    }
+
+    final session = CidentiaSessionScope.maybeOf(context);
+    final verified = session?.hasVerifiedCid ?? false;
+    final profileName = _profileDisplayName(
+      verified: verified,
+      rawDisplayName: session?.displayName,
+      email: session?.email,
+      cid: session?.cid,
+    );
+    final handle = _profileHandle(profileName).replaceFirst('@', '');
+    final avatarInitials = _profileInitials(profileName);
+
+    nameController = TextEditingController(text: profileName);
+    handleController = TextEditingController(text: handle);
     bioController = TextEditingController(
       text:
           'Cidentia.Live creator profile connected to verified CidenDB/CID session.',
     );
-    initialsController = TextEditingController(text: 'MT');
+    initialsController = TextEditingController(text: avatarInitials);
+    initials = avatarInitials;
     initialsController.addListener(_refreshAvatarPreview);
+    _initialized = true;
   }
 
   @override
@@ -1273,7 +1346,7 @@ class _ProfileAvatarPreviewCard extends StatelessWidget {
 
   String get safeInitials {
     final value = initials.trim().toUpperCase();
-    if (value.isEmpty) return 'MT';
+    if (value.isEmpty) return 'LC';
     if (value.length == 1) return value;
     return value.substring(0, 2);
   }
