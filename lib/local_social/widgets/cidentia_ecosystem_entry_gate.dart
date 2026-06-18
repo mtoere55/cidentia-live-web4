@@ -715,18 +715,33 @@ class _TopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    final compact = width < 520;
+
     return Row(
       children: [
         const _CidentiaLogo(),
-        const SizedBox(width: 12),
-        const Text(
-          'cidentia.live',
-          style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900),
+        SizedBox(width: compact ? 8 : 12),
+        Expanded(
+          child: Text(
+            compact ? 'Cidentia' : 'cidentia.live',
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+            style: TextStyle(
+              fontSize: compact ? 20 : 26,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
         ),
-        const Spacer(),
-        if (MediaQuery.sizeOf(context).width >= 900) const _EcosystemLinks(),
-        const SizedBox(width: 16),
-        _LanguageToggle(language: language, onChanged: onLanguageChanged),
+        if (width >= 900) ...[
+          const SizedBox(width: 16),
+          const _EcosystemLinks(),
+        ],
+        SizedBox(width: compact ? 8 : 16),
+        if (compact)
+          _CompactLanguageMenu(language: language, onChanged: onLanguageChanged)
+        else
+          _LanguageToggle(language: language, onChanged: onLanguageChanged),
       ],
     );
   }
@@ -798,6 +813,44 @@ class _EcosystemLinks extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+class _CompactLanguageMenu extends StatelessWidget {
+  const _CompactLanguageMenu({required this.language, required this.onChanged});
+
+  final CidentiaUiLanguage language;
+  final ValueChanged<CidentiaUiLanguage> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<CidentiaUiLanguage>(
+      tooltip: 'Language',
+      onSelected: onChanged,
+      itemBuilder: (context) => [
+        for (final value in CidentiaUiLanguage.values)
+          PopupMenuItem(value: value, child: Text(value.code)),
+      ],
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white10,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.white12),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.language_rounded, size: 18),
+            const SizedBox(width: 6),
+            Text(
+              language.code,
+              style: const TextStyle(fontWeight: FontWeight.w900),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
