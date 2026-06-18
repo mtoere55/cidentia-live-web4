@@ -1511,7 +1511,7 @@ class _NativeSnapshotBridgeStubCardState
     final currentResult = result;
 
     return _SheetBlock(
-      title: 'Native snapshot bridge stub',
+      title: 'Native single snapshot prototype',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1531,7 +1531,9 @@ class _NativeSnapshotBridgeStubCardState
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.integration_instructions_rounded),
-            label: Text(busy ? 'Checking bridge...' : 'Check native stub'),
+            label: Text(
+              busy ? 'Requesting snapshot...' : 'Start single snapshot',
+            ),
           ),
           if (currentResult != null) ...[
             const SizedBox(height: 12),
