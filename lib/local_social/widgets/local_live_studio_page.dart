@@ -2,6 +2,8 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
+import '../auth/cidentia_auth_gate_contract.dart';
+import '../auth/cidentia_protected_action_notice.dart';
 import '../auth/cidentia_session_scope.dart';
 
 const _bg = Color(0xFF09090B);
@@ -125,6 +127,26 @@ class _OriginalInspiredLiveStudioPageState
   bool translateEnabled = true;
   bool liveReady = false;
 
+  void _requestStartLivePreview() {
+    final session = CidentiaSessionScope.maybeOf(context);
+    final verified = session?.hasVerifiedCid ?? false;
+
+    if (!verified) {
+      CidentiaProtectedActionNotice.show(
+        context,
+        action: CidentiaProtectedAction.startLive,
+      );
+      return;
+    }
+
+    final cid = session?.cid ?? 'verified CID';
+    _showLiveStudioNotice(
+      context,
+      'Live backend locked',
+      '$cid is verified, but real RTMP/live broadcast remains locked until the production streaming backend is connected.',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -140,7 +162,7 @@ class _OriginalInspiredLiveStudioPageState
                 setState(() => destinationsExpanded = !destinationsExpanded),
             onToggleTranslate: () =>
                 setState(() => translateEnabled = !translateEnabled),
-            onToggleLive: () => setState(() => liveReady = !liveReady),
+            onToggleLive: _requestStartLivePreview,
           );
         }
 
@@ -158,7 +180,7 @@ class _OriginalInspiredLiveStudioPageState
               showStageChatOverlay: widget.showStageChatOverlay,
               translateEnabled: translateEnabled,
               liveReady: liveReady,
-              onToggleLive: () => setState(() => liveReady = !liveReady),
+              onToggleLive: _requestStartLivePreview,
             ),
             const SizedBox(height: 14),
             const _SceneStrip(),
@@ -168,7 +190,7 @@ class _OriginalInspiredLiveStudioPageState
             _StudioControlDock(
               liveReady: liveReady,
               translateEnabled: translateEnabled,
-              onToggleLive: () => setState(() => liveReady = !liveReady),
+              onToggleLive: _requestStartLivePreview,
               onToggleTranslate: () =>
                   setState(() => translateEnabled = !translateEnabled),
             ),
