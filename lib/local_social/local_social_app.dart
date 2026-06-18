@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'auth/cidentia_session_scope.dart';
 import 'auth/cidentia_auth_gate_contract.dart';
@@ -25,6 +26,51 @@ const _panel = Color(0xFF111113);
 const _panelSoft = Color(0xFF18181B);
 const _line = Color(0xFF29292E);
 const _textSoft = Color(0xFFA1A1AA);
+const _socialTranslateSnapshotChannel = MethodChannel(
+  'cidentia.live/social_translate_snapshot',
+);
+
+Future<Map<String, Object?>> _requestSocialTranslateSnapshotStub() async {
+  try {
+    final result = await _socialTranslateSnapshotChannel
+        .invokeMapMethod<String, Object?>('startSingleSnapshotPreview');
+
+    return result ??
+        const {
+          'ok': false,
+          'code': 'SOCIAL_TRANSLATE_EMPTY_NATIVE_RESPONSE',
+          'message': 'Native bridge returned an empty response.',
+          'mediaProjectionOpened': false,
+          'screenCaptured': false,
+          'ocrStarted': false,
+          'overlayOpened': false,
+          'automaticSend': false,
+        };
+  } on MissingPluginException {
+    return const {
+      'ok': false,
+      'code': 'SOCIAL_TRANSLATE_NATIVE_BRIDGE_NOT_AVAILABLE',
+      'message':
+          'Native snapshot bridge is not available on this platform yet.',
+      'mediaProjectionOpened': false,
+      'screenCaptured': false,
+      'ocrStarted': false,
+      'overlayOpened': false,
+      'automaticSend': false,
+    };
+  } on PlatformException catch (error) {
+    return {
+      'ok': false,
+      'code': 'SOCIAL_TRANSLATE_NATIVE_BRIDGE_ERROR',
+      'message': error.message ?? 'Native bridge error.',
+      'mediaProjectionOpened': false,
+      'screenCaptured': false,
+      'ocrStarted': false,
+      'overlayOpened': false,
+      'automaticSend': false,
+    };
+  }
+}
 
 class LocalSocialApp extends StatefulWidget {
   const LocalSocialApp({super.key});
@@ -1197,6 +1243,8 @@ class _SocialTranslatePreviewSheetState
                 const SizedBox(height: 18),
                 const _TranslatePermissionStubCard(),
                 const SizedBox(height: 18),
+                const _NativeSnapshotBridgeStubCard(),
+                const SizedBox(height: 18),
                 _LanguageSelector(
                   title: 'Source language',
                   values: sourceLanguages,
@@ -1423,6 +1471,146 @@ class _TranslateSafetyNotice extends StatelessWidget {
         'backend call or automatic message sending is opened in this milestone.',
         style: TextStyle(color: _textSoft, height: 1.3),
       ),
+    );
+  }
+}
+
+class _NativeSnapshotBridgeStubCard extends StatefulWidget {
+  const _NativeSnapshotBridgeStubCard();
+
+  @override
+  State<_NativeSnapshotBridgeStubCard> createState() =>
+      _NativeSnapshotBridgeStubCardState();
+}
+
+class _NativeSnapshotBridgeStubCardState
+    extends State<_NativeSnapshotBridgeStubCard> {
+  Map<String, Object?>? result;
+  bool busy = false;
+
+  Future<void> _checkBridge() async {
+    setState(() {
+      busy = true;
+      result = null;
+    });
+
+    final response = await _requestSocialTranslateSnapshotStub();
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      busy = false;
+      result = response;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final currentResult = result;
+
+    return _SheetBlock(
+      title: 'Native snapshot bridge stub',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'This button checks the Android bridge contract only. It must not '
+            'request MediaProjection, capture the screen, run OCR, open an '
+            'overlay or send messages.',
+            style: TextStyle(color: _textSoft, height: 1.3),
+          ),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: busy ? null : _checkBridge,
+            icon: busy
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.integration_instructions_rounded),
+            label: Text(busy ? 'Checking bridge...' : 'Check native stub'),
+          ),
+          if (currentResult != null) ...[
+            const SizedBox(height: 12),
+            _NativeSnapshotBridgeResult(result: currentResult),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _NativeSnapshotBridgeResult extends StatelessWidget {
+  const _NativeSnapshotBridgeResult({required this.result});
+
+  final Map<String, Object?> result;
+
+  @override
+  Widget build(BuildContext context) {
+    final code = result['code']?.toString() ?? 'UNKNOWN';
+    final message = result['message']?.toString() ?? 'No message';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.black26,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(code, style: const TextStyle(fontWeight: FontWeight.w900)),
+          const SizedBox(height: 6),
+          Text(message, style: const TextStyle(color: _textSoft, height: 1.3)),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _BridgeSafetyChip(
+                label: 'MediaProjection',
+                value: result['mediaProjectionOpened'],
+              ),
+              _BridgeSafetyChip(
+                label: 'Screen captured',
+                value: result['screenCaptured'],
+              ),
+              _BridgeSafetyChip(label: 'OCR', value: result['ocrStarted']),
+              _BridgeSafetyChip(
+                label: 'Overlay',
+                value: result['overlayOpened'],
+              ),
+              _BridgeSafetyChip(
+                label: 'Auto send',
+                value: result['automaticSend'],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BridgeSafetyChip extends StatelessWidget {
+  const _BridgeSafetyChip({required this.label, required this.value});
+
+  final String label;
+  final Object? value;
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = value == true;
+
+    return Chip(
+      label: Text('$label: ${enabled ? "open" : "closed"}'),
+      side: BorderSide(color: enabled ? Colors.redAccent : Colors.white12),
+      backgroundColor: enabled ? Colors.red.withValues(alpha: 0.18) : null,
     );
   }
 }
