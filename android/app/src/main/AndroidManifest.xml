@@ -12,6 +12,11 @@ package="com.emilzulufov.flutter_instagram_offline_first_clone">
 
     <!-- Provide required visibility configuration for API level 30 and above -->
     <queries>
+    <package android:name="com.whatsapp" />
+    <package android:name="com.whatsapp.w4b" />
+    <package android:name="org.telegram.messenger" />
+    <package android:name="com.discord" />
+    <package android:name="com.twitter.android" />
     <!-- If your app checks for SMS support -->
     <intent>
         <action android:name="android.intent.action.VIEW" />

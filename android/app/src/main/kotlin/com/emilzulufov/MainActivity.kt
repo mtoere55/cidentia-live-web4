@@ -9,6 +9,7 @@ import android.hardware.display.VirtualDisplay
 import android.media.ImageReader
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
+import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -34,9 +35,91 @@ class MainActivity : FlutterActivity() {
         ).setMethodCallHandler { call, result ->
             when (call.method) {
                 "startSingleSnapshotPreview" -> startSingleSnapshotPreview(result)
+                "openSocialApp" -> openSocialApp(
+                    packageName = call.argument<String>("packageName") ?: "",
+                    fallbackUrl = call.argument<String>("fallbackUrl") ?: "",
+                    label = call.argument<String>("label") ?: "social app",
+                    result = result
+                )
                 else -> result.notImplemented()
             }
         }
+    }
+
+
+    private fun openSocialApp(
+        packageName: String,
+        fallbackUrl: String,
+        label: String,
+        result: MethodChannel.Result
+    ) {
+        try {
+            val launchIntent = if (packageName.isNotBlank()) {
+                packageManager.getLaunchIntentForPackage(packageName)
+            } else {
+                null
+            }
+
+            if (launchIntent != null) {
+                launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                startActivity(launchIntent)
+                result.success(
+                    socialAppResponse(
+                        ok = true,
+                        code = "SOCIAL_APP_OPENED",
+                        message = "$label was opened. User remains in control."
+                    )
+                )
+                return
+            }
+
+            if (fallbackUrl.isNotBlank()) {
+                val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse(fallbackUrl))
+                webIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                startActivity(webIntent)
+                result.success(
+                    socialAppResponse(
+                        ok = true,
+                        code = "SOCIAL_APP_FALLBACK_OPENED",
+                        message = "$label app was not found. Fallback link was opened."
+                    )
+                )
+                return
+            }
+
+            result.success(
+                socialAppResponse(
+                    ok = false,
+                    code = "SOCIAL_APP_NOT_FOUND",
+                    message = "$label could not be opened."
+                )
+            )
+        } catch (error: Throwable) {
+            result.success(
+                socialAppResponse(
+                    ok = false,
+                    code = "SOCIAL_APP_OPEN_FAILED",
+                    message = error.message ?: "$label could not be opened."
+                )
+            )
+        }
+    }
+
+    private fun socialAppResponse(
+        ok: Boolean,
+        code: String,
+        message: String
+    ): Map<String, Any> {
+        return mapOf(
+            "ok" to ok,
+            "code" to code,
+            "message" to message,
+            "loginAttempted" to false,
+            "ocrStarted" to false,
+            "overlayOpened" to false,
+            "automaticSend" to false,
+            "backendUpload" to false
+        )
     }
 
     private fun startSingleSnapshotPreview(result: MethodChannel.Result) {

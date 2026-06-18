@@ -30,6 +30,46 @@ const _socialTranslateSnapshotChannel = MethodChannel(
   'cidentia.live/social_translate_snapshot',
 );
 
+Future<Map<String, Object?>> _openSocialTranslateApp({
+  required String packageName,
+  required String fallbackUrl,
+  required String label,
+}) async {
+  try {
+    final result = await _socialTranslateSnapshotChannel
+        .invokeMapMethod<String, Object?>('openSocialApp', {
+          'packageName': packageName,
+          'fallbackUrl': fallbackUrl,
+          'label': label,
+        });
+
+    return result ??
+        const {
+          'ok': false,
+          'code': 'SOCIAL_APP_EMPTY_NATIVE_RESPONSE',
+          'message': 'Native app launcher returned an empty response.',
+          'automaticSend': false,
+          'loginAttempted': false,
+        };
+  } on MissingPluginException {
+    return const {
+      'ok': false,
+      'code': 'SOCIAL_APP_NATIVE_BRIDGE_NOT_AVAILABLE',
+      'message': 'Native app launcher is not available on this platform yet.',
+      'automaticSend': false,
+      'loginAttempted': false,
+    };
+  } on PlatformException catch (error) {
+    return {
+      'ok': false,
+      'code': 'SOCIAL_APP_NATIVE_BRIDGE_ERROR',
+      'message': error.message ?? 'Native app launcher error.',
+      'automaticSend': false,
+      'loginAttempted': false,
+    };
+  }
+}
+
 Future<Map<String, Object?>> _requestSocialTranslateSnapshotStub() async {
   try {
     final result = await _socialTranslateSnapshotChannel
@@ -1245,6 +1285,8 @@ class _SocialTranslatePreviewSheetState
                 const SizedBox(height: 18),
                 const _NativeSnapshotBridgeStubCard(),
                 const SizedBox(height: 18),
+                const _ApprovedSocialSessionLauncherCard(),
+                const SizedBox(height: 18),
                 _LanguageSelector(
                   title: 'Source language',
                   values: sourceLanguages,
@@ -1613,6 +1655,260 @@ class _BridgeSafetyChip extends StatelessWidget {
       label: Text('$label: ${enabled ? "open" : "closed"}'),
       side: BorderSide(color: enabled ? Colors.redAccent : Colors.white12),
       backgroundColor: enabled ? Colors.red.withValues(alpha: 0.18) : null,
+    );
+  }
+}
+
+class _ApprovedSocialSessionLauncherCard extends StatefulWidget {
+  const _ApprovedSocialSessionLauncherCard();
+
+  @override
+  State<_ApprovedSocialSessionLauncherCard> createState() =>
+      _ApprovedSocialSessionLauncherCardState();
+}
+
+class _ApprovedSocialSessionLauncherCardState
+    extends State<_ApprovedSocialSessionLauncherCard> {
+  final TextEditingController replyController = TextEditingController(
+    text: 'Thanks, I will check and reply shortly.',
+  );
+
+  bool sessionActive = false;
+  bool busy = false;
+  String selectedApp = 'WhatsApp';
+  Map<String, Object?>? launcherResult;
+
+  static const apps = [
+    _SocialAppTarget(
+      label: 'WhatsApp',
+      packageName: 'com.whatsapp',
+      fallbackUrl: 'https://wa.me/',
+      icon: Icons.chat_rounded,
+    ),
+    _SocialAppTarget(
+      label: 'Telegram',
+      packageName: 'org.telegram.messenger',
+      fallbackUrl: 'https://t.me/',
+      icon: Icons.send_rounded,
+    ),
+    _SocialAppTarget(
+      label: 'Discord',
+      packageName: 'com.discord',
+      fallbackUrl: 'https://discord.com/app',
+      icon: Icons.forum_rounded,
+    ),
+    _SocialAppTarget(
+      label: 'X',
+      packageName: 'com.twitter.android',
+      fallbackUrl: 'https://x.com/',
+      icon: Icons.alternate_email_rounded,
+    ),
+  ];
+
+  @override
+  void dispose() {
+    replyController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _startSessionAndOpen(_SocialAppTarget target) async {
+    setState(() {
+      busy = true;
+      sessionActive = true;
+      selectedApp = target.label;
+      launcherResult = null;
+    });
+
+    final snapshot = await _requestSocialTranslateSnapshotStub();
+
+    if (!mounted) {
+      return;
+    }
+
+    final opened = await _openSocialTranslateApp(
+      packageName: target.packageName,
+      fallbackUrl: target.fallbackUrl,
+      label: target.label,
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      busy = false;
+      launcherResult = {
+        ...opened,
+        'snapshotCode': snapshot['code'],
+        'screenCaptured': snapshot['screenCaptured'],
+        'ocrStarted': false,
+        'overlayOpened': false,
+        'automaticSend': false,
+      };
+    });
+  }
+
+  void _stopSession() {
+    setState(() {
+      sessionActive = false;
+      launcherResult = {
+        'ok': true,
+        'code': 'SOCIAL_TRANSLATE_SESSION_STOPPED',
+        'message': 'Approved social translate session was stopped by the user.',
+        'automaticSend': false,
+        'loginAttempted': false,
+      };
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _SheetBlock(
+      title: 'Approved social session',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            sessionActive
+                ? 'Session active for $selectedApp. Cidentia can use user-approved snapshots only.'
+                : 'Start an approved session, open your social app, then return to Cidentia for reply help.',
+            style: const TextStyle(color: _textSoft, height: 1.3),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final app in apps)
+                OutlinedButton.icon(
+                  onPressed: busy ? null : () => _startSessionAndOpen(app),
+                  icon: Icon(app.icon),
+                  label: Text(busy ? 'Opening...' : 'Open ${app.label}'),
+                ),
+              OutlinedButton.icon(
+                onPressed: sessionActive ? _stopSession : null,
+                icon: const Icon(Icons.stop_circle_outlined),
+                label: const Text('Stop session'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          TextField(
+            controller: replyController,
+            maxLines: 3,
+            decoration: const InputDecoration(
+              labelText: 'Local reply composer',
+              hintText: 'Prepare your reply here, then copy/send manually.',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              OutlinedButton.icon(
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: replyController.text));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Reply copied locally.')),
+                  );
+                },
+                icon: const Icon(Icons.copy_rounded),
+                label: const Text('Copy reply'),
+              ),
+              if (launcherResult != null)
+                _SessionSafetyChip(
+                  label: launcherResult!['code']?.toString() ?? 'UNKNOWN',
+                ),
+            ],
+          ),
+          if (launcherResult != null) ...[
+            const SizedBox(height: 12),
+            _ApprovedSessionResult(result: launcherResult!),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _SocialAppTarget {
+  const _SocialAppTarget({
+    required this.label,
+    required this.packageName,
+    required this.fallbackUrl,
+    required this.icon,
+  });
+
+  final String label;
+  final String packageName;
+  final String fallbackUrl;
+  final IconData icon;
+}
+
+class _SessionSafetyChip extends StatelessWidget {
+  const _SessionSafetyChip({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Chip(
+      label: Text(label),
+      side: const BorderSide(color: Colors.white12),
+    );
+  }
+}
+
+class _ApprovedSessionResult extends StatelessWidget {
+  const _ApprovedSessionResult({required this.result});
+
+  final Map<String, Object?> result;
+
+  @override
+  Widget build(BuildContext context) {
+    final message = result['message']?.toString() ?? 'No message';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.black26,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(message, style: const TextStyle(color: _textSoft, height: 1.3)),
+          const SizedBox(height: 10),
+          const Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _SessionClosedChip(label: 'Login attempt: closed'),
+              _SessionClosedChip(label: 'OCR: closed'),
+              _SessionClosedChip(label: 'Overlay: closed'),
+              _SessionClosedChip(label: 'Auto send: closed'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SessionClosedChip extends StatelessWidget {
+  const _SessionClosedChip({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Chip(
+      label: Text(label),
+      side: const BorderSide(color: Colors.white12),
     );
   }
 }
