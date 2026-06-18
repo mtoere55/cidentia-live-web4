@@ -1195,6 +1195,8 @@ class _SocialTranslatePreviewSheetState
                 const SizedBox(height: 18),
                 const _TranslateSafetyNotice(),
                 const SizedBox(height: 18),
+                const _TranslatePermissionStubCard(),
+                const SizedBox(height: 18),
                 _LanguageSelector(
                   title: 'Source language',
                   values: sourceLanguages,
@@ -1420,6 +1422,108 @@ class _TranslateSafetyNotice extends StatelessWidget {
         'Preview only. No screen capture, OCR, MediaProjection, WhatsApp bot, '
         'backend call or automatic message sending is opened in this milestone.',
         style: TextStyle(color: _textSoft, height: 1.3),
+      ),
+    );
+  }
+}
+
+class _TranslatePermissionStubCard extends StatelessWidget {
+  const _TranslatePermissionStubCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return const _SheetBlock(
+      title: 'Android permission stub',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Permission bridge is planned only. This preview does not request '
+            'screen capture, overlay, accessibility, OCR or background service '
+            'permissions.',
+            style: TextStyle(color: _textSoft, height: 1.3),
+          ),
+          SizedBox(height: 14),
+          _PermissionStubRow(
+            icon: Icons.screenshot_monitor_rounded,
+            title: 'Screen capture',
+            status: 'Planned / not requested',
+            body:
+                'Future MediaProjection flow must show Android consent first.',
+          ),
+          _PermissionStubRow(
+            icon: Icons.picture_in_picture_alt_rounded,
+            title: 'Floating overlay',
+            status: 'Planned / not requested',
+            body: 'Future overlay bubble must be visible and user-controlled.',
+          ),
+          _PermissionStubRow(
+            icon: Icons.visibility_off_outlined,
+            title: 'Accessibility automation',
+            status: 'Locked',
+            body:
+                'No hidden reading, clicking, typing or send-button automation.',
+          ),
+          _PermissionStubRow(
+            icon: Icons.mark_chat_read_outlined,
+            title: 'Reply sending',
+            status: 'User approved only',
+            body: 'Cidentia may prepare text; the user sends manually.',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PermissionStubRow extends StatelessWidget {
+  const _PermissionStubRow({
+    required this.icon,
+    required this.title,
+    required this.status,
+    required this.body,
+  });
+
+  final IconData icon;
+  final String title;
+  final String status;
+  final String body;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 21, color: Colors.white70),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(fontWeight: FontWeight.w900),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  status,
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  body,
+                  style: const TextStyle(color: _textSoft, height: 1.25),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
