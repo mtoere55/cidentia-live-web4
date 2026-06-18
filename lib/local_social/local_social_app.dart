@@ -269,6 +269,13 @@ class _LocalShellState extends State<LocalShell> {
                             onTap: () => _showLocalCreatePreviewSheet(context),
                           ),
                         ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                          child: _DesktopSocialTranslateButton(
+                            onTap: () =>
+                                _showSocialTranslatePreviewSheet(context),
+                          ),
+                        ),
                         const Padding(
                           padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
                           child: _LocalStatusCard(),
@@ -333,6 +340,11 @@ class _LocalShellState extends State<LocalShell> {
                   'Saved and liked items are local-preview only in this milestone.',
                 ),
                 icon: const Icon(Icons.favorite_border_rounded),
+              ),
+              IconButton(
+                tooltip: 'Social translate',
+                onPressed: () => _showSocialTranslatePreviewSheet(context),
+                icon: const Icon(Icons.translate_rounded),
               ),
               IconButton(
                 tooltip: 'Create preview',
@@ -1081,6 +1093,408 @@ class _SideNavTile extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+Future<void> _showSocialTranslatePreviewSheet(BuildContext context) {
+  return showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: Colors.transparent,
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (context) => const _SocialTranslatePreviewSheet(),
+  );
+}
+
+class _SocialTranslatePreviewSheet extends StatefulWidget {
+  const _SocialTranslatePreviewSheet();
+
+  @override
+  State<_SocialTranslatePreviewSheet> createState() =>
+      _SocialTranslatePreviewSheetState();
+}
+
+class _SocialTranslatePreviewSheetState
+    extends State<_SocialTranslatePreviewSheet> {
+  String sourceLanguage = 'Auto';
+  String targetLanguage = 'Turkish';
+
+  static const sourceLanguages = ['Auto', 'Turkish', 'English', 'German'];
+  static const targetLanguages = ['Turkish', 'English', 'German'];
+
+  @override
+  Widget build(BuildContext context) {
+    final maxHeight = MediaQuery.sizeOf(context).height * 0.9;
+
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: 860, maxHeight: maxHeight),
+        child: Container(
+          margin: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: _panel,
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(color: _line),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black54,
+                blurRadius: 32,
+                offset: Offset(0, 18),
+              ),
+            ],
+          ),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 18, 20, 22),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 46,
+                      height: 46,
+                      decoration: BoxDecoration(
+                        color: Colors.white10,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.white12),
+                      ),
+                      child: const Icon(Icons.translate_rounded),
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Social Translate Layer',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Screen snapshot translation preview for social apps.',
+                            style: TextStyle(color: _textSoft, height: 1.25),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'Close',
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.close_rounded),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+                const _TranslateSafetyNotice(),
+                const SizedBox(height: 18),
+                _LanguageSelector(
+                  title: 'Source language',
+                  values: sourceLanguages,
+                  selected: sourceLanguage,
+                  onSelected: (value) => setState(() => sourceLanguage = value),
+                ),
+                const SizedBox(height: 14),
+                _LanguageSelector(
+                  title: 'Target language',
+                  values: targetLanguages,
+                  selected: targetLanguage,
+                  onSelected: (value) => setState(() => targetLanguage = value),
+                ),
+                const SizedBox(height: 18),
+                const Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    _TranslateAppCard(
+                      icon: Icons.chat_bubble_outline_rounded,
+                      title: 'WhatsApp',
+                      subtitle: 'Group chats and direct messages.',
+                    ),
+                    _TranslateAppCard(
+                      icon: Icons.send_rounded,
+                      title: 'Telegram',
+                      subtitle: 'Channels, groups and replies.',
+                    ),
+                    _TranslateAppCard(
+                      icon: Icons.forum_outlined,
+                      title: 'Discord',
+                      subtitle: 'Community rooms and threads.',
+                    ),
+                    _TranslateAppCard(
+                      icon: Icons.alternate_email_rounded,
+                      title: 'X / Social',
+                      subtitle: 'Posts, comments and short replies.',
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+                _TranslatePreviewCard(
+                  sourceLanguage: sourceLanguage,
+                  targetLanguage: targetLanguage,
+                ),
+                const SizedBox(height: 14),
+                const _TranslateRoadmapCard(),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LanguageSelector extends StatelessWidget {
+  const _LanguageSelector({
+    required this.title,
+    required this.values,
+    required this.selected,
+    required this.onSelected,
+  });
+
+  final String title;
+  final List<String> values;
+  final String selected;
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return _SheetBlock(
+      title: title,
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (final value in values)
+            ChoiceChip(
+              label: Text(value),
+              selected: selected == value,
+              onSelected: (_) => onSelected(value),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TranslateAppCard extends StatelessWidget {
+  const _TranslateAppCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 190,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: _panelSoft,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: _line),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, size: 24),
+            const SizedBox(height: 12),
+            Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
+            const SizedBox(height: 6),
+            Text(
+              subtitle,
+              style: const TextStyle(color: _textSoft, height: 1.25),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TranslatePreviewCard extends StatelessWidget {
+  const _TranslatePreviewCard({
+    required this.sourceLanguage,
+    required this.targetLanguage,
+  });
+
+  final String sourceLanguage;
+  final String targetLanguage;
+
+  @override
+  Widget build(BuildContext context) {
+    return _SheetBlock(
+      title: 'Snapshot translation preview',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _TranslateMessageBubble(
+            label: '$sourceLanguage detected',
+            text: 'Any admin can do it if you know how to.',
+          ),
+          const SizedBox(height: 10),
+          _TranslateMessageBubble(
+            label: 'Translated to $targetLanguage',
+            text:
+                'Nasıl yapılacağını biliyorsanız herhangi bir admin bunu yapabilir.',
+            highlighted: true,
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Reply suggestion stays local-preview only. The user must copy or send manually.',
+            style: TextStyle(color: _textSoft, height: 1.25),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TranslateMessageBubble extends StatelessWidget {
+  const _TranslateMessageBubble({
+    required this.label,
+    required this.text,
+    this.highlighted = false,
+  });
+
+  final String label;
+  final String text;
+  final bool highlighted;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: highlighted ? Colors.white : Colors.white10,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: highlighted ? Colors.white : Colors.white12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: highlighted ? Colors.black54 : _textSoft,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            text,
+            style: TextStyle(
+              color: highlighted ? Colors.black : Colors.white,
+              fontWeight: FontWeight.w800,
+              height: 1.25,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TranslateSafetyNotice extends StatelessWidget {
+  const _TranslateSafetyNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    return const _SheetBlock(
+      title: 'Safe boundary',
+      child: Text(
+        'Preview only. No screen capture, OCR, MediaProjection, WhatsApp bot, '
+        'backend call or automatic message sending is opened in this milestone.',
+        style: TextStyle(color: _textSoft, height: 1.3),
+      ),
+    );
+  }
+}
+
+class _TranslateRoadmapCard extends StatelessWidget {
+  const _TranslateRoadmapCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return const _SheetBlock(
+      title: 'Future Android bridge',
+      child: Text(
+        'Next real bridge would request user-approved screen capture, read text '
+        'with OCR, translate TR / EN / DE, show an overlay bubble and prepare '
+        'reply suggestions. Final send remains user-approved.',
+        style: TextStyle(color: _textSoft, height: 1.3),
+      ),
+    );
+  }
+}
+
+class _SheetBlock extends StatelessWidget {
+  const _SheetBlock({required this.title, required this.child});
+
+  final String title;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
+          const SizedBox(height: 10),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+class _DesktopSocialTranslateButton extends StatelessWidget {
+  const _DesktopSocialTranslateButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: onTap,
+        icon: const Icon(Icons.translate_rounded, size: 20),
+        label: const Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'Social translate',
+            style: TextStyle(fontWeight: FontWeight.w900),
+          ),
+        ),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: Colors.white,
+          side: const BorderSide(color: Colors.white24),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
           ),
         ),
       ),
