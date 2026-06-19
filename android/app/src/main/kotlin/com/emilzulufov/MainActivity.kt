@@ -40,6 +40,10 @@ class MainActivity : FlutterActivity() {
     private var liveOcrRunning = false
     private var liveOcrFrameBusy = false
     private var liveOcrRunnable: Runnable? = null
+    private var liveOcrVirtualDisplay: VirtualDisplay? = null
+    private var liveOcrImageReader: ImageReader? = null
+    private var lastLiveOcrFrameAtMillis: Long = 0L
+    private var lastNativeBubbleText: String = ""
     private val mainHandler = Handler(Looper.getMainLooper())
 
     private data class PendingSocialTarget(
@@ -147,9 +151,23 @@ class MainActivity : FlutterActivity() {
     private fun stopLiveSocialOcrLoop(result: MethodChannel.Result) {
         liveOcrRunning = false
         liveOcrFrameBusy = false
+        lastLiveOcrFrameAtMillis = 0L
+        lastNativeBubbleText = ""
 
         liveOcrRunnable?.let { mainHandler.removeCallbacks(it) }
         liveOcrRunnable = null
+
+        try {
+            liveOcrVirtualDisplay?.release()
+        } catch (_: Throwable) {
+        }
+        liveOcrVirtualDisplay = null
+
+        try {
+            liveOcrImageReader?.close()
+        } catch (_: Throwable) {
+        }
+        liveOcrImageReader = null
 
         try {
             liveOcrProjection?.stop()
@@ -161,6 +179,11 @@ class MainActivity : FlutterActivity() {
         pendingLiveOcrResult = null
         pendingLiveOcrTarget = null
 
+        try {
+            stopService(Intent(this, CidentiaFloatingBubbleService::class.java))
+        } catch (_: Throwable) {
+        }
+
         stopMediaProjectionForegroundService()
 
         result.success(
@@ -171,6 +194,7 @@ class MainActivity : FlutterActivity() {
             )
         )
     }
+
 
     private fun completeLiveOcrStart(response: Map<String, Any>) {
         val result = pendingLiveOcrResult
@@ -206,6 +230,8 @@ class MainActivity : FlutterActivity() {
             liveOcrTarget = pendingLiveOcrTarget
             liveOcrRunning = true
             liveOcrFrameBusy = false
+            lastLiveOcrFrameAtMillis = 0L
+            lastNativeBubbleText = ""
 
             registerProjectionCallback(projection)
             launchLiveOcrTarget()
@@ -221,7 +247,9 @@ class MainActivity : FlutterActivity() {
                 )
             )
 
-            scheduleLiveOcrFrame(1800)
+            mainHandler.postDelayed({
+                startContinuousLiveOcrCapture(projection)
+            }, 1800)
         } catch (error: Throwable) {
             liveOcrRunning = false
             completeLiveOcrStart(
@@ -234,6 +262,7 @@ class MainActivity : FlutterActivity() {
             stopMediaProjectionForegroundService()
         }
     }
+
 
     private fun launchLiveOcrTarget() {
         val target = liveOcrTarget ?: return
@@ -260,38 +289,23 @@ class MainActivity : FlutterActivity() {
         }
     }
 
-    private fun scheduleLiveOcrFrame(delayMs: Long = 3000) {
+    private fun startContinuousLiveOcrCapture(
+        projection: MediaProjection
+    ) {
         if (!liveOcrRunning) {
             return
         }
 
-        liveOcrRunnable?.let { mainHandler.removeCallbacks(it) }
-
-        val runnable = Runnable {
-            captureOneLiveOcrFrame()
-        }
-
-        liveOcrRunnable = runnable
-        mainHandler.postDelayed(runnable, delayMs)
-    }
-
-    private fun captureOneLiveOcrFrame() {
-        if (!liveOcrRunning || liveOcrFrameBusy) {
-            scheduleLiveOcrFrame()
-            return
-        }
-
-        val projection = liveOcrProjection
-        if (projection == null) {
-            liveOcrRunning = false
-            stopMediaProjectionForegroundService()
-            return
-        }
-
-        liveOcrFrameBusy = true
-
         try {
-            registerProjectionCallback(projection)
+            try {
+                liveOcrVirtualDisplay?.release()
+            } catch (_: Throwable) {
+            }
+
+            try {
+                liveOcrImageReader?.close()
+            } catch (_: Throwable) {
+            }
 
             val metrics = resources.displayMetrics
             val width = metrics.widthPixels.coerceAtLeast(1)
@@ -302,51 +316,16 @@ class MainActivity : FlutterActivity() {
                 width,
                 height,
                 PixelFormat.RGBA_8888,
-                2
+                3
             )
 
-            var virtualDisplay: VirtualDisplay? = null
-            var completed = false
-
-            fun cleanupAndSchedule() {
-                try {
-                    virtualDisplay?.release()
-                } catch (_: Throwable) {
-                }
-
-                try {
-                    imageReader.close()
-                } catch (_: Throwable) {
-                }
-
-                liveOcrFrameBusy = false
-
-                if (liveOcrRunning) {
-                    scheduleLiveOcrFrame()
-                }
-            }
+            liveOcrImageReader = imageReader
 
             imageReader.setOnImageAvailableListener({ reader ->
-                if (completed) {
-                    return@setOnImageAvailableListener
-                }
-
-                val image = try {
-                    reader.acquireLatestImage()
-                } catch (_: Throwable) {
-                    null
-                } ?: return@setOnImageAvailableListener
-
-                completed = true
-                recognizeLiveTextFromImage(
-                    image = image,
-                    capturedWidth = image.width,
-                    capturedHeight = image.height,
-                    onComplete = { cleanupAndSchedule() }
-                )
+                handleLiveOcrImage(reader)
             }, mainHandler)
 
-            virtualDisplay = projection.createVirtualDisplay(
+            liveOcrVirtualDisplay = projection.createVirtualDisplay(
                 "CidentiaLiveOcrLoop",
                 width,
                 height,
@@ -357,37 +336,210 @@ class MainActivity : FlutterActivity() {
                 mainHandler
             )
 
-            mainHandler.postDelayed({
-                if (!completed && liveOcrRunning) {
-                    completed = true
-                    cacheApprovedSocialOcrResult(
-                        safeSnapshotResponse(
-                            ok = false,
-                            code = "SOCIAL_TRANSLATE_LIVE_OCR_FRAME_TIMEOUT",
-                            message = "Live OCR loop did not receive a screen frame in time.",
-                            openedSocialApp = liveOcrTarget?.label ?: ""
-                        )
-                    )
-                    cleanupAndSchedule()
-                }
-            }, 6000)
+            cacheApprovedSocialOcrResult(
+                safeSnapshotResponse(
+                    ok = true,
+                    code = "SOCIAL_TRANSLATE_LIVE_OCR_CAPTURE_ACTIVE",
+                    message = "Native live OCR capture is active.",
+                    openedSocialApp = liveOcrTarget?.label ?: ""
+                )
+            )
         } catch (error: Throwable) {
-            liveOcrFrameBusy = false
+            liveOcrRunning = false
 
             cacheApprovedSocialOcrResult(
                 safeSnapshotResponse(
                     ok = false,
-                    code = "SOCIAL_TRANSLATE_LIVE_OCR_FRAME_FAILED",
-                    message = error.message ?: "Could not capture live OCR frame.",
+                    code = "SOCIAL_TRANSLATE_LIVE_OCR_CAPTURE_START_FAILED",
+                    message = error.message ?: "Could not start continuous live OCR capture.",
                     openedSocialApp = liveOcrTarget?.label ?: ""
                 )
             )
 
-            if (liveOcrRunning) {
-                scheduleLiveOcrFrame()
-            }
+            updateLiveOcrBubbleFromNative(
+                "Live OCR capture could not start."
+            )
+
+            stopMediaProjectionForegroundService()
         }
     }
+
+    private fun handleLiveOcrImage(reader: ImageReader) {
+        val image = try {
+            reader.acquireLatestImage()
+        } catch (_: Throwable) {
+            null
+        } ?: return
+
+        val now = System.currentTimeMillis()
+
+        if (!liveOcrRunning ||
+            liveOcrFrameBusy ||
+            now - lastLiveOcrFrameAtMillis < 3000
+        ) {
+            try {
+                image.close()
+            } catch (_: Throwable) {
+            }
+            return
+        }
+
+        liveOcrFrameBusy = true
+        lastLiveOcrFrameAtMillis = now
+
+        recognizeLiveTextFromImage(
+            image = image,
+            capturedWidth = image.width,
+            capturedHeight = image.height,
+            onComplete = {
+                liveOcrFrameBusy = false
+            }
+        )
+    }
+
+    private fun updateLiveOcrBubbleFromNative(sourceText: String) {
+        if (!liveOcrRunning) {
+            return
+        }
+
+        val translatedText = translateLiveOcrTextForBubble(sourceText)
+            .lineSequence()
+            .filter { it.isNotBlank() }
+            .take(5)
+            .joinToString("\n")
+            .trim()
+
+        if (translatedText.isBlank() || translatedText == lastNativeBubbleText) {
+            return
+        }
+
+        lastNativeBubbleText = translatedText
+
+        try {
+            val intent = Intent(this, CidentiaFloatingBubbleService::class.java)
+            intent.putExtra("bubbleText", translatedText)
+            startService(intent)
+        } catch (_: Throwable) {
+        }
+    }
+
+    private fun translateLiveOcrTextForBubble(sourceText: String): String {
+        val cleanedLines = sourceText
+            .lineSequence()
+            .map { it.trim() }
+            .filter { it.isNotBlank() }
+            .filterNot { line ->
+                val lower = line.lowercase()
+                lower.contains("cidentia") ||
+                    lower.contains("translation ready") ||
+                    lower.contains("auto send") ||
+                    lower.contains("visible") ||
+                    lower.contains("user controlled")
+            }
+            .take(8)
+            .toList()
+
+        if (cleanedLines.isEmpty()) {
+            return "Çeviri bekleniyor."
+        }
+
+        return cleanedLines
+            .map { translateLiveOcrLineToTurkish(it) }
+            .filter { it.isNotBlank() }
+            .joinToString("\n")
+            .ifBlank { "Çeviri bekleniyor." }
+    }
+
+    private fun translateLiveOcrLineToTurkish(line: String): String {
+        var text = line.trim()
+
+        val dictionary = linkedMapOf(
+            "hello" to "merhaba",
+            "hi" to "merhaba",
+            "yes" to "evet",
+            "no" to "hayır",
+            "ok" to "tamam",
+            "okay" to "tamam",
+            "thanks" to "teşekkürler",
+            "thank you" to "teşekkür ederim",
+            "please" to "lütfen",
+            "today" to "bugün",
+            "tomorrow" to "yarın",
+            "yesterday" to "dün",
+            "now" to "şimdi",
+            "later" to "sonra",
+            "where" to "nerede",
+            "when" to "ne zaman",
+            "why" to "neden",
+            "what" to "ne",
+            "who" to "kim",
+            "how" to "nasıl",
+            "good morning" to "günaydın",
+            "good night" to "iyi geceler",
+            "good evening" to "iyi akşamlar",
+            "good" to "iyi",
+            "bad" to "kötü",
+            "come" to "gel",
+            "go" to "git",
+            "call" to "ara",
+            "message" to "mesaj",
+            "send" to "gönder",
+            "received" to "alındı",
+            "meeting" to "toplantı",
+            "work" to "iş",
+            "home" to "ev",
+            "money" to "para",
+            "price" to "fiyat",
+            "time" to "zaman",
+            "sorry" to "özür dilerim",
+            "kein" to "yok",
+            "keine" to "yok",
+            "nicht" to "değil",
+            "ja" to "evet",
+            "nein" to "hayır",
+            "danke" to "teşekkürler",
+            "bitte" to "lütfen",
+            "heute" to "bugün",
+            "morgen" to "yarın",
+            "gestern" to "dün",
+            "jetzt" to "şimdi",
+            "später" to "sonra",
+            "wo" to "nerede",
+            "wann" to "ne zaman",
+            "warum" to "neden",
+            "was" to "ne",
+            "wer" to "kim",
+            "wie" to "nasıl",
+            "guten morgen" to "günaydın",
+            "gute nacht" to "iyi geceler",
+            "guten abend" to "iyi akşamlar",
+            "gut" to "iyi",
+            "schlecht" to "kötü",
+            "komm" to "gel",
+            "gehen" to "git",
+            "anrufen" to "ara",
+            "nachricht" to "mesaj",
+            "senden" to "gönder",
+            "arbeit" to "iş",
+            "zuhause" to "ev",
+            "geld" to "para",
+            "preis" to "fiyat",
+            "zeit" to "zaman",
+            "entschuldigung" to "özür dilerim"
+        )
+
+        dictionary.forEach { entry ->
+            text = text.replace(
+                Regex("\\b" + Regex.escape(entry.key) + "\\b", RegexOption.IGNORE_CASE),
+                entry.value
+            )
+        }
+
+        return text
+    }
+
+
+
 
     private fun recognizeLiveTextFromImage(
         image: android.media.Image,
@@ -430,13 +582,17 @@ class MainActivity : FlutterActivity() {
                             openedSocialApp = openedApp
                         )
                     )
+
+                    updateLiveOcrBubbleFromNative(preview)
                 }
                 .addOnFailureListener { error ->
+                    val message = error.message ?: "Live OCR failed."
+
                     cacheApprovedSocialOcrResult(
                         safeSnapshotResponse(
                             ok = false,
                             code = "SOCIAL_TRANSLATE_LIVE_OCR_FAILED",
-                            message = error.message ?: "Live OCR failed.",
+                            message = message,
                             screenCaptured = true,
                             snapshotWidth = capturedWidth,
                             snapshotHeight = capturedHeight,
@@ -444,6 +600,8 @@ class MainActivity : FlutterActivity() {
                             openedSocialApp = openedApp
                         )
                     )
+
+                    updateLiveOcrBubbleFromNative(message)
                 }
                 .addOnCompleteListener {
                     try {
@@ -469,11 +627,13 @@ class MainActivity : FlutterActivity() {
             } catch (_: Throwable) {
             }
 
+            val message = error.message ?: "Could not prepare live OCR image."
+
             cacheApprovedSocialOcrResult(
                 safeSnapshotResponse(
                     ok = false,
                     code = "SOCIAL_TRANSLATE_LIVE_OCR_PREP_FAILED",
-                    message = error.message ?: "Could not prepare live OCR image.",
+                    message = message,
                     screenCaptured = true,
                     snapshotWidth = capturedWidth,
                     snapshotHeight = capturedHeight,
@@ -482,9 +642,11 @@ class MainActivity : FlutterActivity() {
                 )
             )
 
+            updateLiveOcrBubbleFromNative(message)
             onComplete()
         }
     }
+
 
     private fun startApprovedSocialOcrPreview(
         packageName: String,

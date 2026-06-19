@@ -51,7 +51,7 @@ class CidentiaFloatingBubbleService : Service() {
             bubbleTextView?.text = if (text.isNotBlank()) {
                 text
             } else {
-                "Cidentia translation ready."
+                "Çeviri bekleniyor."
             }
             return
         }
@@ -66,46 +66,26 @@ class CidentiaFloatingBubbleService : Service() {
         background.setStroke(2, Color.argb(120, 255, 255, 255))
         container.background = background
 
-        val titleRow = LinearLayout(this)
-        titleRow.orientation = LinearLayout.HORIZONTAL
-        titleRow.gravity = Gravity.CENTER_VERTICAL
-
-        val title = TextView(this)
-        title.text = "Cidentia"
-        title.setTextColor(Color.WHITE)
-        title.textSize = 14f
-        title.setTypeface(null, android.graphics.Typeface.BOLD)
-
         val close = TextView(this)
-        close.text = "  ×"
+        close.text = "×"
         close.setTextColor(Color.WHITE)
-        close.textSize = 18f
-        close.setPadding(18, 0, 0, 0)
+        close.textSize = 16f
+        close.gravity = Gravity.END
         close.setOnClickListener { stopSelf() }
-
-        titleRow.addView(title)
-        titleRow.addView(close)
 
         val body = TextView(this)
         body.text = if (text.isNotBlank()) {
             text
         } else {
-            "Cidentia translation ready."
+            "Çeviri bekleniyor."
         }
         body.setTextColor(Color.WHITE)
         body.textSize = 12f
         body.maxLines = 5
         body.setPadding(0, 8, 0, 0)
 
-        val safety = TextView(this)
-        safety.text = "Visible • user controlled • auto send closed"
-        safety.setTextColor(Color.argb(210, 255, 255, 255))
-        safety.textSize = 10f
-        safety.setPadding(0, 10, 0, 0)
-
-        container.addView(titleRow)
+        container.addView(close)
         container.addView(body)
-        container.addView(safety)
 
         bubbleTextView = body
         bubbleView = container
