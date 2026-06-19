@@ -2336,6 +2336,8 @@ class _ApprovedSocialSessionLauncherCardState
           if (launcherResult != null) ...[
             const SizedBox(height: 12),
             _ApprovedSessionResult(result: launcherResult!),
+            const SizedBox(height: 12),
+            _SocialTranslateFloatingBubblePreview(result: launcherResult!),
           ],
         ],
       ),
@@ -2367,6 +2369,89 @@ class _SessionSafetyChip extends StatelessWidget {
     return Chip(
       label: Text(label),
       side: const BorderSide(color: Colors.white12),
+    );
+  }
+}
+
+class _SocialTranslateFloatingBubblePreview extends StatelessWidget {
+  const _SocialTranslateFloatingBubblePreview({required this.result});
+
+  final Map<String, Object?> result;
+
+  @override
+  Widget build(BuildContext context) {
+    final ocrPreview = result['ocrPreview']?.toString().trim() ?? '';
+    final ocrText = result['ocrText']?.toString().trim() ?? '';
+    final translationSource = ocrText.isNotEmpty ? ocrText : ocrPreview;
+    final translatedText = _localSocialOcrTranslationPreview(
+      translationSource,
+      'Turkish',
+    );
+
+    final hasText = translationSource.isNotEmpty;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.white12),
+                ),
+                child: const Icon(
+                  Icons.chat_bubble_outline_rounded,
+                  size: 18,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  'Cidentia bubble preview',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              const _SessionClosedChip(label: 'Overlay preview'),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            hasText
+                ? translatedText
+                : 'Open WhatsApp with approved OCR first. The future bubble will show the translation here.',
+            maxLines: 4,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(color: Colors.white, height: 1.3),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: const [
+              _SessionClosedChip(label: 'Visible only'),
+              _SessionClosedChip(label: 'User controlled'),
+              _SessionClosedChip(label: 'Auto send: closed'),
+              _SessionClosedChip(label: 'Accessibility: locked'),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
