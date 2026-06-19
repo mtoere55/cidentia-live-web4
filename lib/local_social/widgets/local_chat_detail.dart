@@ -29,10 +29,7 @@ class _OriginalInspiredChatsPageState extends State<OriginalInspiredChatsPage> {
     setState(() => selectedIndex = index);
   }
 
-  void _sendMessage(String text) {
-    final trimmed = text.trim();
-    if (trimmed.isEmpty) return;
-
+  bool _hasVerifiedChatSession() {
     final session = CidentiaSessionScope.maybeOf(context);
     final verified = session?.hasVerifiedCid ?? false;
 
@@ -41,8 +38,17 @@ class _OriginalInspiredChatsPageState extends State<OriginalInspiredChatsPage> {
         context,
         action: CidentiaProtectedAction.sendMessage,
       );
-      return;
+      return false;
     }
+
+    return true;
+  }
+
+  void _sendMessage(String text) {
+    final trimmed = text.trim();
+    if (trimmed.isEmpty) return;
+
+    if (!_hasVerifiedChatSession()) return;
 
     final currentMessages = threads[selectedIndex] ?? const <_LocalMessage>[];
 
@@ -56,6 +62,32 @@ class _OriginalInspiredChatsPageState extends State<OriginalInspiredChatsPage> {
     _showChatSnack(
       context,
       'Local message preview saved. Real chat backend is still locked.',
+    );
+  }
+
+  void _attachPreview(String title, String subtitle, IconData icon) {
+    if (!_hasVerifiedChatSession()) return;
+
+    final currentMessages = threads[selectedIndex] ?? const <_LocalMessage>[];
+
+    setState(() {
+      threads[selectedIndex] = [
+        ...currentMessages,
+        _LocalMessage(
+          text: title,
+          time: 'Now',
+          incoming: false,
+          attachment: true,
+          attachmentTitle: title,
+          attachmentSubtitle: subtitle,
+          attachmentIcon: icon,
+        ),
+      ];
+    });
+
+    _showChatSnack(
+      context,
+      'Local attachment preview added. No upload or backend route opened.',
     );
   }
 
@@ -84,6 +116,7 @@ class _OriginalInspiredChatsPageState extends State<OriginalInspiredChatsPage> {
                 index: selectedIndex,
                 messages: selectedMessages,
                 onSend: _sendMessage,
+                onAttach: _attachPreview,
               ),
             ],
           );
@@ -108,6 +141,7 @@ class _OriginalInspiredChatsPageState extends State<OriginalInspiredChatsPage> {
                   index: selectedIndex,
                   messages: selectedMessages,
                   onSend: _sendMessage,
+                  onAttach: _attachPreview,
                 ),
               ),
             ],
@@ -124,12 +158,18 @@ class _LocalMessage {
     required this.time,
     required this.incoming,
     this.attachment = false,
+    this.attachmentTitle,
+    this.attachmentSubtitle,
+    this.attachmentIcon = Icons.fingerprint_rounded,
   });
 
   final String text;
   final String time;
   final bool incoming;
   final bool attachment;
+  final String? attachmentTitle;
+  final String? attachmentSubtitle;
+  final IconData attachmentIcon;
 }
 
 List<_LocalMessage> _seedMessages(int index) {
@@ -343,12 +383,14 @@ class _ConversationPanel extends StatelessWidget {
     required this.index,
     required this.messages,
     required this.onSend,
+    required this.onAttach,
   });
 
   final LocalChat chat;
   final int index;
   final List<_LocalMessage> messages;
   final ValueChanged<String> onSend;
+  final void Function(String title, String subtitle, IconData icon) onAttach;
 
   @override
   Widget build(BuildContext context) {
@@ -365,7 +407,7 @@ class _ConversationPanel extends StatelessWidget {
           const Divider(height: 1, color: _line),
           _MessageArea(messages: messages),
           const Divider(height: 1, color: _line),
-          _MessageInputBar(onSend: onSend),
+          _MessageInputBar(onSend: onSend, onAttach: onAttach),
         ],
       ),
     );
@@ -459,7 +501,7 @@ class _MessageArea extends StatelessWidget {
           const SizedBox(height: 16),
           for (final message in messages)
             if (message.attachment)
-              const _AttachmentBubble()
+              _AttachmentBubble(message: message)
             else if (message.text != 'Today')
               _MessageBubble(
                 text: message.text,
@@ -531,22 +573,31 @@ class _MessageBubble extends StatelessWidget {
 }
 
 class _AttachmentBubble extends StatelessWidget {
-  const _AttachmentBubble();
+  const _AttachmentBubble({required this.message});
+
+  final _LocalMessage message;
 
   @override
   Widget build(BuildContext context) {
+    final title = message.attachmentTitle ?? 'Proof attachment';
+    final subtitle =
+        message.attachmentSubtitle ??
+        'Future signed media and verification preview.';
+    final incoming = message.incoming;
+
     return Align(
-      alignment: Alignment.centerLeft,
+      alignment: incoming ? Alignment.centerLeft : Alignment.centerRight,
       child: Container(
         constraints: const BoxConstraints(maxWidth: 430),
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: _panelSoft,
+          color: incoming ? _panelSoft : Colors.white,
           borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: _line),
+          border: Border.all(color: incoming ? _line : Colors.white),
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
               width: 72,
@@ -557,21 +608,27 @@ class _AttachmentBubble extends StatelessWidget {
                   colors: [Color(0xFF60A5FA), Color(0xFF7C3AED)],
                 ),
               ),
-              child: const Icon(Icons.fingerprint_rounded, size: 34),
+              child: Icon(message.attachmentIcon, size: 34),
             ),
             const SizedBox(width: 12),
-            const Expanded(
+            Flexible(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Proof attachment',
-                    style: TextStyle(fontWeight: FontWeight.w900),
+                    title,
+                    style: TextStyle(
+                      color: incoming ? Colors.white : Colors.black,
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
-                    'Future signed media and verification preview.',
-                    style: TextStyle(color: _textSoft, height: 1.3),
+                    subtitle,
+                    style: TextStyle(
+                      color: incoming ? _textSoft : Colors.black54,
+                      height: 1.3,
+                    ),
                   ),
                 ],
               ),
@@ -584,9 +641,10 @@ class _AttachmentBubble extends StatelessWidget {
 }
 
 class _MessageInputBar extends StatefulWidget {
-  const _MessageInputBar({required this.onSend});
+  const _MessageInputBar({required this.onSend, required this.onAttach});
 
   final ValueChanged<String> onSend;
+  final void Function(String title, String subtitle, IconData icon) onAttach;
 
   @override
   State<_MessageInputBar> createState() => _MessageInputBarState();
@@ -606,6 +664,20 @@ class _MessageInputBarState extends State<_MessageInputBar> {
     setState(() {});
   }
 
+  Future<void> _openAttachmentPicker() async {
+    final option = await showModalBottomSheet<_ChatAttachmentOption>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) => const _ChatAttachmentPickerSheet(),
+    );
+
+    if (!mounted || option == null) return;
+
+    widget.onAttach(option.title, option.subtitle, option.icon);
+  }
+
   @override
   void dispose() {
     controller.dispose();
@@ -620,7 +692,7 @@ class _MessageInputBarState extends State<_MessageInputBar> {
         children: [
           _RoundIconButton(
             icon: Icons.add_rounded,
-            onTap: () => _showChatSnack(context, 'Attachment picker preview'),
+            onTap: _openAttachmentPicker,
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -658,6 +730,152 @@ class _MessageInputBarState extends State<_MessageInputBar> {
           const SizedBox(width: 10),
           _SendButton(enabled: canSend, onTap: _send),
         ],
+      ),
+    );
+  }
+}
+
+class _ChatAttachmentOption {
+  const _ChatAttachmentOption({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+  });
+
+  final String title;
+  final String subtitle;
+  final IconData icon;
+}
+
+class _ChatAttachmentPickerSheet extends StatelessWidget {
+  const _ChatAttachmentPickerSheet();
+
+  static const options = [
+    _ChatAttachmentOption(
+      title: 'Photo attachment',
+      subtitle: 'Local image card only. No file picker or upload opens.',
+      icon: Icons.image_outlined,
+    ),
+    _ChatAttachmentOption(
+      title: 'Video attachment',
+      subtitle: 'Local video card only. No storage or publish route opens.',
+      icon: Icons.play_circle_outline_rounded,
+    ),
+    _ChatAttachmentOption(
+      title: 'Proof attachment',
+      subtitle: 'CID proof-style card only. Real proof backend stays locked.',
+      icon: Icons.fingerprint_rounded,
+    ),
+    _ChatAttachmentOption(
+      title: 'Document attachment',
+      subtitle: 'Local document card only. No document leaves the device.',
+      icon: Icons.description_outlined,
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.all(10),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
+      decoration: BoxDecoration(
+        color: _panel,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: _line),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x77000000),
+            blurRadius: 30,
+            offset: Offset(0, 18),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.attach_file_rounded),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Text(
+                    'Attachment picker',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.close_rounded),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+              ),
+              child: const Text(
+                'Local chat attachment preview only. No upload, storage, backend, payment, wallet or publish route is opened.',
+                style: TextStyle(color: _textSoft, height: 1.35),
+              ),
+            ),
+            const SizedBox(height: 12),
+            for (final option in options) _ChatAttachmentTile(option: option),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ChatAttachmentTile extends StatelessWidget {
+  const _ChatAttachmentTile({required this.option});
+
+  final _ChatAttachmentOption option;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 9),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: () => Navigator.of(context).pop(option),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: _panelSoft,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: _line),
+          ),
+          child: Row(
+            children: [
+              Icon(option.icon),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      option.title,
+                      style: const TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      option.subtitle,
+                      style: const TextStyle(color: _textSoft, height: 1.25),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
