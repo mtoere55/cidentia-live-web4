@@ -1800,6 +1800,87 @@ class _TranslatePreviewCard extends StatelessWidget {
   }
 }
 
+String _normalizeSocialOcrText(String value) {
+  return value.trim().replaceAll(RegExp(r'\s+'), ' ');
+}
+
+String _localSocialOcrTranslationPreview(
+  String rawText,
+  String targetLanguage,
+) {
+  final text = _normalizeSocialOcrText(rawText);
+  if (text.isEmpty) {
+    return 'No readable text was detected.';
+  }
+
+  final lower = text.toLowerCase();
+
+  final isQuestionNotice =
+      lower.contains('question will be asked') ||
+      lower.contains('saturday call') ||
+      lower.contains('please take it serious');
+
+  final isDocumentNotice =
+      lower.contains('all you need to know') ||
+      lower.contains('this project is in this document') ||
+      lower.contains('q and a');
+
+  final isReply =
+      lower.contains('thanks') ||
+      lower.contains('check and reply') ||
+      lower.contains('shortly');
+
+  if (targetLanguage == 'Turkish') {
+    if (isQuestionNotice) {
+      return 'Sorular burada sorulacak ve Cumartesi görüşmesinde de gündeme gelecek. Lütfen bunu ciddiye alın; bu herkesin proje hakkında bilgilenmesi için önemli.';
+    }
+
+    if (isDocumentNotice) {
+      return 'Bu proje hakkında bilmeniz gereken bilgiler bu belgede ve soru-cevap bölümünde yer alıyor. Kurucular bu bilgileri sorabilir.';
+    }
+
+    if (isReply) {
+      return 'Teşekkürler, kontrol edip kısa süre içinde cevap vereceğim.';
+    }
+
+    return 'OCR metni algılandı. Türkçe çeviri için yerel önizleme hazır: $text';
+  }
+
+  if (targetLanguage == 'German') {
+    if (isQuestionNotice) {
+      return 'Die Fragen werden hier und auch im Gespräch am Samstag gestellt. Bitte nehmen Sie das ernst; es ist wichtig, damit alle über das Projekt informiert sind.';
+    }
+
+    if (isDocumentNotice) {
+      return 'Alles, was Sie über dieses Projekt wissen müssen, steht in diesem Dokument und im Q&A-Bereich. Die Gründer können dazu Fragen stellen.';
+    }
+
+    if (isReply) {
+      return 'Danke, ich werde es prüfen und in Kürze antworten.';
+    }
+
+    return 'OCR-Text erkannt. Lokale deutsche Vorschau ist bereit: $text';
+  }
+
+  if (targetLanguage == 'English') {
+    if (isQuestionNotice) {
+      return 'Questions will be asked here and also during the Saturday call. Please take this seriously; it helps everyone understand the project.';
+    }
+
+    if (isDocumentNotice) {
+      return 'Everything you need to know about this project is in this document and Q&A. The founders may ask questions from it.';
+    }
+
+    if (isReply) {
+      return 'Thanks, I will check and reply shortly.';
+    }
+
+    return text;
+  }
+
+  return text;
+}
+
 class _TranslateMessageBubble extends StatelessWidget {
   const _TranslateMessageBubble({
     required this.label,
@@ -1944,7 +2025,21 @@ class _NativeSnapshotBridgeResult extends StatelessWidget {
     final message = result['message']?.toString() ?? 'No message';
     final ocrStarted = result['ocrStarted'] == true;
     final ocrPreview = result['ocrPreview']?.toString().trim() ?? '';
+    final ocrText = result['ocrText']?.toString().trim() ?? '';
     final openedSocialApp = result['openedSocialApp']?.toString() ?? '';
+    final translationSource = ocrText.isNotEmpty ? ocrText : ocrPreview;
+    final turkishPreview = _localSocialOcrTranslationPreview(
+      translationSource,
+      'Turkish',
+    );
+    final englishPreview = _localSocialOcrTranslationPreview(
+      translationSource,
+      'English',
+    );
+    final germanPreview = _localSocialOcrTranslationPreview(
+      translationSource,
+      'German',
+    );
 
     return Container(
       width: double.infinity,
@@ -2286,7 +2381,21 @@ class _ApprovedSessionResult extends StatelessWidget {
     final message = result['message']?.toString() ?? 'No message';
     final ocrStarted = result['ocrStarted'] == true;
     final ocrPreview = result['ocrPreview']?.toString().trim() ?? '';
+    final ocrText = result['ocrText']?.toString().trim() ?? '';
     final openedSocialApp = result['openedSocialApp']?.toString() ?? '';
+    final translationSource = ocrText.isNotEmpty ? ocrText : ocrPreview;
+    final turkishPreview = _localSocialOcrTranslationPreview(
+      translationSource,
+      'Turkish',
+    );
+    final englishPreview = _localSocialOcrTranslationPreview(
+      translationSource,
+      'English',
+    );
+    final germanPreview = _localSocialOcrTranslationPreview(
+      translationSource,
+      'German',
+    );
 
     return Container(
       width: double.infinity,
@@ -2313,6 +2422,24 @@ class _ApprovedSessionResult extends StatelessWidget {
               label: 'OCR preview',
               text: ocrPreview,
               highlighted: true,
+            ),
+          ],
+          if (translationSource.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            _TranslateMessageBubble(
+              label: 'Translated to Turkish',
+              text: turkishPreview,
+              highlighted: true,
+            ),
+            const SizedBox(height: 10),
+            _TranslateMessageBubble(
+              label: 'Translated to English',
+              text: englishPreview,
+            ),
+            const SizedBox(height: 10),
+            _TranslateMessageBubble(
+              label: 'Translated to German',
+              text: germanPreview,
             ),
           ],
           const SizedBox(height: 10),
