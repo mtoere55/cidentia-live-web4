@@ -70,6 +70,49 @@ Future<Map<String, Object?>> _openSocialTranslateApp({
   }
 }
 
+Future<Map<String, Object?>> _startApprovedSocialOcrPreview({
+  required String packageName,
+  required String fallbackUrl,
+  required String label,
+}) async {
+  try {
+    final result = await _socialTranslateSnapshotChannel
+        .invokeMapMethod<String, Object?>('startApprovedSocialOcrPreview', {
+          'packageName': packageName,
+          'fallbackUrl': fallbackUrl,
+          'label': label,
+        });
+
+    return result ??
+        const {
+          'ok': false,
+          'code': 'SOCIAL_TRANSLATE_OCR_EMPTY_NATIVE_RESPONSE',
+          'message': 'Native OCR bridge returned an empty response.',
+          'ocrStarted': false,
+          'overlayOpened': false,
+          'automaticSend': false,
+        };
+  } on MissingPluginException {
+    return const {
+      'ok': false,
+      'code': 'SOCIAL_TRANSLATE_OCR_NATIVE_BRIDGE_NOT_AVAILABLE',
+      'message': 'Native OCR bridge is not available on this platform yet.',
+      'ocrStarted': false,
+      'overlayOpened': false,
+      'automaticSend': false,
+    };
+  } on PlatformException catch (error) {
+    return {
+      'ok': false,
+      'code': 'SOCIAL_TRANSLATE_OCR_NATIVE_BRIDGE_ERROR',
+      'message': error.message ?? 'Native OCR bridge error.',
+      'ocrStarted': false,
+      'overlayOpened': false,
+      'automaticSend': false,
+    };
+  }
+}
+
 Future<Map<String, Object?>> _requestSocialTranslateSnapshotStub() async {
   try {
     final result = await _socialTranslateSnapshotChannel
@@ -357,6 +400,12 @@ class _LocalShellState extends State<LocalShell> {
                         ),
                         Padding(
                           padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                          child: _DesktopDraftTrayButton(
+                            onTap: () => _showLocalDraftTraySheet(context),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
                           child: _DesktopSocialTranslateButton(
                             onTap: () =>
                                 _showSocialTranslatePreviewSheet(context),
@@ -428,6 +477,11 @@ class _LocalShellState extends State<LocalShell> {
                 icon: const Icon(Icons.favorite_border_rounded),
               ),
               IconButton(
+                tooltip: 'Draft tray',
+                onPressed: () => _showLocalDraftTraySheet(context),
+                icon: const Icon(Icons.drafts_outlined),
+              ),
+              IconButton(
                 tooltip: 'Social translate',
                 onPressed: () => _showSocialTranslatePreviewSheet(context),
                 icon: const Icon(Icons.translate_rounded),
@@ -495,6 +549,11 @@ Future<void> _showLocalCreatePreviewSheet(BuildContext context) async {
       ? 'No caption yet'
       : draft.caption.trim();
 
+  _localDraftTray.value = [
+    draft,
+    ..._localDraftTray.value,
+  ].take(12).toList(growable: false);
+
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       behavior: SnackBarBehavior.floating,
@@ -518,6 +577,256 @@ class _LocalDraftPreview {
   final String mediaType;
   final String mediaLabel;
   final String caption;
+}
+
+final ValueNotifier<List<_LocalDraftPreview>> _localDraftTray =
+    ValueNotifier<List<_LocalDraftPreview>>(const []);
+
+Future<void> _showLocalDraftTraySheet(BuildContext context) {
+  return showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: Colors.transparent,
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (context) => const _LocalDraftTraySheet(),
+  );
+}
+
+class _LocalDraftTraySheet extends StatelessWidget {
+  const _LocalDraftTraySheet();
+
+  @override
+  Widget build(BuildContext context) {
+    final maxHeight = MediaQuery.sizeOf(context).height * 0.82;
+
+    return Container(
+      margin: const EdgeInsets.all(10),
+      constraints: BoxConstraints(maxHeight: maxHeight),
+      decoration: BoxDecoration(
+        color: _panel,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: _line),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x77000000),
+            blurRadius: 30,
+            offset: Offset(0, 18),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
+          child: ValueListenableBuilder<List<_LocalDraftPreview>>(
+            valueListenable: _localDraftTray,
+            builder: (context, drafts, _) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.drafts_outlined),
+                      const SizedBox(width: 10),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Draft tray',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            SizedBox(height: 3),
+                            Text(
+                              'Local-only saved create drafts',
+                              style: TextStyle(
+                                color: _textSoft,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (drafts.isNotEmpty)
+                        TextButton(
+                          onPressed: () {
+                            _localDraftTray.value = const [];
+                          },
+                          child: const Text('Clear'),
+                        ),
+                      IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.close_rounded),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  const _DraftTrayBoundaryNotice(),
+                  const SizedBox(height: 14),
+                  if (drafts.isEmpty)
+                    const _EmptyDraftTray()
+                  else
+                    Flexible(
+                      child: ListView.separated(
+                        shrinkWrap: true,
+                        itemCount: drafts.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 10),
+                        itemBuilder: (context, index) {
+                          return _DraftTrayCard(
+                            draft: drafts[index],
+                            index: index,
+                          );
+                        },
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DraftTrayBoundaryNotice extends StatelessWidget {
+  const _DraftTrayBoundaryNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+      ),
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.lock_outline_rounded, size: 20),
+          SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Drafts stay in local app memory only. No upload, publish, storage, backend or payment route is opened.',
+              style: TextStyle(color: _textSoft, height: 1.35),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EmptyDraftTray extends StatelessWidget {
+  const _EmptyDraftTray();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: _panelSoft,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: _line),
+      ),
+      child: const Column(
+        children: [
+          Icon(Icons.drafts_outlined, size: 34, color: _textSoft),
+          SizedBox(height: 10),
+          Text(
+            'No local drafts yet',
+            style: TextStyle(fontWeight: FontWeight.w900),
+          ),
+          SizedBox(height: 4),
+          Text(
+            'Use Create preview and save a local draft to see it here.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: _textSoft, height: 1.35),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DraftTrayCard extends StatelessWidget {
+  const _DraftTrayCard({required this.draft, required this.index});
+
+  final _LocalDraftPreview draft;
+  final int index;
+
+  @override
+  Widget build(BuildContext context) {
+    final caption = draft.caption.trim().isEmpty
+        ? 'No caption yet'
+        : draft.caption.trim();
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: _panelSoft,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _line),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 58,
+            height: 58,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              gradient: const LinearGradient(
+                colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+              ),
+            ),
+            child: Icon(
+              draft.mediaType == 'Photo'
+                  ? Icons.image_outlined
+                  : Icons.play_circle_outline_rounded,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${draft.mode} ${draft.mediaType} #${index + 1}',
+                  style: const TextStyle(fontWeight: FontWeight.w900),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  draft.mediaLabel,
+                  style: const TextStyle(
+                    color: _textSoft,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  caption,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(height: 1.25),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          const Icon(Icons.lock_outline_rounded, color: _textSoft, size: 18),
+        ],
+      ),
+    );
+  }
 }
 
 class _LocalCreatePreviewSheet extends StatefulWidget {
@@ -1596,6 +1905,9 @@ class _NativeSnapshotBridgeResult extends StatelessWidget {
   Widget build(BuildContext context) {
     final code = result['code']?.toString() ?? 'UNKNOWN';
     final message = result['message']?.toString() ?? 'No message';
+    final ocrStarted = result['ocrStarted'] == true;
+    final ocrPreview = result['ocrPreview']?.toString().trim() ?? '';
+    final openedSocialApp = result['openedSocialApp']?.toString() ?? '';
 
     return Container(
       width: double.infinity,
@@ -1719,13 +2031,7 @@ class _ApprovedSocialSessionLauncherCardState
       launcherResult = null;
     });
 
-    final snapshot = await _requestSocialTranslateSnapshotStub();
-
-    if (!mounted) {
-      return;
-    }
-
-    final opened = await _openSocialTranslateApp(
+    final result = await _startApprovedSocialOcrPreview(
       packageName: target.packageName,
       fallbackUrl: target.fallbackUrl,
       label: target.label,
@@ -1737,14 +2043,7 @@ class _ApprovedSocialSessionLauncherCardState
 
     setState(() {
       busy = false;
-      launcherResult = {
-        ...opened,
-        'snapshotCode': snapshot['code'],
-        'screenCaptured': snapshot['screenCaptured'],
-        'ocrStarted': false,
-        'overlayOpened': false,
-        'automaticSend': false,
-      };
+      launcherResult = result;
     });
   }
 
@@ -1783,7 +2082,9 @@ class _ApprovedSocialSessionLauncherCardState
                 OutlinedButton.icon(
                   onPressed: busy ? null : () => _startSessionAndOpen(app),
                   icon: Icon(app.icon),
-                  label: Text(busy ? 'Opening...' : 'Open ${app.label}'),
+                  label: Text(
+                    busy ? 'Opening...' : 'Approve + open ${app.label}',
+                  ),
                 ),
               OutlinedButton.icon(
                 onPressed: sessionActive ? _stopSession : null,
@@ -1869,6 +2170,9 @@ class _ApprovedSessionResult extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final message = result['message']?.toString() ?? 'No message';
+    final ocrStarted = result['ocrStarted'] == true;
+    final ocrPreview = result['ocrPreview']?.toString().trim() ?? '';
+    final openedSocialApp = result['openedSocialApp']?.toString() ?? '';
 
     return Container(
       width: double.infinity,
@@ -1882,15 +2186,32 @@ class _ApprovedSessionResult extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(message, style: const TextStyle(color: _textSoft, height: 1.3)),
+          if (openedSocialApp.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Opened app: $openedSocialApp',
+              style: const TextStyle(color: Colors.white70),
+            ),
+          ],
+          if (ocrPreview.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            _TranslateMessageBubble(
+              label: 'OCR preview',
+              text: ocrPreview,
+              highlighted: true,
+            ),
+          ],
           const SizedBox(height: 10),
-          const Wrap(
+          Wrap(
             spacing: 8,
             runSpacing: 8,
             children: [
-              _SessionClosedChip(label: 'Login attempt: closed'),
-              _SessionClosedChip(label: 'OCR: closed'),
-              _SessionClosedChip(label: 'Overlay: closed'),
-              _SessionClosedChip(label: 'Auto send: closed'),
+              const _SessionClosedChip(label: 'Login attempt: closed'),
+              _SessionClosedChip(
+                label: 'OCR: ${ocrStarted ? "open" : "closed"}',
+              ),
+              const _SessionClosedChip(label: 'Overlay: closed'),
+              const _SessionClosedChip(label: 'Auto send: closed'),
             ],
           ),
         ],
@@ -2056,6 +2377,53 @@ class _SheetBlock extends StatelessWidget {
           child,
         ],
       ),
+    );
+  }
+}
+
+class _DesktopDraftTrayButton extends StatelessWidget {
+  const _DesktopDraftTrayButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<List<_LocalDraftPreview>>(
+      valueListenable: _localDraftTray,
+      builder: (context, drafts, _) {
+        return InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: onTap,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: _panelSoft,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: _line),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.drafts_outlined, size: 20),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Text(
+                    'Draft tray',
+                    style: TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                ),
+                Text(
+                  '${drafts.length}',
+                  style: const TextStyle(
+                    color: _textSoft,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
