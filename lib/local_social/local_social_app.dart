@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -104,6 +105,182 @@ Future<Map<String, Object?>> _getLastApprovedSocialOcrResult() async {
       'message': error.message ?? 'Native OCR result cache error.',
       'ocrStarted': false,
       'overlayOpened': false,
+      'automaticSend': false,
+    };
+  }
+}
+
+Future<Map<String, Object?>> _requestSocialTranslateOverlayPermission() async {
+  try {
+    final result = await _socialTranslateSnapshotChannel
+        .invokeMapMethod<String, Object?>(
+          'requestSocialTranslateOverlayPermission',
+        );
+
+    return result == null
+        ? const {
+            'ok': false,
+            'code': 'SOCIAL_TRANSLATE_OVERLAY_EMPTY_RESPONSE',
+            'message': 'Native overlay bridge returned an empty response.',
+            'overlayOpened': false,
+            'automaticSend': false,
+          }
+        : Map<String, Object?>.from(result);
+  } on MissingPluginException {
+    return const {
+      'ok': false,
+      'code': 'SOCIAL_TRANSLATE_OVERLAY_BRIDGE_NOT_AVAILABLE',
+      'message': 'Native overlay bridge is not available on this platform.',
+      'overlayOpened': false,
+      'automaticSend': false,
+    };
+  } on PlatformException catch (error) {
+    return {
+      'ok': false,
+      'code': 'SOCIAL_TRANSLATE_OVERLAY_BRIDGE_ERROR',
+      'message': error.message ?? 'Native overlay bridge error.',
+      'overlayOpened': false,
+      'automaticSend': false,
+    };
+  }
+}
+
+Future<Map<String, Object?>> _showSocialTranslateFloatingBubble({
+  required String text,
+}) async {
+  try {
+    final result = await _socialTranslateSnapshotChannel
+        .invokeMapMethod<String, Object?>('showSocialTranslateFloatingBubble', {
+          'text': text,
+        });
+
+    return result == null
+        ? const {
+            'ok': false,
+            'code': 'SOCIAL_TRANSLATE_BUBBLE_EMPTY_RESPONSE',
+            'message': 'Native bubble bridge returned an empty response.',
+            'overlayOpened': false,
+            'automaticSend': false,
+          }
+        : Map<String, Object?>.from(result);
+  } on MissingPluginException {
+    return const {
+      'ok': false,
+      'code': 'SOCIAL_TRANSLATE_BUBBLE_BRIDGE_NOT_AVAILABLE',
+      'message': 'Native bubble bridge is not available on this platform.',
+      'overlayOpened': false,
+      'automaticSend': false,
+    };
+  } on PlatformException catch (error) {
+    return {
+      'ok': false,
+      'code': 'SOCIAL_TRANSLATE_BUBBLE_BRIDGE_ERROR',
+      'message': error.message ?? 'Native bubble bridge error.',
+      'overlayOpened': false,
+      'automaticSend': false,
+    };
+  }
+}
+
+Future<Map<String, Object?>> _hideSocialTranslateFloatingBubble() async {
+  try {
+    final result = await _socialTranslateSnapshotChannel
+        .invokeMapMethod<String, Object?>('hideSocialTranslateFloatingBubble');
+
+    return result == null
+        ? const {
+            'ok': false,
+            'code': 'SOCIAL_TRANSLATE_BUBBLE_CLOSE_EMPTY_RESPONSE',
+            'message': 'Native bubble close bridge returned an empty response.',
+            'overlayOpened': false,
+            'automaticSend': false,
+          }
+        : Map<String, Object?>.from(result);
+  } on MissingPluginException {
+    return const {
+      'ok': false,
+      'code': 'SOCIAL_TRANSLATE_BUBBLE_CLOSE_NOT_AVAILABLE',
+      'message':
+          'Native bubble close bridge is not available on this platform.',
+      'overlayOpened': false,
+      'automaticSend': false,
+    };
+  } on PlatformException catch (error) {
+    return {
+      'ok': false,
+      'code': 'SOCIAL_TRANSLATE_BUBBLE_CLOSE_ERROR',
+      'message': error.message ?? 'Native bubble close bridge error.',
+      'overlayOpened': false,
+      'automaticSend': false,
+    };
+  }
+}
+
+Future<Map<String, Object?>> _startLiveSocialOcrLoop({
+  required String packageName,
+  required String fallbackUrl,
+  required String label,
+}) async {
+  try {
+    final result = await _socialTranslateSnapshotChannel
+        .invokeMapMethod<String, Object?>('startLiveSocialOcrLoop', {
+          'packageName': packageName,
+          'fallbackUrl': fallbackUrl,
+          'label': label,
+        });
+
+    return result == null
+        ? const {
+            'ok': false,
+            'code': 'SOCIAL_TRANSLATE_LIVE_OCR_EMPTY_RESPONSE',
+            'message': 'Native live OCR bridge returned an empty response.',
+            'automaticSend': false,
+          }
+        : Map<String, Object?>.from(result);
+  } on MissingPluginException {
+    return const {
+      'ok': false,
+      'code': 'SOCIAL_TRANSLATE_LIVE_OCR_BRIDGE_NOT_AVAILABLE',
+      'message': 'Native live OCR bridge is not available on this platform.',
+      'automaticSend': false,
+    };
+  } on PlatformException catch (error) {
+    return {
+      'ok': false,
+      'code': 'SOCIAL_TRANSLATE_LIVE_OCR_BRIDGE_ERROR',
+      'message': error.message ?? 'Native live OCR bridge error.',
+      'automaticSend': false,
+    };
+  }
+}
+
+Future<Map<String, Object?>> _stopLiveSocialOcrLoop() async {
+  try {
+    final result = await _socialTranslateSnapshotChannel
+        .invokeMapMethod<String, Object?>('stopLiveSocialOcrLoop');
+
+    return result == null
+        ? const {
+            'ok': false,
+            'code': 'SOCIAL_TRANSLATE_LIVE_OCR_STOP_EMPTY_RESPONSE',
+            'message':
+                'Native live OCR stop bridge returned an empty response.',
+            'automaticSend': false,
+          }
+        : Map<String, Object?>.from(result);
+  } on MissingPluginException {
+    return const {
+      'ok': false,
+      'code': 'SOCIAL_TRANSLATE_LIVE_OCR_STOP_NOT_AVAILABLE',
+      'message':
+          'Native live OCR stop bridge is not available on this platform.',
+      'automaticSend': false,
+    };
+  } on PlatformException catch (error) {
+    return {
+      'ok': false,
+      'code': 'SOCIAL_TRANSLATE_LIVE_OCR_STOP_ERROR',
+      'message': error.message ?? 'Native live OCR stop bridge error.',
       'automaticSend': false,
     };
   }
@@ -2337,7 +2514,10 @@ class _ApprovedSocialSessionLauncherCardState
             const SizedBox(height: 12),
             _ApprovedSessionResult(result: launcherResult!),
             const SizedBox(height: 12),
-            _SocialTranslateFloatingBubblePreview(result: launcherResult!),
+            _SocialTranslateFloatingBubblePreview(
+              result: launcherResult!,
+              selectedApp: selectedApp,
+            ),
           ],
         ],
       ),
@@ -2373,22 +2553,218 @@ class _SessionSafetyChip extends StatelessWidget {
   }
 }
 
-class _SocialTranslateFloatingBubblePreview extends StatelessWidget {
-  const _SocialTranslateFloatingBubblePreview({required this.result});
+class _SocialTranslateFloatingBubblePreview extends StatefulWidget {
+  const _SocialTranslateFloatingBubblePreview({
+    required this.result,
+    required this.selectedApp,
+  });
 
   final Map<String, Object?> result;
+  final String selectedApp;
+
+  @override
+  State<_SocialTranslateFloatingBubblePreview> createState() =>
+      _SocialTranslateFloatingBubblePreviewState();
+}
+
+class _SocialTranslateFloatingBubblePreviewState
+    extends State<_SocialTranslateFloatingBubblePreview> {
+  Map<String, Object?>? overlayResult;
+  bool busy = false;
+  bool autoBubbleActive = false;
+  Timer? autoBubbleTimer;
+  String lastAutoBubbleText = '';
+
+  @override
+  void dispose() {
+    autoBubbleTimer?.cancel();
+    super.dispose();
+  }
+
+  String get _targetPackageName {
+    switch (widget.selectedApp) {
+      case 'Telegram':
+        return 'org.telegram.messenger';
+      case 'Discord':
+        return 'com.discord';
+      case 'X':
+        return 'com.twitter.android';
+      case 'WhatsApp':
+      default:
+        return 'com.whatsapp';
+    }
+  }
+
+  String get _targetFallbackUrl {
+    switch (widget.selectedApp) {
+      case 'Telegram':
+        return 'https://web.telegram.org/';
+      case 'Discord':
+        return 'https://discord.com/app';
+      case 'X':
+        return 'https://x.com/';
+      case 'WhatsApp':
+      default:
+        return 'https://wa.me/';
+    }
+  }
+
+  String get _bubbleText {
+    final ocrPreview = widget.result['ocrPreview']?.toString().trim() ?? '';
+    final ocrText = widget.result['ocrText']?.toString().trim() ?? '';
+    final translationSource = ocrText.isNotEmpty ? ocrText : ocrPreview;
+
+    if (translationSource.isEmpty) {
+      return '';
+    }
+
+    return _localSocialOcrTranslationPreview(translationSource, 'Turkish');
+  }
+
+  Future<void> _requestPermission() async {
+    setState(() => busy = true);
+    final result = await _requestSocialTranslateOverlayPermission();
+
+    if (!mounted) return;
+
+    setState(() {
+      busy = false;
+      overlayResult = result;
+    });
+  }
+
+  Future<void> _showBubble() async {
+    final text = _bubbleText;
+    if (text.isEmpty) return;
+
+    setState(() => busy = true);
+    final result = await _showSocialTranslateFloatingBubble(text: text);
+
+    if (!mounted) return;
+
+    setState(() {
+      busy = false;
+      overlayResult = result;
+    });
+  }
+
+  Future<void> _hideBubble() async {
+    setState(() => busy = true);
+    final result = await _hideSocialTranslateFloatingBubble();
+
+    if (!mounted) return;
+
+    setState(() {
+      busy = false;
+      overlayResult = result;
+    });
+  }
+
+  Future<void> _runAutoBubbleTick() async {
+    final result = await _getLastApprovedSocialOcrResult();
+    final code = result['code']?.toString() ?? '';
+
+    if (code != 'SOCIAL_TRANSLATE_OCR_PREVIEW_READY') {
+      return;
+    }
+
+    final ocrText = result['ocrText']?.toString().trim() ?? '';
+    final ocrPreview = result['ocrPreview']?.toString().trim() ?? '';
+    final source = ocrText.isNotEmpty ? ocrText : ocrPreview;
+
+    if (source.isEmpty) {
+      return;
+    }
+
+    final translated = _localSocialOcrTranslationPreview(source, 'Turkish');
+
+    if (translated == lastAutoBubbleText) {
+      return;
+    }
+
+    lastAutoBubbleText = translated;
+    final bubbleResult = await _showSocialTranslateFloatingBubble(
+      text: translated,
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      overlayResult = bubbleResult;
+    });
+  }
+
+  Future<void> _startAutoBubbleLoop() async {
+    setState(() => busy = true);
+
+    final liveResult = await _startLiveSocialOcrLoop(
+      packageName: _targetPackageName,
+      fallbackUrl: _targetFallbackUrl,
+      label: widget.selectedApp,
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    final code = liveResult['code']?.toString() ?? '';
+    final started =
+        liveResult['ok'] == true ||
+        code == 'SOCIAL_TRANSLATE_LIVE_OCR_LOOP_STARTED' ||
+        code == 'SOCIAL_TRANSLATE_LIVE_OCR_LOOP_ALREADY_RUNNING';
+
+    autoBubbleTimer?.cancel();
+    autoBubbleTimer = null;
+    autoBubbleActive = started;
+    lastAutoBubbleText = '';
+
+    setState(() {
+      busy = false;
+      overlayResult = liveResult;
+    });
+
+    if (!started) {
+      return;
+    }
+
+    await _runAutoBubbleTick();
+
+    if (!mounted || !autoBubbleActive) {
+      return;
+    }
+
+    autoBubbleTimer = Timer.periodic(
+      const Duration(seconds: 3),
+      (_) => _runAutoBubbleTick(),
+    );
+  }
+
+  Future<void> _stopAutoBubbleLoop() async {
+    setState(() => busy = true);
+
+    autoBubbleTimer?.cancel();
+    autoBubbleTimer = null;
+    autoBubbleActive = false;
+    lastAutoBubbleText = '';
+
+    final liveStopResult = await _stopLiveSocialOcrLoop();
+    await _hideSocialTranslateFloatingBubble();
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      busy = false;
+      overlayResult = liveStopResult;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final ocrPreview = result['ocrPreview']?.toString().trim() ?? '';
-    final ocrText = result['ocrText']?.toString().trim() ?? '';
-    final translationSource = ocrText.isNotEmpty ? ocrText : ocrPreview;
-    final translatedText = _localSocialOcrTranslationPreview(
-      translationSource,
-      'Turkish',
-    );
-
-    final hasText = translationSource.isNotEmpty;
+    final hasText = _bubbleText.isNotEmpty;
 
     return Container(
       width: double.infinity,
@@ -2427,13 +2803,13 @@ class _SocialTranslateFloatingBubblePreview extends StatelessWidget {
                   ),
                 ),
               ),
-              const _SessionClosedChip(label: 'Overlay preview'),
+              const _SessionClosedChip(label: 'Overlay boundary'),
             ],
           ),
           const SizedBox(height: 10),
           Text(
             hasText
-                ? translatedText
+                ? _bubbleText
                 : 'Open WhatsApp with approved OCR first. The future bubble will show the translation here.',
             maxLines: 4,
             overflow: TextOverflow.ellipsis,
@@ -2443,8 +2819,55 @@ class _SocialTranslateFloatingBubblePreview extends StatelessWidget {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: const [
+            children: [
+              OutlinedButton.icon(
+                onPressed: busy ? null : _requestPermission,
+                icon: const Icon(Icons.security_rounded),
+                label: const Text('Allow overlay'),
+              ),
+              OutlinedButton.icon(
+                onPressed: busy || !hasText ? null : _showBubble,
+                icon: const Icon(Icons.open_in_new_rounded),
+                label: const Text('Show bubble'),
+              ),
+              OutlinedButton.icon(
+                onPressed: busy ? null : _hideBubble,
+                icon: const Icon(Icons.close_rounded),
+                label: const Text('Hide bubble'),
+              ),
+              OutlinedButton.icon(
+                onPressed: busy || !hasText || autoBubbleActive
+                    ? null
+                    : _startAutoBubbleLoop,
+                icon: const Icon(Icons.play_circle_outline_rounded),
+                label: const Text('Start live translate'),
+              ),
+              OutlinedButton.icon(
+                onPressed: autoBubbleActive ? _stopAutoBubbleLoop : null,
+                icon: const Icon(Icons.stop_circle_outlined),
+                label: const Text('Stop live translate'),
+              ),
+            ],
+          ),
+          if (overlayResult != null) ...[
+            const SizedBox(height: 10),
+            _TranslateMessageBubble(
+              label: overlayResult!['code']?.toString() ?? 'Overlay result',
+              text: overlayResult!['message']?.toString() ?? 'No message',
+              highlighted: overlayResult!['overlayOpened'] == true,
+            ),
+          ],
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
               _SessionClosedChip(label: 'Visible only'),
+              _SessionClosedChip(
+                label: autoBubbleActive
+                    ? 'Auto translate: open'
+                    : 'Auto translate: closed',
+              ),
               _SessionClosedChip(label: 'User controlled'),
               _SessionClosedChip(label: 'Auto send: closed'),
               _SessionClosedChip(label: 'Accessibility: locked'),
