@@ -4,6 +4,10 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.PixelFormat
+import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import com.google.mlkit.vision.text.TextRecognition
+import com.google.mlkit.vision.common.InputImage
+import android.graphics.Bitmap
 import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
 import android.media.ImageReader
@@ -17,14 +21,24 @@ import android.util.DisplayMetrics
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import org.json.JSONObject
 
 class MainActivity : FlutterActivity() {
     private val snapshotRequestCode = 52051
     private var pendingSnapshotResult: MethodChannel.Result? = null
     private var activeProjection: MediaProjection? = null
+    private var activeProjectionCallback: android.media.projection.MediaProjection.Callback? = null
     private var activeVirtualDisplay: VirtualDisplay? = null
     private var activeImageReader: ImageReader? = null
+    private var pendingSocialTarget: PendingSocialTarget? = null
+    private var lastApprovedSocialOcrResult: Map<String, Any>? = null
     private val mainHandler = Handler(Looper.getMainLooper())
+
+    private data class PendingSocialTarget(
+        val packageName: String,
+        val fallbackUrl: String,
+        val label: String
+    )
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -35,6 +49,20 @@ class MainActivity : FlutterActivity() {
         ).setMethodCallHandler { call, result ->
             when (call.method) {
                 "startSingleSnapshotPreview" -> startSingleSnapshotPreview(result)
+                "getLastApprovedSocialOcrResult" ->
+                    result.success(
+                        readCachedApprovedSocialOcrResult() ?: safeSnapshotResponse(
+                            ok = false,
+                            code = "SOCIAL_TRANSLATE_NO_CACHED_RESULT",
+                            message = "No approved OCR result has been cached yet."
+                        )
+                    )
+                "startApprovedSocialOcrPreview" -> startApprovedSocialOcrPreview(
+                    packageName = call.argument<String>("packageName") ?: "",
+                    fallbackUrl = call.argument<String>("fallbackUrl") ?: "",
+                    label = call.argument<String>("label") ?: "social app",
+                    result = result
+                )
                 "openSocialApp" -> openSocialApp(
                     packageName = call.argument<String>("packageName") ?: "",
                     fallbackUrl = call.argument<String>("fallbackUrl") ?: "",
@@ -46,6 +74,64 @@ class MainActivity : FlutterActivity() {
         }
     }
 
+
+
+    private fun startApprovedSocialOcrPreview(
+        packageName: String,
+        fallbackUrl: String,
+        label: String,
+        result: MethodChannel.Result
+    ) {
+        if (pendingSnapshotResult != null) {
+            result.success(
+                safeSnapshotResponse(
+                    ok = false,
+                    code = "SOCIAL_TRANSLATE_SNAPSHOT_ALREADY_PENDING",
+                    message = "A snapshot consent flow is already pending."
+                )
+            )
+            return
+        }
+
+        clearCachedApprovedSocialOcrResult()
+
+        pendingSnapshotResult = result
+        pendingSocialTarget = PendingSocialTarget(packageName, fallbackUrl, label)
+
+        val projectionManager =
+            getSystemService(Context.MEDIA_PROJECTION_SERVICE)
+                as MediaProjectionManager
+
+        startActivityForResult(
+            projectionManager.createScreenCaptureIntent(),
+            snapshotRequestCode
+        )
+    }
+
+    private fun launchPendingSocialTarget() {
+        val target = pendingSocialTarget ?: return
+
+        try {
+            val launchIntent = if (target.packageName.isNotBlank()) {
+                packageManager.getLaunchIntentForPackage(target.packageName)
+            } else {
+                null
+            }
+
+            if (launchIntent != null) {
+                launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                startActivity(launchIntent)
+                return
+            }
+
+            if (target.fallbackUrl.isNotBlank()) {
+                val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse(target.fallbackUrl))
+                webIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                startActivity(webIntent)
+            }
+        } catch (_: Throwable) {
+        }
+    }
 
     private fun openSocialApp(
         packageName: String,
@@ -122,6 +208,25 @@ class MainActivity : FlutterActivity() {
         )
     }
 
+    private fun startMediaProjectionForegroundService() {
+        try {
+            val intent = Intent(this, CidentiaMediaProjectionService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent)
+            } else {
+                startService(intent)
+            }
+        } catch (_: Throwable) {
+        }
+    }
+
+    private fun stopMediaProjectionForegroundService() {
+        try {
+            stopService(Intent(this, CidentiaMediaProjectionService::class.java))
+        } catch (_: Throwable) {
+        }
+    }
+
     private fun startSingleSnapshotPreview(result: MethodChannel.Result) {
         if (pendingSnapshotResult != null) {
             result.success(
@@ -133,6 +238,8 @@ class MainActivity : FlutterActivity() {
             )
             return
         }
+
+        pendingSocialTarget = null
 
         pendingSnapshotResult = result
 
@@ -147,13 +254,55 @@ class MainActivity : FlutterActivity() {
     }
 
     @Deprecated("Deprecated in Java")
+    private fun beginMediaProjectionAfterForegroundService(
+        resultCode: Int,
+        data: Intent
+    ) {
+        try {
+            val projectionManager =
+                getSystemService(Context.MEDIA_PROJECTION_SERVICE)
+                    as MediaProjectionManager
+
+            val projection = projectionManager.getMediaProjection(resultCode, data)
+
+            if (projection == null) {
+                completeSnapshot(
+                    safeSnapshotResponse(
+                        ok = false,
+                        code = "SOCIAL_TRANSLATE_SNAPSHOT_PROJECTION_NULL",
+                        message = "Android did not return a MediaProjection instance."
+                    )
+                )
+                return
+            }
+
+            activeProjection = projection
+
+            if (pendingSocialTarget != null) {
+                launchPendingSocialTarget()
+                mainHandler.postDelayed({ captureOneFrame(projection) }, 1800)
+            } else {
+                captureOneFrame(projection)
+            }
+        } catch (error: Throwable) {
+            completeSnapshot(
+                safeSnapshotResponse(
+                    ok = false,
+                    code = "SOCIAL_TRANSLATE_SNAPSHOT_START_FAILED",
+                    message = error.message ?: "Could not start approved snapshot."
+                )
+            )
+        }
+    }
+
     override fun onActivityResult(
         requestCode: Int,
         resultCode: Int,
         data: Intent?
     ) {
+        super.onActivityResult(requestCode, resultCode, data)
+
         if (requestCode != snapshotRequestCode) {
-            super.onActivityResult(requestCode, resultCode, data)
             return
         }
 
@@ -162,122 +311,336 @@ class MainActivity : FlutterActivity() {
                 safeSnapshotResponse(
                     ok = false,
                     code = "SOCIAL_TRANSLATE_SNAPSHOT_CANCELLED",
-                    message = "The user cancelled Android screen capture consent."
+                    message = "Screen capture was cancelled by the user."
                 )
             )
             return
         }
 
         try {
-            val projectionManager =
-                getSystemService(Context.MEDIA_PROJECTION_SERVICE)
-                    as MediaProjectionManager
-            val projection = projectionManager.getMediaProjection(resultCode, data)
-            if (projection == null) {
-                completeSnapshot(
-                    safeSnapshotResponse(
-                        ok = false,
-                        code = "SOCIAL_TRANSLATE_SNAPSHOT_PROJECTION_NULL",
-                        message = "Android returned no MediaProjection instance."
-                    )
-                )
-                return
-            }
-
-            activeProjection = projection
-            projection.registerCallback(
-                object : MediaProjection.Callback() {
-                    override fun onStop() {
-                        releaseSnapshotResources(stopProjection = false)
-                    }
-                },
-                mainHandler
-            )
-
-            captureOneFrame(projection)
+            startMediaProjectionForegroundService()
+            mainHandler.postDelayed({
+                beginMediaProjectionAfterForegroundService(resultCode, data)
+            }, 650)
         } catch (error: Throwable) {
             completeSnapshot(
                 safeSnapshotResponse(
                     ok = false,
                     code = "SOCIAL_TRANSLATE_SNAPSHOT_START_FAILED",
-                    message = error.message ?: "Failed to start one-shot capture."
+                    message = error.message ?: "Could not start foreground capture service."
                 )
             )
         }
     }
 
-    private fun captureOneFrame(projection: MediaProjection) {
-        val width: Int
-        val height: Int
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val bounds = windowManager.currentWindowMetrics.bounds
-            width = bounds.width().coerceAtLeast(1)
-            height = bounds.height().coerceAtLeast(1)
-        } else {
-            val metrics = DisplayMetrics()
-            @Suppress("DEPRECATION")
-            windowManager.defaultDisplay.getRealMetrics(metrics)
-            width = metrics.widthPixels.coerceAtLeast(1)
-            height = metrics.heightPixels.coerceAtLeast(1)
+    private fun registerProjectionCallback(
+        projection: android.media.projection.MediaProjection
+    ) {
+        try {
+            activeProjectionCallback?.let { projection.unregisterCallback(it) }
+        } catch (_: Throwable) {
         }
 
-        val density = resources.configuration.densityDpi
-        val reader = ImageReader.newInstance(
-            width,
-            height,
-            PixelFormat.RGBA_8888,
-            2
-        )
+        val callback = object : android.media.projection.MediaProjection.Callback() {
+            override fun onStop() {
+                releaseSnapshotResources(stopProjection = false)
+                stopMediaProjectionForegroundService()
+            }
+        }
 
-        activeImageReader = reader
+        activeProjectionCallback = callback
+        projection.registerCallback(callback, mainHandler)
+    }
 
-        reader.setOnImageAvailableListener({ imageReader ->
-            val image = imageReader.acquireLatestImage() ?: return@setOnImageAvailableListener
-            val capturedWidth = image.width
-            val capturedHeight = image.height
+    private fun captureOneFrame(
+        projection: android.media.projection.MediaProjection
+    ) {
+        try {
+            registerProjectionCallback(projection)
+
+            val metrics = resources.displayMetrics
+            val snapshotWidth = metrics.widthPixels.coerceAtLeast(1)
+            val snapshotHeight = metrics.heightPixels.coerceAtLeast(1)
+            val density = metrics.densityDpi
+
+            val imageReader = ImageReader.newInstance(
+                snapshotWidth,
+                snapshotHeight,
+                PixelFormat.RGBA_8888,
+                2
+            )
+
+            activeImageReader = imageReader
+            var completed = false
+
+            imageReader.setOnImageAvailableListener(listener@{ reader ->
+                if (completed) {
+                    return@listener
+                }
+
+                val image = try {
+                    reader.acquireLatestImage()
+                } catch (_: Throwable) {
+                    null
+                } ?: return@listener
+
+                completed = true
+
+                try {
+                    activeImageReader?.setOnImageAvailableListener(null, null)
+                } catch (_: Throwable) {
+                }
+
+                val capturedWidth = image.width
+                val capturedHeight = image.height
+
+                if (pendingSocialTarget != null) {
+                    recognizeTextFromImage(
+                        image = image,
+                        capturedWidth = capturedWidth,
+                        capturedHeight = capturedHeight
+                    )
+                } else {
+                    image.close()
+
+                    completeSnapshot(
+                        safeSnapshotResponse(
+                            ok = true,
+                            code = "SOCIAL_TRANSLATE_SINGLE_SNAPSHOT_CAPTURED",
+                            message = "One user-approved snapshot was captured and released.",
+                            screenCaptured = true,
+                            snapshotWidth = capturedWidth,
+                            snapshotHeight = capturedHeight
+                        )
+                    )
+                }
+            }, mainHandler)
+
+            activeVirtualDisplay = projection.createVirtualDisplay(
+                "CidentiaSocialTranslateSnapshot",
+                snapshotWidth,
+                snapshotHeight,
+                density,
+                android.hardware.display.DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
+                imageReader.surface,
+                null,
+                mainHandler
+            )
+
+            mainHandler.postDelayed({
+                if (!completed) {
+                    completed = true
+
+                    completeSnapshot(
+                        safeSnapshotResponse(
+                            ok = false,
+                            code = "SOCIAL_TRANSLATE_SNAPSHOT_TIMEOUT",
+                            message = "No screen frame was received from the approved capture session."
+                        )
+                    )
+                }
+            }, 9000)
+        } catch (error: Throwable) {
+            completeSnapshot(
+                safeSnapshotResponse(
+                    ok = false,
+                    code = "SOCIAL_TRANSLATE_SNAPSHOT_CAPTURE_FAILED",
+                    message = error.message ?: "Could not capture approved snapshot."
+                )
+            )
+        }
+    }
+
+
+    private fun recognizeTextFromImage(
+        image: android.media.Image,
+        capturedWidth: Int,
+        capturedHeight: Int
+    ) {
+        var bitmap: Bitmap? = null
+        val openedApp = pendingSocialTarget?.label ?: ""
+
+        try {
+            bitmap = bitmapFromImage(image)
             image.close()
+
+            val inputImage = InputImage.fromBitmap(bitmap, 0)
+            val recognizer =
+                TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+
+            recognizer.process(inputImage)
+                .addOnSuccessListener { recognizedText ->
+                    val text = recognizedText.text.trim()
+                    val preview = text
+                        .lineSequence()
+                        .filter { it.isNotBlank() }
+                        .take(8)
+                        .joinToString("\n")
+                        .ifBlank { "No readable text was detected." }
+
+                    completeSnapshot(
+                        safeSnapshotResponse(
+                            ok = true,
+                            code = "SOCIAL_TRANSLATE_OCR_PREVIEW_READY",
+                            message = "Approved snapshot OCR preview is ready.",
+                            screenCaptured = true,
+                            snapshotWidth = capturedWidth,
+                            snapshotHeight = capturedHeight,
+                            ocrStarted = true,
+                            ocrText = text,
+                            ocrPreview = preview,
+                            openedSocialApp = openedApp
+                        )
+                    )
+                }
+                .addOnFailureListener { error ->
+                    completeSnapshot(
+                        safeSnapshotResponse(
+                            ok = false,
+                            code = "SOCIAL_TRANSLATE_OCR_FAILED",
+                            message = error.message ?: "OCR failed.",
+                            screenCaptured = true,
+                            snapshotWidth = capturedWidth,
+                            snapshotHeight = capturedHeight,
+                            ocrStarted = true,
+                            openedSocialApp = openedApp
+                        )
+                    )
+                }
+                .addOnCompleteListener {
+                    try {
+                        bitmap?.recycle()
+                    } catch (_: Throwable) {
+                    }
+                }
+        } catch (error: Throwable) {
+            try {
+                image.close()
+            } catch (_: Throwable) {
+            }
+
+            try {
+                bitmap?.recycle()
+            } catch (_: Throwable) {
+            }
 
             completeSnapshot(
                 safeSnapshotResponse(
-                    ok = true,
-                    code = "SOCIAL_TRANSLATE_SINGLE_SNAPSHOT_CAPTURED",
-                    message = "One user-approved snapshot was captured and released.",
+                    ok = false,
+                    code = "SOCIAL_TRANSLATE_OCR_PREP_FAILED",
+                    message = error.message ?: "Could not prepare OCR image.",
                     screenCaptured = true,
                     snapshotWidth = capturedWidth,
-                    snapshotHeight = capturedHeight
+                    snapshotHeight = capturedHeight,
+                    ocrStarted = true,
+                    openedSocialApp = openedApp
                 )
             )
-        }, mainHandler)
+        }
+    }
 
-        activeVirtualDisplay = projection.createVirtualDisplay(
-            "CidentiaSocialTranslateSingleSnapshot",
-            width,
-            height,
-            density,
-            DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
-            reader.surface,
-            null,
-            mainHandler
+    private fun bitmapFromImage(image: android.media.Image): Bitmap {
+        val plane = image.planes.firstOrNull()
+            ?: throw IllegalStateException("Snapshot image has no plane.")
+
+        val buffer = plane.buffer
+        buffer.rewind()
+
+        val pixelStride = plane.pixelStride.coerceAtLeast(1)
+        val rowStride = plane.rowStride
+        val rowPadding = rowStride - pixelStride * image.width
+        val bitmapWidth = image.width + rowPadding / pixelStride
+
+        val bitmap = Bitmap.createBitmap(
+            bitmapWidth.coerceAtLeast(image.width),
+            image.height,
+            Bitmap.Config.ARGB_8888
         )
 
-        mainHandler.postDelayed({
-            if (pendingSnapshotResult != null) {
-                completeSnapshot(
-                    safeSnapshotResponse(
-                        ok = false,
-                        code = "SOCIAL_TRANSLATE_SNAPSHOT_TIMEOUT",
-                        message = "No snapshot frame arrived before timeout."
-                    )
-                )
+        bitmap.copyPixelsFromBuffer(buffer)
+
+        if (bitmap.width == image.width) {
+            return bitmap
+        }
+
+        val cropped = Bitmap.createBitmap(bitmap, 0, 0, image.width, image.height)
+        bitmap.recycle()
+        return cropped
+    }
+
+
+    private fun clearCachedApprovedSocialOcrResult() {
+        lastApprovedSocialOcrResult = null
+
+        try {
+            getSharedPreferences(
+                "cidentia_social_translate",
+                Context.MODE_PRIVATE
+            )
+                .edit()
+                .remove("lastApprovedSocialOcrResult")
+                .apply()
+        } catch (_: Throwable) {
+        }
+    }
+
+    private fun cacheApprovedSocialOcrResult(response: Map<String, Any>) {
+        lastApprovedSocialOcrResult = response
+
+        try {
+            val json = JSONObject()
+            response.forEach { entry ->
+                json.put(entry.key, entry.value)
             }
-        }, 2200)
+
+            getSharedPreferences(
+                "cidentia_social_translate",
+                Context.MODE_PRIVATE
+            )
+                .edit()
+                .putString("lastApprovedSocialOcrResult", json.toString())
+                .apply()
+        } catch (_: Throwable) {
+        }
+    }
+
+    private fun readCachedApprovedSocialOcrResult(): Map<String, Any>? {
+        lastApprovedSocialOcrResult?.let { return it }
+
+        return try {
+            val raw = getSharedPreferences(
+                "cidentia_social_translate",
+                Context.MODE_PRIVATE
+            ).getString("lastApprovedSocialOcrResult", null)
+                ?: return null
+
+            val json = JSONObject(raw)
+            val result = mutableMapOf<String, Any>()
+            val keys = json.keys()
+
+            while (keys.hasNext()) {
+                val key = keys.next()
+                val value = json.get(key)
+                if (value != JSONObject.NULL) {
+                    result[key] = value
+                }
+            }
+
+            lastApprovedSocialOcrResult = result
+            result
+        } catch (_: Throwable) {
+            null
+        }
     }
 
     private fun completeSnapshot(response: Map<String, Any>) {
+        cacheApprovedSocialOcrResult(response)
+
         val result = pendingSnapshotResult
         pendingSnapshotResult = null
+        pendingSocialTarget = null
         releaseSnapshotResources(stopProjection = true)
+        stopMediaProjectionForegroundService()
         result?.success(response)
     }
 
@@ -315,7 +678,11 @@ class MainActivity : FlutterActivity() {
         message: String,
         screenCaptured: Boolean = false,
         snapshotWidth: Int = 0,
-        snapshotHeight: Int = 0
+        snapshotHeight: Int = 0,
+        ocrStarted: Boolean = false,
+        ocrText: String = "",
+        ocrPreview: String = "",
+        openedSocialApp: String = ""
     ): Map<String, Any> {
         return mapOf(
             "ok" to ok,
@@ -325,11 +692,15 @@ class MainActivity : FlutterActivity() {
             "screenCaptured" to screenCaptured,
             "snapshotWidth" to snapshotWidth,
             "snapshotHeight" to snapshotHeight,
-            "ocrStarted" to false,
+            "ocrStarted" to ocrStarted,
+            "ocrText" to ocrText,
+            "ocrPreview" to ocrPreview,
+            "openedSocialApp" to openedSocialApp,
             "overlayOpened" to false,
             "automaticSend" to false,
             "snapshotStored" to false,
             "backendUpload" to false
         )
     }
+
 }

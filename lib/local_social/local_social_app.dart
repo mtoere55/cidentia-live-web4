@@ -30,6 +30,10 @@ const _socialTranslateSnapshotChannel = MethodChannel(
   'cidentia.live/social_translate_snapshot',
 );
 
+Map<String, Object?>? _lastApprovedSocialTranslateResult;
+String _lastApprovedSocialTranslateApp = 'WhatsApp';
+bool _lastApprovedSocialTranslateSessionActive = false;
+
 Future<Map<String, Object?>> _openSocialTranslateApp({
   required String packageName,
   required String fallbackUrl,
@@ -66,6 +70,41 @@ Future<Map<String, Object?>> _openSocialTranslateApp({
       'message': error.message ?? 'Native app launcher error.',
       'automaticSend': false,
       'loginAttempted': false,
+    };
+  }
+}
+
+Future<Map<String, Object?>> _getLastApprovedSocialOcrResult() async {
+  try {
+    final result = await _socialTranslateSnapshotChannel
+        .invokeMapMethod<String, Object?>('getLastApprovedSocialOcrResult');
+
+    return result ??
+        const {
+          'ok': false,
+          'code': 'SOCIAL_TRANSLATE_NO_CACHED_RESULT',
+          'message': 'No approved OCR result has been cached yet.',
+          'ocrStarted': false,
+          'overlayOpened': false,
+          'automaticSend': false,
+        };
+  } on MissingPluginException {
+    return const {
+      'ok': false,
+      'code': 'SOCIAL_TRANSLATE_CACHE_BRIDGE_NOT_AVAILABLE',
+      'message': 'Native OCR result cache is not available on this platform.',
+      'ocrStarted': false,
+      'overlayOpened': false,
+      'automaticSend': false,
+    };
+  } on PlatformException catch (error) {
+    return {
+      'ok': false,
+      'code': 'SOCIAL_TRANSLATE_CACHE_BRIDGE_ERROR',
+      'message': error.message ?? 'Native OCR result cache error.',
+      'ocrStarted': false,
+      'overlayOpened': false,
+      'automaticSend': false,
     };
   }
 }
@@ -1592,8 +1631,6 @@ class _SocialTranslatePreviewSheetState
                 const SizedBox(height: 18),
                 const _TranslatePermissionStubCard(),
                 const SizedBox(height: 18),
-                const _NativeSnapshotBridgeStubCard(),
-                const SizedBox(height: 18),
                 const _ApprovedSocialSessionLauncherCard(),
                 const SizedBox(height: 18),
                 _LanguageSelector(
@@ -1985,10 +2022,13 @@ class _ApprovedSocialSessionLauncherCardState
     text: 'Thanks, I will check and reply shortly.',
   );
 
-  bool sessionActive = false;
+  bool sessionActive = _lastApprovedSocialTranslateSessionActive;
   bool busy = false;
-  String selectedApp = 'WhatsApp';
-  Map<String, Object?>? launcherResult;
+  String selectedApp = _lastApprovedSocialTranslateApp;
+  Map<String, Object?>? launcherResult =
+      _lastApprovedSocialTranslateResult == null
+      ? null
+      : Map<String, Object?>.from(_lastApprovedSocialTranslateResult!);
 
   static const apps = [
     _SocialAppTarget(
@@ -2018,17 +2058,71 @@ class _ApprovedSocialSessionLauncherCardState
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _refreshLastApprovedResult(silent: true);
+  }
+
+  Future<void> _refreshLastApprovedResult({bool silent = false}) async {
+    final result = await _getLastApprovedSocialOcrResult();
+
+    final code = result['code']?.toString() ?? '';
+    final hasUsefulResult =
+        code == 'SOCIAL_TRANSLATE_OCR_PREVIEW_READY' ||
+        code == 'SOCIAL_TRANSLATE_OCR_FAILED' ||
+        code == 'SOCIAL_TRANSLATE_OCR_PREP_FAILED' ||
+        code == 'SOCIAL_TRANSLATE_SNAPSHOT_START_FAILED';
+
+    if (!hasUsefulResult && silent) {
+      return;
+    }
+
+    _lastApprovedSocialTranslateResult = Map<String, Object?>.from(result);
+    final opened = result['openedSocialApp']?.toString();
+    if (opened != null && opened.isNotEmpty) {
+      _lastApprovedSocialTranslateApp = opened;
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      busy = false;
+      launcherResult = Map<String, Object?>.from(result);
+      selectedApp = _lastApprovedSocialTranslateApp;
+      sessionActive = _lastApprovedSocialTranslateSessionActive;
+    });
+  }
+
+  @override
   void dispose() {
     replyController.dispose();
     super.dispose();
   }
 
   Future<void> _startSessionAndOpen(_SocialAppTarget target) async {
+    final waitingResult = <String, Object?>{
+      'ok': true,
+      'code': 'SOCIAL_TRANSLATE_WAITING_FOR_RETURN',
+      'message':
+          '${target.label} was opened. Return to Cidentia to view OCR preview.',
+      'openedSocialApp': target.label,
+      'ocrStarted': false,
+      'overlayOpened': false,
+      'automaticSend': false,
+      'loginAttempted': false,
+    };
+
+    _lastApprovedSocialTranslateSessionActive = true;
+    _lastApprovedSocialTranslateApp = target.label;
+    _lastApprovedSocialTranslateResult = waitingResult;
+
     setState(() {
       busy = true;
       sessionActive = true;
       selectedApp = target.label;
-      launcherResult = null;
+      launcherResult = Map<String, Object?>.from(waitingResult);
     });
 
     final result = await _startApprovedSocialOcrPreview(
@@ -2037,26 +2131,41 @@ class _ApprovedSocialSessionLauncherCardState
       label: target.label,
     );
 
+    final cachedResult = Map<String, Object?>.from(result);
+    _lastApprovedSocialTranslateSessionActive = true;
+    _lastApprovedSocialTranslateApp = target.label;
+    _lastApprovedSocialTranslateResult = cachedResult;
+
     if (!mounted) {
       return;
     }
 
     setState(() {
       busy = false;
-      launcherResult = result;
+      sessionActive = true;
+      selectedApp = target.label;
+      launcherResult = Map<String, Object?>.from(cachedResult);
     });
   }
 
   void _stopSession() {
+    final stoppedResult = <String, Object?>{
+      'ok': true,
+      'code': 'SOCIAL_TRANSLATE_SESSION_STOPPED',
+      'message': 'Approved social translate session was stopped by the user.',
+      'automaticSend': false,
+      'loginAttempted': false,
+      'ocrStarted': false,
+      'overlayOpened': false,
+    };
+
+    _lastApprovedSocialTranslateSessionActive = false;
+    _lastApprovedSocialTranslateResult = stoppedResult;
+
     setState(() {
+      busy = false;
       sessionActive = false;
-      launcherResult = {
-        'ok': true,
-        'code': 'SOCIAL_TRANSLATE_SESSION_STOPPED',
-        'message': 'Approved social translate session was stopped by the user.',
-        'automaticSend': false,
-        'loginAttempted': false,
-      };
+      launcherResult = Map<String, Object?>.from(stoppedResult);
     });
   }
 
@@ -2117,6 +2226,11 @@ class _ApprovedSocialSessionLauncherCardState
                 },
                 icon: const Icon(Icons.copy_rounded),
                 label: const Text('Copy reply'),
+              ),
+              OutlinedButton.icon(
+                onPressed: busy ? null : () => _refreshLastApprovedResult(),
+                icon: const Icon(Icons.refresh_rounded),
+                label: const Text('Refresh OCR result'),
               ),
               if (launcherResult != null)
                 _SessionSafetyChip(
