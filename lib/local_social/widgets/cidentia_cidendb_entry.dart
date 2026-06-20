@@ -6,7 +6,10 @@ import 'package:flutter/material.dart';
 const _entryPanel = Color(0xFF101114);
 const _entryLine = Color(0xFF262A33);
 const _entrySoft = Color(0xFFA1A1AA);
-const _entryBridgeBaseUrl = 'http://localhost:3000';
+const _entryBridgeBaseUrl = String.fromEnvironment(
+  'CIDENDB_ENTRY_BRIDGE_BASE_URL',
+  defaultValue: 'http://localhost:3000',
+);
 
 class CidenDbEntryButton extends StatelessWidget {
   const CidenDbEntryButton({super.key, this.compact = false});
