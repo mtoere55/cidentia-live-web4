@@ -758,6 +758,8 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
               const SizedBox(height: 14),
               _CreateCaptionPreview(controller: captionController),
               const SizedBox(height: 14),
+              const _CreateUploadReadinessCard(),
+              const SizedBox(height: 10),
               const _CreateBoundaryNotice(),
               const SizedBox(height: 14),
               const _CreateProductionBoundaryActions(),
@@ -776,7 +778,7 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
                     );
                   },
                   icon: const Icon(Icons.save_outlined),
-                  label: const Text('Save local draft'),
+                  label: const Text('Save readiness draft'),
                 ),
               ),
             ],
@@ -1130,7 +1132,7 @@ class _CreateMediaPreview extends StatelessWidget {
               right: 14,
               bottom: 14,
               child: Text(
-                '$mode $mediaType preview ? $mediaLabel',
+                '$mode $mediaType preview - $mediaLabel',
                 style: const TextStyle(
                   fontWeight: FontWeight.w900,
                   fontSize: 18,
@@ -1274,6 +1276,104 @@ class _CreateLockedActionTile extends StatelessWidget {
             ),
           ),
           const Icon(Icons.lock_outline_rounded, size: 18),
+        ],
+      ),
+    );
+  }
+}
+
+class _CreateUploadReadinessCard extends StatelessWidget {
+  const _CreateUploadReadinessCard();
+
+  @override
+  Widget build(BuildContext context) {
+    const items = [
+      (Icons.photo_library_outlined, 'Picker', 'Visual only'),
+      (Icons.lock_outline_rounded, 'Upload', 'Locked'),
+      (Icons.storage_outlined, 'Storage', 'Closed'),
+      (Icons.publish_outlined, 'Publish', 'Blocked'),
+    ];
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: _panelSoft,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _line),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.fact_check_outlined, size: 18),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Media upload readiness boundary',
+                  style: TextStyle(fontWeight: FontWeight.w900),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'This prepares the future upload flow without opening file access, storage, backend publish, wallet or payment.',
+            style: TextStyle(color: _textSoft, height: 1.3, fontSize: 12),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final item in items)
+                _CreateReadinessPill(
+                  icon: item.$1,
+                  label: item.$2,
+                  value: item.$3,
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CreateReadinessPill extends StatelessWidget {
+  const _CreateReadinessPill({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: _line),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: _textSoft),
+          const SizedBox(width: 5),
+          Text(
+            '$label: $value',
+            style: const TextStyle(
+              color: _textSoft,
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
         ],
       ),
     );
