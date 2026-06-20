@@ -152,7 +152,7 @@ class _ProfileHero extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: _line),
       ),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -570,9 +570,7 @@ class _CreatorEconomyPreviewCard extends StatelessWidget {
             builder: (context, constraints) {
               final metricWidth = constraints.maxWidth >= 760
                   ? (constraints.maxWidth - 24) / 4
-                  : constraints.maxWidth >= 520
-                  ? (constraints.maxWidth - 8) / 2
-                  : constraints.maxWidth;
+                  : (constraints.maxWidth - 8) / 2;
 
               return Wrap(
                 spacing: 8,
@@ -590,8 +588,10 @@ class _CreatorEconomyPreviewCard extends StatelessWidget {
               );
             },
           ),
-          const SizedBox(height: 12),
-          const _CreatorAssetStrip(),
+          if (MediaQuery.sizeOf(context).width >= 520) ...[
+            const SizedBox(height: 12),
+            const _CreatorAssetStrip(),
+          ],
         ],
       ),
     );

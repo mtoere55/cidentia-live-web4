@@ -446,13 +446,16 @@ class _CidentiaEcosystemEntryGateState
 
   @override
   Widget build(BuildContext context) {
-    final wide = MediaQuery.sizeOf(context).width >= 980;
+    final size = MediaQuery.sizeOf(context);
+    final wide = size.width >= 980;
+    final mobile = size.width < 720;
+    final showResult = _result.kind != _EntryResultKind.idle || _showDetails;
 
     return Scaffold(
       backgroundColor: const Color(0xFF020617),
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(mobile ? 14 : 24),
           children: [
             _TopBar(
               language: widget.language,
@@ -469,28 +472,30 @@ class _CidentiaEcosystemEntryGateState
                 ],
               )
             else ...[
-              _HeroPanel(language: text),
-              const SizedBox(height: 18),
               _signInPanel(),
             ],
-            const SizedBox(height: 20),
-            _ActionCards(
-              language: text,
-              onCidentiaApp: _openCidentiaApp,
-              onExplore: widget.onEnter,
-              onCidInfo: _showCidInfo,
-              onCidenDbInfo: _showCidenDbInfo,
-            ),
-            const SizedBox(height: 20),
-            _ResultGrid(
-              language: text,
-              result: _result,
-              showDetails: _showDetails,
-              onToggleDetails: () =>
-                  setState(() => _showDetails = !_showDetails),
-              onCidentiaApp: _openCidentiaApp,
-              onEnter: widget.onEnter,
-            ),
+            if (wide) ...[
+              const SizedBox(height: 20),
+              _ActionCards(
+                language: text,
+                onCidentiaApp: _openCidentiaApp,
+                onExplore: widget.onEnter,
+                onCidInfo: _showCidInfo,
+                onCidenDbInfo: _showCidenDbInfo,
+              ),
+            ],
+            if (showResult) ...[
+              const SizedBox(height: 20),
+              _ResultGrid(
+                language: text,
+                result: _result,
+                showDetails: _showDetails,
+                onToggleDetails: () =>
+                    setState(() => _showDetails = !_showDetails),
+                onCidentiaApp: _openCidentiaApp,
+                onEnter: widget.onEnter,
+              ),
+            ],
             const SizedBox(height: 20),
             _Footer(language: text),
           ],
@@ -514,7 +519,9 @@ class _CidentiaEcosystemEntryGateState
           ),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(28),
+          padding: EdgeInsets.all(
+            MediaQuery.sizeOf(context).width < 720 ? 18 : 28,
+          ),
           child: LayoutBuilder(
             builder: (context, constraints) {
               final compact = constraints.maxWidth < 460;
@@ -561,7 +568,7 @@ class _CidentiaEcosystemEntryGateState
                         child: Text(
                           'Sign in with CidenDB',
                           style: TextStyle(
-                            fontSize: 30,
+                            fontSize: 26,
                             height: 1,
                             fontWeight: FontWeight.w900,
                           ),
@@ -569,16 +576,16 @@ class _CidentiaEcosystemEntryGateState
                       ),
                     ],
                   ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 12),
                   const Text(
-                    'CidenDB protects your identity across the Cidentia ecosystem. We will send a 6-digit verification code to your email.',
+                    'CidenDB protects your identity and sends a 6-digit code to your email.',
                     style: TextStyle(
                       color: Colors.white70,
-                      height: 1.45,
-                      fontSize: 15,
+                      height: 1.35,
+                      fontSize: 14,
                     ),
                   ),
-                  const SizedBox(height: 26),
+                  const SizedBox(height: 18),
                   const _EntryStepLabel(
                     step: 'STEP 1',
                     label: 'Enter your email',
@@ -626,9 +633,11 @@ class _CidentiaEcosystemEntryGateState
                             SizedBox(width: 168, child: verifyButton),
                           ],
                         ),
-                  const SizedBox(height: 22),
-                  const _EntryHowItWorksPanel(),
-                  const SizedBox(height: 18),
+                  if (MediaQuery.sizeOf(context).width >= 720) ...[
+                    const SizedBox(height: 22),
+                    const _EntryHowItWorksPanel(),
+                  ],
+                  const SizedBox(height: 14),
                   _EntryCtaStrip(
                     title: 'No CID yet?',
                     body: 'Create or complete your identity at CidentiaApp.com',
