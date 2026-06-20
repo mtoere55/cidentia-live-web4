@@ -175,6 +175,8 @@ class _OriginalInspiredLiveStudioPageState
               onToggleTranslate: () =>
                   setState(() => translateEnabled = !translateEnabled),
             ),
+            const SizedBox(height: 12),
+            const _StudioReadinessBoundaryCard(),
             const SizedBox(height: 16),
             _DesktopStudioPreview(
               showStageChatOverlay: widget.showStageChatOverlay,
@@ -311,6 +313,113 @@ class _StatusCard extends StatelessWidget {
                   ? const Color(0xFFFCA5A5)
                   : const Color(0xFF86EFAC),
               fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StudioReadinessBoundaryCard extends StatelessWidget {
+  const _StudioReadinessBoundaryCard();
+
+  @override
+  Widget build(BuildContext context) {
+    const items = [
+      (Icons.videocam_outlined, 'Camera', 'Preview toggle'),
+      (Icons.monitor_rounded, 'Screen', 'Locked'),
+      (Icons.public_rounded, 'RTMP', 'Closed'),
+      (Icons.fiber_manual_record_rounded, 'Record', 'No file'),
+      (Icons.account_balance_wallet_outlined, 'Wallet', 'Locked'),
+    ];
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: _panel,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: _line),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.shield_outlined, size: 18, color: Color(0xFF86EFAC)),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Live Studio readiness boundary',
+                  style: TextStyle(fontWeight: FontWeight.w900),
+                ),
+              ),
+              Text(
+                'LOCAL SAFE',
+                style: TextStyle(
+                  color: Color(0xFF86EFAC),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Studio is ready as a creator preview. Real camera capture, screen share, RTMP, recording, wallet support and live broadcast remain locked.',
+            style: TextStyle(color: _textSoft, height: 1.3, fontSize: 12),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final item in items)
+                _StudioReadinessPill(
+                  icon: item.$1,
+                  label: item.$2,
+                  value: item.$3,
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StudioReadinessPill extends StatelessWidget {
+  const _StudioReadinessPill({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
+      decoration: BoxDecoration(
+        color: _panelSoft,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: _line),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: _textSoft),
+          const SizedBox(width: 5),
+          Text(
+            '$label: $value',
+            style: const TextStyle(
+              color: _textSoft,
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
             ),
           ),
         ],
@@ -1616,7 +1725,7 @@ class _DestinationsPanel extends StatelessWidget {
                   ),
                 ),
                 const Text(
-                  '6 / 6 Connected',
+                  '6 / 6 Preview',
                   style: TextStyle(
                     color: Color(0xFF4ADE80),
                     fontWeight: FontWeight.w900,
@@ -2478,7 +2587,7 @@ class _MobileDestinationsSheet extends StatelessWidget {
                           ),
                         ),
                         const Text(
-                          '6 / 6 Connected',
+                          '6 / 6 Preview',
                           style: TextStyle(
                             color: Color(0xFF4ADE80),
                             fontWeight: FontWeight.w900,
@@ -2729,11 +2838,9 @@ class _DestinationManagerDialogState extends State<_DestinationManagerDialog> {
   Widget build(BuildContext context) {
     final item = widget.item;
     final rtmpValue = item.name == 'Custom RTMP'
-        ? 'rtmp://custom.server/live'
-        : 'rtmp://studio.cidentia.live/${item.name.toLowerCase()}';
-    final streamKeyValue = revealKey
-        ? 'demo-local-stream-key-locked'
-        : '????????????????';
+        ? 'RTMP endpoint locked'
+        : '${item.name} destination locked';
+    final streamKeyValue = revealKey ? 'local-key-locked' : '****************';
 
     return Dialog(
       insetPadding: const EdgeInsets.all(18),
@@ -2806,9 +2913,7 @@ class _DestinationManagerDialogState extends State<_DestinationManagerDialog> {
                           style: TextStyle(fontWeight: FontWeight.w900),
                         ),
                         subtitle: Text(
-                          enabled
-                              ? 'Ready for local studio routing'
-                              : 'Disabled',
+                          enabled ? 'Preview routing only' : 'Disabled',
                           style: const TextStyle(color: _textSoft),
                         ),
                       ),
@@ -2871,7 +2976,7 @@ class _DestinationManagerDialogState extends State<_DestinationManagerDialog> {
                     child: FilledButton.icon(
                       onPressed: () => Navigator.of(context).pop(),
                       icon: const Icon(Icons.check_rounded),
-                      label: const Text('Save Local'),
+                      label: const Text('Save Preview'),
                     ),
                   ),
                 ],
