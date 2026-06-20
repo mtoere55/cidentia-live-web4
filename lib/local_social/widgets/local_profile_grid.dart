@@ -395,6 +395,8 @@ class _ProfileActionRow extends StatelessWidget {
       cid: session?.cid,
     );
 
+    final compact = MediaQuery.sizeOf(context).width < 420;
+
     return Row(
       children: [
         Expanded(
@@ -417,12 +419,12 @@ class _ProfileActionRow extends StatelessWidget {
                 subtitle: 'Verified CID profile workspace',
                 icon: Icons.edit_outlined,
                 text:
-                    '$profileName profile is connected to $cid. Signed in as $email. Local profile editing controls come next; production save remains locked until the backend profile route is connected.',
+                    '$profileName is connected to $cid. Signed in as $email. Profile editing is preview-only; production save stays locked.',
               );
             },
           ),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: compact ? 6 : 12),
         Expanded(
           child: _ProfileActionButton(
             icon: Icons.account_balance_wallet_outlined,
@@ -442,7 +444,7 @@ class _ProfileActionRow extends StatelessWidget {
                 subtitle: 'CidenBridge wallet gateway',
                 icon: Icons.account_balance_wallet_outlined,
                 text:
-                    'Verified CID session is ready for wallet access. Real wallet, balance, token, payment and blockchain actions stay locked until the CidenBridge wallet module is connected.',
+                    'CID session is verified. Wallet preview is locked until CidenBridge is connected.',
               );
             },
           ),
@@ -467,7 +469,7 @@ class _ProfileActionRow extends StatelessWidget {
                 subtitle: 'CidenDB proof gateway',
                 icon: Icons.verified_user_outlined,
                 text:
-                    'Verified CID proof state is available for this local profile. Real proof documents, trust audit and CidenDB proof details will connect through the production backend.',
+                    'CID proof preview is visible. Real proof documents and audit backend stay locked.',
               );
             },
           ),
@@ -501,12 +503,14 @@ class _ProfileActionButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(18),
           border: Border.all(color: primary ? Colors.white : _line),
         ),
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        padding: EdgeInsets.symmetric(
+          vertical: MediaQuery.sizeOf(context).width < 420 ? 8 : 10,
+        ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 18, color: primary ? Colors.black : Colors.white),
-            const SizedBox(width: 8),
+            Icon(icon, size: 16, color: primary ? Colors.black : Colors.white),
+            const SizedBox(width: 5),
             Flexible(
               child: Text(
                 label,
@@ -941,28 +945,25 @@ void _openProfileActionSheet(
           ],
           if (title == 'Wallet') ...[
             const _ProfileGatewayStatusCard(
-              title: 'Wallet gateway locked',
-              subtitle: 'Verified CID is ready. Real wallet remains closed.',
+              title: 'Wallet locked',
+              subtitle: 'CID ready. Real wallet closed.',
               icon: Icons.account_balance_wallet_outlined,
               accent: Color(0xFFF97316),
               items: [
                 _ProfileGatewayItem(
                   icon: Icons.verified_user_outlined,
                   label: 'CID session',
-                  description:
-                      'Verified identity can request wallet access later.',
+                  description: 'Ready for future wallet routing.',
                 ),
                 _ProfileGatewayItem(
                   icon: Icons.lock_outline_rounded,
                   label: 'No balance shown',
-                  description:
-                      'No fake token, reward, payment or balance is created.',
+                  description: 'No fake token, payment or balance.',
                 ),
                 _ProfileGatewayItem(
                   icon: Icons.hub_outlined,
                   label: 'CidenBridge required',
-                  description:
-                      'Production wallet routing must pass through CidenBridge.',
+                  description: 'Wallet must pass through CidenBridge.',
                 ),
               ],
             ),
@@ -970,29 +971,25 @@ void _openProfileActionSheet(
           ],
           if (title == 'Proof') ...[
             const _ProfileGatewayStatusCard(
-              title: 'Proof gateway ready',
-              subtitle:
-                  'Verified CID proof preview. Real proof backend remains closed.',
+              title: 'Proof ready',
+              subtitle: 'CID proof preview. Backend closed.',
               icon: Icons.verified_user_outlined,
               accent: Color(0xFF60A5FA),
               items: [
                 _ProfileGatewayItem(
                   icon: Icons.badge_outlined,
                   label: 'CID verified',
-                  description:
-                      'The local profile can display verified CidenDB identity.',
+                  description: 'Verified CidenDB identity is visible.',
                 ),
                 _ProfileGatewayItem(
                   icon: Icons.fingerprint_rounded,
                   label: 'Proof module locked',
-                  description:
-                      'No document, biometric, audit or trust backend is opened.',
+                  description: 'No document or audit backend opened.',
                 ),
                 _ProfileGatewayItem(
                   icon: Icons.token_outlined,
                   label: 'No minting',
-                  description:
-                      'Blockchain, NFT, payment and token actions stay closed.',
+                  description: 'NFT, token and payment stay closed.',
                 ),
               ],
             ),
