@@ -91,6 +91,103 @@ class _LocalSocialAppState extends State<LocalSocialApp> {
   }
 }
 
+class _SessionLifecycleCard extends StatelessWidget {
+  const _SessionLifecycleCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final session = CidentiaSessionScope.of(context);
+    final verified = session.hasVerifiedCid;
+    final action = CidentiaSessionScope.onSignInRequestedOf(context);
+
+    final title = verified ? 'Verified CID active' : 'Guest preview';
+    final identity = verified
+        ? session.cid ?? 'CID verified'
+        : 'No verified CID';
+    final subtitle = verified
+        ? session.email == null
+              ? 'Runtime session only. Not persisted.'
+              : 'Signed in as ${session.email}'
+        : 'Public Feed, Search and Reels stay open. Protected actions require CID.';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: verified
+              ? const Color(0xFF22C55E).withValues(alpha: 0.45)
+              : Colors.white12,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                verified
+                    ? Icons.verified_user_rounded
+                    : Icons.visibility_outlined,
+                size: 17,
+                color: verified ? const Color(0xFF86EFAC) : _textSoft,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 7),
+          Text(
+            identity,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: verified ? const Color(0xFF86EFAC) : _textSoft,
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: _textSoft,
+              height: 1.25,
+              fontSize: 11,
+            ),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: action,
+              icon: Icon(
+                verified ? Icons.logout_rounded : Icons.login_rounded,
+                size: 16,
+              ),
+              label: Text(verified ? 'Sign out' : 'Sign in with CID'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 enum LocalSection { feed, search, reels, chats, liveStudio, profile }
 
 enum StudioPanelMode { chat, destinations, status, focus }
@@ -247,6 +344,11 @@ class _LocalShellState extends State<LocalShell> {
                         const Padding(
                           padding: EdgeInsets.fromLTRB(20, 24, 18, 18),
                           child: CidentiaBrandHeader(),
+                        ),
+                        const SizedBox(height: 10),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16),
+                          child: _SessionLifecycleCard(),
                         ),
                         const SizedBox(height: 12),
                         Expanded(
