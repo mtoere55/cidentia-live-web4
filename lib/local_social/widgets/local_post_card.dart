@@ -362,52 +362,105 @@ class _PostActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final actions = <Widget>[
-      _ActionButton(
-        icon: isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-        label: isLiked ? 'Liked' : post.likes,
-        active: isLiked,
-        onTap: onToggleLike,
-      ),
-      _ActionButton(
-        icon: Icons.mode_comment_outlined,
-        label: post.comments,
-        onTap: onComment,
-      ),
-      _ActionButton(icon: Icons.send_outlined, label: 'Share', onTap: onShare),
-      _ActionButton(
-        icon: isSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
-        label: isSaved ? 'Saved' : 'Save',
-        active: isSaved,
-        onTap: onToggleSave,
-      ),
-    ];
-
     return Padding(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 6),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          if (constraints.maxWidth < 360) {
-            return Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              alignment: WrapAlignment.spaceBetween,
-              children: actions,
-            );
-          }
+      child: Row(
+        children: [
+          Expanded(
+            child: _PostActionPill(
+              icon: isLiked
+                  ? Icons.favorite_rounded
+                  : Icons.favorite_border_rounded,
+              label: isLiked ? 'Liked' : post.likes,
+              active: isLiked,
+              onTap: onToggleLike,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: _PostActionPill(
+              icon: Icons.mode_comment_outlined,
+              label: post.comments,
+              onTap: onComment,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: _PostActionPill(
+              icon: Icons.send_outlined,
+              label: 'Share',
+              onTap: onShare,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: _PostActionPill(
+              icon: isSaved
+                  ? Icons.bookmark_rounded
+                  : Icons.bookmark_border_rounded,
+              label: isSaved ? 'Saved' : 'Save',
+              active: isSaved,
+              onTap: onToggleSave,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
-          return Row(
+class _PostActionPill extends StatelessWidget {
+  const _PostActionPill({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.active = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool active;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final activeColor = active ? const Color(0xFFFF5C8A) : Colors.white;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(999),
+        child: Container(
+          height: 40,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          decoration: BoxDecoration(
+            color: active ? const Color(0x22FF5C8A) : const Color(0xFF181A20),
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: active ? const Color(0x66FF5C8A) : const Color(0xFF262A33),
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              actions[0],
-              const SizedBox(width: 8),
-              actions[1],
-              const SizedBox(width: 8),
-              actions[2],
-              const Spacer(),
-              actions[3],
+              Icon(icon, size: 18, color: activeColor),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: activeColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
             ],
-          );
-        },
+          ),
+        ),
       ),
     );
   }
@@ -1220,54 +1273,6 @@ class _PreviewComment extends StatelessWidget {
   }
 }
 
-class _ActionButton extends StatelessWidget {
-  const _ActionButton({
-    required this.icon,
-    required this.label,
-    this.active = false,
-    this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final bool active;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(99),
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
-        decoration: BoxDecoration(
-          color: active ? const Color(0x3322C55E) : _cardSoft,
-          borderRadius: BorderRadius.circular(99),
-          border: Border.all(color: active ? const Color(0xFF22C55E) : _line),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              size: 19,
-              color: active ? const Color(0xFF86EFAC) : Colors.white,
-            ),
-            const SizedBox(width: 7),
-            Text(
-              label,
-              style: TextStyle(
-                color: active ? const Color(0xFFBBF7D0) : Colors.white,
-                fontWeight: FontWeight.w800,
-                fontSize: 12,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class _OverlayBadge extends StatelessWidget {
   const _OverlayBadge({required this.icon, required this.label});

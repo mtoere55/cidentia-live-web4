@@ -29,9 +29,9 @@ extension CidentiaUiLanguageText on CidentiaUiLanguage {
       case CidentiaUiLanguage.en:
         return 'Live / social program of the Cidentia ecosystem';
       case CidentiaUiLanguage.tr:
-        return 'Cidentia ekosisteminin live / social programÄ±';
+        return 'Cidentia ekosisteminin live / social programÃ„Â±';
       case CidentiaUiLanguage.de:
-        return 'Live- / Social-Programm des Cidentia-Ã–kosystems';
+        return 'Live- / Social-Programm des Cidentia-Ãƒâ€“kosystems';
     }
   }
 
@@ -40,9 +40,9 @@ extension CidentiaUiLanguageText on CidentiaUiLanguage {
       case CidentiaUiLanguage.en:
         return 'Connect, create and go live. Your identity is protected by CidenDB, the official identity databank of the Cidentia ecosystem.';
       case CidentiaUiLanguage.tr:
-        return 'BaÄŸlan, Ã¼ret ve canlÄ±ya Ã§Ä±k. KimliÄŸiniz Cidentia ekosisteminin resmi kimlik databankÄ± CidenDB tarafÄ±ndan korunur.';
+        return 'BaÃ„Å¸lan, ÃƒÂ¼ret ve canlÃ„Â±ya ÃƒÂ§Ã„Â±k. KimliÃ„Å¸iniz Cidentia ekosisteminin resmi kimlik databankÃ„Â± CidenDB tarafÃ„Â±ndan korunur.';
       case CidentiaUiLanguage.de:
-        return 'Verbinden, erstellen und live gehen. Ihre IdentitÃ¤t wird durch CidenDB geschÃ¼tzt, die offizielle IdentitÃ¤tsdatenbank des Cidentia-Ã–kosystems.';
+        return 'Verbinden, erstellen und live gehen. Ihre IdentitÃƒÂ¤t wird durch CidenDB geschÃƒÂ¼tzt, die offizielle IdentitÃƒÂ¤tsdatenbank des Cidentia-Ãƒâ€“kosystems.';
     }
   }
 
@@ -51,7 +51,7 @@ extension CidentiaUiLanguageText on CidentiaUiLanguage {
       case CidentiaUiLanguage.en:
         return 'Sign in with CidenDB';
       case CidentiaUiLanguage.tr:
-        return 'CidenDB ile giriÅŸ yap';
+        return 'CidenDB ile giriÃ…Å¸ yap';
       case CidentiaUiLanguage.de:
         return 'Mit CidenDB anmelden';
     }
@@ -62,9 +62,9 @@ extension CidentiaUiLanguageText on CidentiaUiLanguage {
       case CidentiaUiLanguage.en:
         return 'We will send a 6-digit verification code to your email.';
       case CidentiaUiLanguage.tr:
-        return 'E-postanÄ±za 6 haneli bir doÄŸrulama kodu gÃ¶ndereceÄŸiz.';
+        return 'E-postanÃ„Â±za 6 haneli bir doÃ„Å¸rulama kodu gÃƒÂ¶ndereceÃ„Å¸iz.';
       case CidentiaUiLanguage.de:
-        return 'Wir senden einen 6-stelligen BestÃ¤tigungscode an Ihre E-Mail.';
+        return 'Wir senden einen 6-stelligen BestÃƒÂ¤tigungscode an Ihre E-Mail.';
     }
   }
 
@@ -97,9 +97,9 @@ extension CidentiaUiLanguageText on CidentiaUiLanguage {
       case CidentiaUiLanguage.en:
         return 'Verification code';
       case CidentiaUiLanguage.tr:
-        return 'DoÄŸrulama kodu';
+        return 'DoÃ„Å¸rulama kodu';
       case CidentiaUiLanguage.de:
-        return 'BestÃ¤tigungscode';
+        return 'BestÃƒÂ¤tigungscode';
     }
   }
 
@@ -119,9 +119,9 @@ extension CidentiaUiLanguageText on CidentiaUiLanguage {
       case CidentiaUiLanguage.en:
         return 'Verify Code';
       case CidentiaUiLanguage.tr:
-        return 'Kodu doÄŸrula';
+        return 'Kodu doÃ„Å¸rula';
       case CidentiaUiLanguage.de:
-        return 'Code bestÃ¤tigen';
+        return 'Code bestÃƒÂ¤tigen';
     }
   }
 
@@ -130,7 +130,7 @@ extension CidentiaUiLanguageText on CidentiaUiLanguage {
       case CidentiaUiLanguage.en:
         return 'Go to CidentiaApp';
       case CidentiaUiLanguage.tr:
-        return 'CidentiaAppâ€™a devam et';
+        return 'CidentiaAppÃ¢â‚¬â„¢a devam et';
       case CidentiaUiLanguage.de:
         return 'Zu CidentiaApp';
     }
@@ -141,7 +141,7 @@ extension CidentiaUiLanguageText on CidentiaUiLanguage {
       case CidentiaUiLanguage.en:
         return 'Explore without sign-in';
       case CidentiaUiLanguage.tr:
-        return 'GiriÅŸ yapmadan keÅŸfet';
+        return 'GiriÃ…Å¸ yapmadan keÃ…Å¸fet';
       case CidentiaUiLanguage.de:
         return 'Ohne Anmeldung entdecken';
     }
@@ -152,7 +152,7 @@ extension CidentiaUiLanguageText on CidentiaUiLanguage {
       case CidentiaUiLanguage.en:
         return 'CID setup required';
       case CidentiaUiLanguage.tr:
-        return 'CID tamamlanmasÄ± gerekiyor';
+        return 'CID tamamlanmasÃ„Â± gerekiyor';
       case CidentiaUiLanguage.de:
         return 'CID-Einrichtung erforderlich';
     }
@@ -163,9 +163,9 @@ extension CidentiaUiLanguageText on CidentiaUiLanguage {
       case CidentiaUiLanguage.en:
         return 'Your email is verified, but this account does not have an active CID yet. Complete your identity setup in CidentiaApp before continuing.';
       case CidentiaUiLanguage.tr:
-        return 'E-posta doÄŸrulandÄ±, ancak bu hesap iÃ§in aktif CID bulunamadÄ±. Devam etmek iÃ§in CidentiaApp Ã¼zerinden kimlik adÄ±mÄ±nÄ± tamamlayÄ±n.';
+        return 'E-posta doÃ„Å¸rulandÃ„Â±, ancak bu hesap iÃƒÂ§in aktif CID bulunamadÃ„Â±. Devam etmek iÃƒÂ§in CidentiaApp ÃƒÂ¼zerinden kimlik adÃ„Â±mÃ„Â±nÃ„Â± tamamlayÃ„Â±n.';
       case CidentiaUiLanguage.de:
-        return 'Ihre E-Mail wurde bestÃ¤tigt, aber dieses Konto hat noch keine aktive CID. Bitte schlieÃŸen Sie die IdentitÃ¤tseinrichtung in CidentiaApp ab.';
+        return 'Ihre E-Mail wurde bestÃƒÂ¤tigt, aber dieses Konto hat noch keine aktive CID. Bitte schlieÃƒÅ¸en Sie die IdentitÃƒÂ¤tseinrichtung in CidentiaApp ab.';
     }
   }
 
@@ -174,7 +174,7 @@ extension CidentiaUiLanguageText on CidentiaUiLanguage {
       case CidentiaUiLanguage.en:
         return 'Verified session ready';
       case CidentiaUiLanguage.tr:
-        return 'DoÄŸrulanmÄ±ÅŸ oturum hazÄ±r';
+        return 'DoÃ„Å¸rulanmÃ„Â±Ã…Å¸ oturum hazÃ„Â±r';
       case CidentiaUiLanguage.de:
         return 'Verifizierte Sitzung bereit';
     }
@@ -185,9 +185,9 @@ extension CidentiaUiLanguageText on CidentiaUiLanguage {
       case CidentiaUiLanguage.en:
         return 'Your identity is verified. A safe Cidentia.Live session is ready.';
       case CidentiaUiLanguage.tr:
-        return 'KimliÄŸiniz doÄŸrulandÄ±. GÃ¼venli Cidentia.Live oturumu hazÄ±r.';
+        return 'KimliÃ„Å¸iniz doÃ„Å¸rulandÃ„Â±. GÃƒÂ¼venli Cidentia.Live oturumu hazÃ„Â±r.';
       case CidentiaUiLanguage.de:
-        return 'Ihre IdentitÃ¤t ist bestÃ¤tigt. Eine sichere Cidentia.Live-Sitzung ist bereit.';
+        return 'Ihre IdentitÃƒÂ¤t ist bestÃƒÂ¤tigt. Eine sichere Cidentia.Live-Sitzung ist bereit.';
     }
   }
 
@@ -196,9 +196,9 @@ extension CidentiaUiLanguageText on CidentiaUiLanguage {
       case CidentiaUiLanguage.en:
         return 'Invalid code';
       case CidentiaUiLanguage.tr:
-        return 'Kod doÄŸrulanamadÄ±';
+        return 'Kod doÃ„Å¸rulanamadÃ„Â±';
       case CidentiaUiLanguage.de:
-        return 'UngÃ¼ltiger Code';
+        return 'UngÃƒÂ¼ltiger Code';
     }
   }
 
@@ -207,9 +207,9 @@ extension CidentiaUiLanguageText on CidentiaUiLanguage {
       case CidentiaUiLanguage.en:
         return 'The code is incorrect or expired. Please check your email and try again.';
       case CidentiaUiLanguage.tr:
-        return 'Kod hatalÄ± veya sÃ¼resi dolmuÅŸ olabilir. E-postanÄ±za gelen son kodu kontrol edin.';
+        return 'Kod hatalÃ„Â± veya sÃƒÂ¼resi dolmuÃ…Å¸ olabilir. E-postanÃ„Â±za gelen son kodu kontrol edin.';
       case CidentiaUiLanguage.de:
-        return 'Der Code ist falsch oder abgelaufen. Bitte prÃ¼fen Sie Ihre E-Mail und versuchen Sie es erneut.';
+        return 'Der Code ist falsch oder abgelaufen. Bitte prÃƒÂ¼fen Sie Ihre E-Mail und versuchen Sie es erneut.';
     }
   }
 
@@ -218,9 +218,9 @@ extension CidentiaUiLanguageText on CidentiaUiLanguage {
       case CidentiaUiLanguage.en:
         return 'Service unavailable';
       case CidentiaUiLanguage.tr:
-        return 'Servis kullanÄ±lamÄ±yor';
+        return 'Servis kullanÃ„Â±lamÃ„Â±yor';
       case CidentiaUiLanguage.de:
-        return 'Dienst nicht verfÃ¼gbar';
+        return 'Dienst nicht verfÃƒÂ¼gbar';
     }
   }
 
@@ -229,9 +229,9 @@ extension CidentiaUiLanguageText on CidentiaUiLanguage {
       case CidentiaUiLanguage.en:
         return 'CidenDB connection is currently unavailable. Please try again later.';
       case CidentiaUiLanguage.tr:
-        return 'CidenDB baÄŸlantÄ±sÄ± ÅŸu anda kullanÄ±lamÄ±yor. LÃ¼tfen tekrar deneyin.';
+        return 'CidenDB baÃ„Å¸lantÃ„Â±sÃ„Â± Ã…Å¸u anda kullanÃ„Â±lamÃ„Â±yor. LÃƒÂ¼tfen tekrar deneyin.';
       case CidentiaUiLanguage.de:
-        return 'Die CidenDB-Verbindung ist derzeit nicht verfÃ¼gbar. Bitte versuchen Sie es spÃ¤ter erneut.';
+        return 'Die CidenDB-Verbindung ist derzeit nicht verfÃƒÂ¼gbar. Bitte versuchen Sie es spÃƒÂ¤ter erneut.';
     }
   }
 
@@ -365,7 +365,77 @@ class _CidentiaEcosystemEntryGateState
     }
   }
 
+  Future<void> _openExternalUrl(String url) async {
+    try {
+      if (Platform.isWindows) {
+        await Process.run('rundll32', [
+          'url.dll,FileProtocolHandler',
+          url,
+        ], runInShell: true);
+      } else if (Platform.isMacOS) {
+        await Process.run('open', [url]);
+      } else {
+        await Process.run('xdg-open', [url]);
+      }
+    } catch (_) {
+      // Local preview only: keep UI responsive even if opening browser fails.
+    }
+  }
+
+  void _showEntryInfo({
+    required String title,
+    required String body,
+    String? actionLabel,
+    VoidCallback? onAction,
+  }) {
+    showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF11131B),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.14)),
+          ),
+          title: Text(title),
+          content: Text(body, style: const TextStyle(height: 1.45)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Close'),
+            ),
+            if (actionLabel != null && onAction != null)
+              FilledButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  onAction();
+                },
+                child: Text(actionLabel),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showCidInfo() {
+    _showEntryInfo(
+      title: 'What is CID?',
+      body:
+          'CID is your verified Cidentia identity. It lets Cidentia.Live know that the user is real, verified and connected to the wider Cidentia ecosystem.',
+    );
+  }
+
+  void _showCidenDbInfo() {
+    _showEntryInfo(
+      title: 'Why CidenDB?',
+      body:
+          'CidenDB is the identity databank of the Cidentia ecosystem. Cidentia.Live accepts verified CID sessions from CidenDB and keeps protected actions locked until the proper production modules are connected.',
+    );
+  }
+
   void _openCidentiaApp() {
+    _openExternalUrl(cidentiaAppOnboardingUrl);
     setState(() {
       _result = _EntryResult.onboarding(text);
     });
@@ -405,6 +475,8 @@ class _CidentiaEcosystemEntryGateState
               language: text,
               onCidentiaApp: _openCidentiaApp,
               onExplore: widget.onEnter,
+              onCidInfo: _showCidInfo,
+              onCidenDbInfo: _showCidenDbInfo,
             ),
             const SizedBox(height: 20),
             _ResultGrid(
@@ -425,92 +497,150 @@ class _CidentiaEcosystemEntryGateState
   }
 
   Widget _signInPanel() {
+    final language = text;
+
     return _GlassCard(
-      padding: const EdgeInsets.all(22),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              _IconBubble(
-                icon: Icons.verified_user_outlined,
-                color: const Color(0xFF38BDF8),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  text.signInTitle,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-            ],
+      padding: EdgeInsets.zero,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(28),
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0x14138BFF), Color(0x16EC4899), Color(0x06000000)],
           ),
-          const SizedBox(height: 8),
-          Text(text.signInHelp, style: const TextStyle(color: Colors.white70)),
-          const SizedBox(height: 18),
-          Text(
-            text.emailLabel,
-            style: const TextStyle(fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _emailController,
-                  decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.mail_outline_rounded),
-                    hintText: text.emailHint,
-                    border: const OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(14)),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              FilledButton.icon(
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(28),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final compact = constraints.maxWidth < 460;
+
+              final emailField = _EntryTextField(
+                controller: _emailController,
+                icon: Icons.mail_outline_rounded,
+                hintText: language.emailHint,
+                keyboardType: TextInputType.emailAddress,
+              );
+
+              final codeField = _EntryTextField(
+                controller: _codeController,
+                icon: Icons.shield_outlined,
+                hintText: language.codeHint,
+                keyboardType: TextInputType.number,
+              );
+
+              final requestButton = _EntryGradientButton(
+                label: language.requestOtp,
+                icon: Icons.send_rounded,
+                colors: const [Color(0xFFA855F7), Color(0xFFEC4899)],
                 onPressed: _busy ? null : _requestOtp,
-                icon: const Icon(Icons.send_rounded),
-                label: Text(text.requestOtp),
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-          Text(
-            text.codeLabel,
-            style: const TextStyle(fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _codeController,
-                  decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.shield_outlined),
-                    hintText: text.codeHint,
-                    border: const OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(14)),
+              );
+
+              final verifyButton = _EntryGradientButton(
+                label: language.verifyCode,
+                icon: Icons.lock_open_rounded,
+                colors: const [Color(0xFF2563EB), Color(0xFF38BDF8)],
+                onPressed: _busy ? null : _verifyOtp,
+              );
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: const [
+                      _IconBubble(
+                        icon: Icons.verified_user_outlined,
+                        color: Color(0xFF38BDF8),
+                      ),
+                      SizedBox(width: 14),
+                      Expanded(
+                        child: Text(
+                          'Sign in with CidenDB',
+                          style: TextStyle(
+                            fontSize: 30,
+                            height: 1,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+                  const Text(
+                    'CidenDB protects your identity across the Cidentia ecosystem. We will send a 6-digit verification code to your email.',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      height: 1.45,
+                      fontSize: 15,
                     ),
                   ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              FilledButton.icon(
-                onPressed: _busy ? null : _verifyOtp,
-                icon: const Icon(Icons.lock_open_rounded),
-                label: Text(text.verifyCode),
-              ),
-            ],
+                  const SizedBox(height: 26),
+                  const _EntryStepLabel(
+                    step: 'STEP 1',
+                    label: 'Enter your email',
+                  ),
+                  const SizedBox(height: 8),
+                  compact
+                      ? Column(
+                          children: [
+                            emailField,
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              child: requestButton,
+                            ),
+                          ],
+                        )
+                      : Row(
+                          children: [
+                            Expanded(child: emailField),
+                            const SizedBox(width: 14),
+                            SizedBox(width: 168, child: requestButton),
+                          ],
+                        ),
+                  const SizedBox(height: 22),
+                  const _EntryStepLabel(
+                    step: 'STEP 2',
+                    label: 'Enter 6-digit code',
+                  ),
+                  const SizedBox(height: 8),
+                  compact
+                      ? Column(
+                          children: [
+                            codeField,
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              child: verifyButton,
+                            ),
+                          ],
+                        )
+                      : Row(
+                          children: [
+                            Expanded(child: codeField),
+                            const SizedBox(width: 14),
+                            SizedBox(width: 168, child: verifyButton),
+                          ],
+                        ),
+                  const SizedBox(height: 22),
+                  const _EntryHowItWorksPanel(),
+                  const SizedBox(height: 18),
+                  _EntryCtaStrip(
+                    title: 'No CID yet?',
+                    body: 'Create or complete your identity at CidentiaApp.com',
+                    onTap: _openCidentiaApp,
+                  ),
+                  const SizedBox(height: 12),
+                  _EntryTextLink(
+                    label: 'Explore public preview without sign-in',
+                    onTap: widget.onEnter,
+                  ),
+                ],
+              );
+            },
           ),
-          const SizedBox(height: 16),
-          if (_busy) const LinearProgressIndicator(),
-          const SizedBox(height: 10),
-          _HowItWorks(language: text),
-        ],
+        ),
       ),
     );
   }
@@ -882,38 +1012,603 @@ class _HeroPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _GlassCard(
-      padding: const EdgeInsets.all(28),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            language.appTitle,
-            style: const TextStyle(fontSize: 56, fontWeight: FontWeight.w900),
+      padding: EdgeInsets.zero,
+      child: Container(
+        decoration: const BoxDecoration(
+          borderRadius: BorderRadius.all(Radius.circular(28)),
+          gradient: RadialGradient(
+            center: Alignment(0.6, -0.2),
+            radius: 1.1,
+            colors: [Color(0x302563EB), Color(0x12111827), Color(0x00111827)],
           ),
-          const SizedBox(height: 8),
-          Text(
-            language.appSubtitle,
-            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            language.heroLead,
-            style: const TextStyle(color: Colors.white70, height: 1.45),
-          ),
-          const SizedBox(height: 24),
-          const Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: [
-              _FeatureBadge(
-                icon: Icons.shield_outlined,
-                title: 'Secure Identity',
+        ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final compact = constraints.maxWidth < 720;
+
+            final copy = Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'CIDENTIA.LIVE',
+                  style: TextStyle(
+                    color: Color(0xFFC084FC),
+                    fontSize: 14,
+                    letterSpacing: 1.8,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  'One verified identity\nfor social, live and\ncreator space.',
+                  style: TextStyle(
+                    fontSize: compact ? 40 : 55,
+                    height: 1.02,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -1.4,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Sign in with CidenDB to access Cidentia.Live. Verified CID users get a safe session. No CID yet? We route you to CidentiaApp.com to complete onboarding.',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    height: 1.48,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: 28),
+                const Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: [
+                    _FeatureBadge(
+                      icon: Icons.shield_outlined,
+                      title: 'CidenDB verified',
+                    ),
+                    _FeatureBadge(
+                      icon: Icons.visibility_outlined,
+                      title: 'Public preview',
+                    ),
+                    _FeatureBadge(
+                      icon: Icons.lock_outline,
+                      title: 'Safe session',
+                    ),
+                  ],
+                ),
+              ],
+            );
+
+            if (compact) {
+              return Padding(
+                padding: const EdgeInsets.all(26),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    copy,
+                    const SizedBox(height: 28),
+                    const Center(child: _OrbitIdentityVisual(compact: true)),
+                  ],
+                ),
+              );
+            }
+
+            return Padding(
+              padding: const EdgeInsets.all(34),
+              child: Row(
+                children: [
+                  Expanded(child: copy),
+                  const SizedBox(width: 28),
+                  const _OrbitIdentityVisual(),
+                ],
               ),
-              _FeatureBadge(icon: Icons.person_outline, title: 'Your Control'),
-              _FeatureBadge(icon: Icons.lock_outline, title: 'Safe Sessions'),
-            ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _OrbitIdentityVisual extends StatelessWidget {
+  const _OrbitIdentityVisual({this.compact = false});
+
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final width = compact ? 300.0 : 420.0;
+    final height = compact ? 300.0 : 360.0;
+
+    return SizedBox(
+      width: width,
+      height: height,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    const Color(0x664F46E5),
+                    const Color(0x2238BDF8),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            left: compact ? 34 : 58,
+            bottom: compact ? 28 : 16,
+            child: _NeonPlatform(compact: compact),
+          ),
+          Positioned(
+            left: compact ? 14 : 26,
+            top: compact ? 78 : 74,
+            child: _HoloCard(
+              width: compact ? 128 : 158,
+              height: compact ? 186 : 224,
+              angle: -0.16,
+              title: 'LIVE',
+              subtitle: 'Go live securely',
+              icon: Icons.live_tv_rounded,
+              colors: const [Color(0xFF2563EB), Color(0xFF8B5CF6)],
+            ),
+          ),
+          Positioned(
+            right: compact ? 10 : 22,
+            top: compact ? 58 : 64,
+            child: _HoloCard(
+              width: compact ? 138 : 170,
+              height: compact ? 196 : 232,
+              angle: 0.15,
+              title: 'CREATOR',
+              subtitle: 'Build and grow',
+              icon: Icons.play_circle_outline_rounded,
+              colors: const [Color(0xFFF97316), Color(0xFFEC4899)],
+            ),
+          ),
+          Positioned(
+            left: compact ? 82 : 120,
+            top: compact ? 52 : 50,
+            child: _HoloCard(
+              width: compact ? 146 : 190,
+              height: compact ? 206 : 258,
+              angle: 0,
+              title: 'Cidentia',
+              subtitle: 'Verified identity',
+              icon: Icons.verified_user_rounded,
+              colors: const [Color(0xFF7C3AED), Color(0xFF22D3EE)],
+              primary: true,
+            ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _NeonPlatform extends StatelessWidget {
+  const _NeonPlatform({required this.compact});
+
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: compact ? 230 : 310,
+      height: compact ? 70 : 88,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        gradient: const RadialGradient(
+          colors: [Color(0xAAE879F9), Color(0x5538BDF8), Colors.transparent],
+        ),
+        boxShadow: const [
+          BoxShadow(color: Color(0xAA7C3AED), blurRadius: 46, spreadRadius: 4),
+        ],
+      ),
+    );
+  }
+}
+
+class _HoloCard extends StatelessWidget {
+  const _HoloCard({
+    required this.width,
+    required this.height,
+    required this.angle,
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.colors,
+    this.primary = false,
+  });
+
+  final double width;
+  final double height;
+  final double angle;
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final List<Color> colors;
+  final bool primary;
+
+  @override
+  Widget build(BuildContext context) {
+    return Transform.rotate(
+      angle: angle,
+      child: Container(
+        width: width,
+        height: height,
+        padding: EdgeInsets.all(primary ? 20 : 16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(primary ? 30 : 26),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: colors,
+          ),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.38)),
+          boxShadow: [
+            BoxShadow(
+              color: colors.last.withValues(alpha: 0.45),
+              blurRadius: primary ? 42 : 30,
+              offset: const Offset(0, 20),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: Colors.white, size: primary ? 34 : 26),
+            const Spacer(),
+            if (primary)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 7,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(color: Colors.white24),
+                ),
+                child: const Text(
+                  'VERIFIED IDENTITY',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900),
+                ),
+              ),
+            if (primary) const SizedBox(height: 16),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: primary ? 25 : 20,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(subtitle, style: const TextStyle(color: Colors.white70)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EntryStepLabel extends StatelessWidget {
+  const _EntryStepLabel({required this.step, required this.label});
+
+  final String step;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text(
+          step,
+          style: const TextStyle(
+            color: Color(0xFFC4B5FD),
+            fontSize: 11,
+            letterSpacing: 1,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Text(label, style: const TextStyle(fontWeight: FontWeight.w800)),
+      ],
+    );
+  }
+}
+
+class _EntryTextField extends StatelessWidget {
+  const _EntryTextField({
+    required this.controller,
+    required this.icon,
+    required this.hintText,
+    required this.keyboardType,
+  });
+
+  final TextEditingController controller;
+  final IconData icon;
+  final String hintText;
+  final TextInputType keyboardType;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        prefixIcon: Icon(icon),
+        hintText: hintText,
+        filled: true,
+        fillColor: Colors.black.withValues(alpha: 0.18),
+        border: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(16)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.24)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFFEC4899), width: 1.4),
+        ),
+      ),
+    );
+  }
+}
+
+class _EntryGradientButton extends StatelessWidget {
+  const _EntryGradientButton({
+    required this.label,
+    required this.icon,
+    required this.colors,
+    required this.onPressed,
+  });
+
+  final String label;
+  final IconData icon;
+  final List<Color> colors;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final disabled = onPressed == null;
+
+    return Opacity(
+      opacity: disabled ? 0.55 : 1,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(colors: colors),
+          boxShadow: [
+            BoxShadow(
+              color: colors.last.withValues(alpha: 0.32),
+              blurRadius: 22,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onPressed,
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, size: 18),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      label,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EntryHowItWorksPanel extends StatelessWidget {
+  const _EntryHowItWorksPanel();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+      ),
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('How it works', style: TextStyle(fontWeight: FontWeight.w900)),
+          SizedBox(height: 12),
+          _EntryNumberedLine(
+            number: '1',
+            text: 'Enter your email and request a 6-digit code.',
+          ),
+          _EntryNumberedLine(
+            number: '2',
+            text: 'Check your inbox and enter the code.',
+          ),
+          _EntryNumberedLine(
+            number: '3',
+            text: 'Enter Cidentia.Live with a safe verified session.',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EntryNumberedLine extends StatelessWidget {
+  const _EntryNumberedLine({required this.number, required this.text});
+
+  final String number;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 7),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 12,
+            backgroundColor: const Color(0xFF7C3AED).withValues(alpha: 0.22),
+            child: Text(number, style: const TextStyle(fontSize: 12)),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(text, style: const TextStyle(color: Colors.white70)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EntryCtaStrip extends StatelessWidget {
+  const _EntryCtaStrip({
+    required this.title,
+    required this.body,
+    required this.onTap,
+  });
+
+  final String title;
+  final String body;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: const LinearGradient(
+            colors: [Color(0x442563EB), Color(0x337C3AED)],
+          ),
+          border: Border.all(color: const Color(0xFF7C3AED)),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(body, style: const TextStyle(color: Colors.white70)),
+                ],
+              ),
+            ),
+            const CircleAvatar(
+              backgroundColor: Color(0xFF2563EB),
+              child: Icon(Icons.arrow_forward_rounded, color: Colors.white),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EntryTextLink extends StatelessWidget {
+  const _EntryTextLink({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton.icon(
+      onPressed: onTap,
+      icon: const Icon(Icons.arrow_forward_rounded),
+      label: Text(label),
+    );
+  }
+}
+
+
+class _VisualCard extends StatelessWidget {
+  const _VisualCard({
+    required this.width,
+    required this.height,
+    required this.angle,
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.colors,
+  });
+
+  final double width;
+  final double height;
+  final double angle;
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final List<Color> colors;
+
+  @override
+  Widget build(BuildContext context) {
+    return Transform.rotate(
+      angle: angle,
+      child: Container(
+        width: width,
+        height: height,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(30),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: colors,
+          ),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.38)),
+          boxShadow: const [
+            BoxShadow(
+              blurRadius: 36,
+              color: Colors.black54,
+              offset: Offset(0, 20),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: Colors.white, size: 28),
+            const Spacer(),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
+            ),
+            const SizedBox(height: 4),
+            Text(subtitle, style: const TextStyle(color: Colors.white70)),
+          ],
+        ),
       ),
     );
   }
@@ -924,11 +1619,15 @@ class _ActionCards extends StatelessWidget {
     required this.language,
     required this.onCidentiaApp,
     required this.onExplore,
+    required this.onCidInfo,
+    required this.onCidenDbInfo,
   });
 
   final CidentiaUiLanguage language;
   final VoidCallback onCidentiaApp;
   final VoidCallback onExplore;
+  final VoidCallback onCidInfo;
+  final VoidCallback onCidenDbInfo;
 
   @override
   Widget build(BuildContext context) {
@@ -938,24 +1637,38 @@ class _ActionCards extends StatelessWidget {
       children: [
         _ActionCard(
           icon: Icons.person_add_alt_1_rounded,
-          title: language.continueCidentiaApp,
-          body: language.cidSetupBody,
+          title: 'Create your CID at CidentiaApp',
+          body:
+              'Your email is verified, but this account does not have an active CID yet. Complete your identity setup.',
+          action: 'Go to CidentiaApp.com',
           color: const Color(0xFF22C55E),
           onTap: onCidentiaApp,
         ),
         _ActionCard(
-          icon: Icons.public_rounded,
-          title: language.exploreGuest,
-          body: 'Feed, Search, Reels and public live previews stay open.',
-          color: const Color(0xFF3B82F6),
+          icon: Icons.visibility_outlined,
+          title: 'Explore public preview',
+          body:
+              'Feed, Search, Reels and public live previews are open to everyone.',
+          action: 'Explore without sign-in',
+          color: const Color(0xFFA855F7),
           onTap: onExplore,
         ),
         _ActionCard(
           icon: Icons.help_outline_rounded,
           title: 'What is CID?',
           body: 'CID is your Cidentia identity across the ecosystem.',
-          color: const Color(0xFFA855F7),
-          onTap: () {},
+          action: 'Learn more about CID',
+          color: const Color(0xFF3B82F6),
+          onTap: onCidInfo,
+        ),
+        _ActionCard(
+          icon: Icons.verified_user_outlined,
+          title: 'Why CidenDB?',
+          body:
+              'CidenDB is the official identity databank of the Cidentia ecosystem: secure, private and future-ready.',
+          action: 'Learn about CidenDB',
+          color: const Color(0xFFEC4899),
+          onTap: onCidenDbInfo,
         ),
       ],
     );
@@ -981,6 +1694,16 @@ class _ResultGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // M5S premium hides idle verification status.
+    if (result.kind == _EntryResultKind.idle) {
+      return const SizedBox.shrink();
+    }
+
+    // M5S-A hide idle verification status.
+    if (result.kind == _EntryResultKind.idle) {
+      return const SizedBox.shrink();
+    }
+
     final color = switch (result.kind) {
       _EntryResultKind.verified => const Color(0xFF22C55E),
       _EntryResultKind.onboarding => const Color(0xFFF59E0B),
@@ -1111,6 +1834,7 @@ class _ActionCard extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.body,
+    required this.action,
     required this.color,
     required this.onTap,
   });
@@ -1118,30 +1842,59 @@ class _ActionCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String body;
+  final String action;
   final Color color;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final width = screenWidth < 720 ? screenWidth - 44 : 452.0;
+
     return SizedBox(
-      width: 330,
+      width: width.clamp(280.0, 452.0),
       child: _GlassCard(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _IconBubble(icon: icon, color: color),
-            const SizedBox(height: 12),
-            Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
-            const SizedBox(height: 6),
-            Text(body, style: const TextStyle(color: Colors.white70)),
-            const SizedBox(height: 12),
-            OutlinedButton.icon(
-              onPressed: onTap,
-              icon: const Icon(Icons.arrow_forward_rounded),
-              label: Text(title),
-            ),
-          ],
+        padding: const EdgeInsets.all(22),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(22),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _IconBubble(icon: icon, color: color),
+              const SizedBox(height: 18),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 20,
+                  height: 1.15,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                body,
+                style: const TextStyle(color: Colors.white70, height: 1.35),
+              ),
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      action,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: color,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(Icons.arrow_forward_rounded, color: color, size: 18),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1200,28 +1953,6 @@ class _StatusCard extends StatelessWidget {
   }
 }
 
-class _HowItWorks extends StatelessWidget {
-  const _HowItWorks({required this.language});
-
-  final CidentiaUiLanguage language;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: ExpansionTile(
-        tilePadding: EdgeInsets.zero,
-        title: const Text('How it works?'),
-        children: [
-          Text(
-            '${language.appTitle} uses CidenDB for identity verification. If a CID is missing, CidentiaApp completes onboarding.',
-            style: const TextStyle(color: Colors.white70),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _Footer extends StatelessWidget {
   const _Footer({required this.language});
