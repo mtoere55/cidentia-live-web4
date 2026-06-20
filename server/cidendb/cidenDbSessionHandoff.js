@@ -12,8 +12,20 @@ function pickUser(upstream) {
     return {};
   }
 
-  if (upstream.user && typeof upstream.user === 'object') {
-    return upstream.user;
+  const candidates = [
+    upstream.user,
+    upstream.data && upstream.data.user,
+    upstream.identity,
+    upstream.profile,
+    upstream.data && upstream.data.identity,
+    upstream.data && upstream.data.profile,
+    upstream.data,
+  ];
+
+  for (const candidate of candidates) {
+    if (candidate && typeof candidate === 'object') {
+      return candidate;
+    }
   }
 
   return {};
@@ -31,6 +43,86 @@ function pickCid(user) {
     user.id ||
     null
   );
+}
+
+
+function cleanText(value, limit = 160) {
+  const text = String(value ?? '').trim();
+  return text ? text.slice(0, limit) : null;
+}
+
+function pickText(sources, keys) {
+  for (const source of sources) {
+    if (!source || typeof source !== 'object') {
+      continue;
+    }
+
+    for (const key of keys) {
+      const value = cleanText(source[key]);
+      if (value) {
+        return value;
+      }
+    }
+  }
+
+  return null;
+}
+
+function buildDisplayName(upstream, user) {
+  const sources = [
+    user,
+    upstream && upstream.user,
+    upstream && upstream.identity,
+    upstream && upstream.profile,
+    upstream && upstream.data && upstream.data.user,
+    upstream && upstream.data && upstream.data.identity,
+    upstream && upstream.data && upstream.data.profile,
+    upstream && upstream.data,
+  ];
+
+  const direct = pickText(sources, [
+    'display_name',
+    'displayName',
+    'public_name',
+    'publicName',
+    'full_name',
+    'fullName',
+    'real_name',
+    'realName',
+    'legal_name',
+    'legalName',
+    'name',
+    'company_name',
+    'companyName',
+  ]);
+
+  if (direct) {
+    return direct;
+  }
+
+  const firstName = pickText(sources, [
+    'first_name',
+    'firstName',
+    'firstname',
+    'given_name',
+    'givenName',
+  ]);
+  const middleName = pickText(sources, [
+    'middle_name',
+    'middleName',
+    'middlename',
+  ]);
+  const lastName = pickText(sources, [
+    'last_name',
+    'lastName',
+    'lastname',
+    'family_name',
+    'familyName',
+    'surname',
+  ]);
+
+  const parts = [firstName, middleName, lastName].filter(Boolean);
+  return parts.length ? parts.join(' ') : null;
 }
 
 function buildSafeSessionFromVerify(upstream, fallbackContact) {
@@ -70,12 +162,22 @@ function buildSafeSessionFromVerify(upstream, fallbackContact) {
   const sessionId =
     upstreamSession.session_id || upstreamSession.sessionId || crypto.randomUUID();
 
+  const displayName = buildDisplayName(upstream, user);
+  const profileIncomplete = !displayName;
+
   const safeUser = {
     cid,
     email,
-    display_name: user.display_name || user.displayName || null,
+    display_name: displayName,
+    displayName,
+    full_name: displayName,
+    display_name_available: Boolean(displayName),
+    profile_incomplete: profileIncomplete,
     trust_score: user.trust_score ?? user.trustScore ?? null,
-    profile_complete: user.profile_complete ?? user.profileComplete ?? null,
+    profile_complete:
+      user.profile_complete ??
+      user.profileComplete ??
+      (profileIncomplete ? false : null),
     is_new_user: upstream.is_new_user ?? user.is_new_user ?? user.isNewUser ?? false,
   };
 

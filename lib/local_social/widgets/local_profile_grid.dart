@@ -10,30 +10,6 @@ const _panelSoft = Color(0xFF181A20);
 const _line = Color(0xFF262A33);
 const _textSoft = Color(0xFFA1A1AA);
 
-String _identityNameFromEmail(String? email) {
-  final value = email?.trim();
-  if (value == null || value.isEmpty || !value.contains('@')) {
-    return 'Verified CidenDB User';
-  }
-
-  final localPart = value.split('@').first.trim();
-  if (localPart.isEmpty) {
-    return 'Verified CidenDB User';
-  }
-
-  final parts = localPart
-      .split(RegExp(r'[._\\-]+'))
-      .where((part) => part.isNotEmpty)
-      .map(
-        (part) => part.length == 1
-            ? part.toUpperCase()
-            : '${part.substring(0, 1).toUpperCase()}${part.substring(1)}',
-      )
-      .toList();
-
-  return parts.isEmpty ? localPart : parts.join(' ');
-}
-
 String _profileDisplayName({
   required bool verified,
   String? rawDisplayName,
@@ -48,7 +24,7 @@ String _profileDisplayName({
     }
 
     if (email != null && email.trim().isNotEmpty) {
-      return _identityNameFromEmail(email);
+      return 'CidenDB profile incomplete';
     }
 
     if (cid != null && cid.trim().isNotEmpty) {

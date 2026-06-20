@@ -100,6 +100,124 @@ async function postToCidenDb(url, payload) {
   };
 }
 
+function readToken(data = {}) {
+  return (
+    data.token ||
+    data.access_token ||
+    data.accessToken ||
+    data.jwt ||
+    data.data?.token ||
+    data.data?.access_token ||
+    data.data?.accessToken ||
+    data.user?.token ||
+    null
+  );
+}
+
+function pickIdentityObject(body = {}) {
+  const candidates = [
+    body.user,
+    body.identity,
+    body.profile,
+    body.data?.user,
+    body.data?.identity,
+    body.data?.profile,
+    body.data,
+    body,
+  ];
+
+  for (const candidate of candidates) {
+    if (candidate && typeof candidate === 'object') {
+      return candidate;
+    }
+  }
+
+  return null;
+}
+
+async function getIdentityWithToken(token, env = process.env) {
+  if (!token) {
+    return null;
+  }
+
+  const urls = [
+    env.CIDENDB_IDENTITY_URL,
+    ...DEFAULT_IDENTITY_PATHS,
+  ].filter(Boolean);
+
+  let last = null;
+
+  for (const url of urls) {
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const text = await response.text();
+      let upstreamBody;
+      try {
+        upstreamBody = text ? JSON.parse(text) : {};
+      } catch (_) {
+        upstreamBody = { message: text };
+      }
+
+      last = {
+        ok: response.ok,
+        status: response.status,
+        url,
+        upstreamBody: sanitizeValue(upstreamBody),
+      };
+
+      if (response.ok) {
+        return last;
+      }
+
+      if (response.status !== 404 && response.status !== 405) {
+        return last;
+      }
+    } catch (error) {
+      last = {
+        ok: false,
+        status: 0,
+        url,
+        upstreamBody: {
+          error: 'cidentia_identity_enrichment_unreachable',
+          message:
+            error.name === 'AbortError'
+              ? 'CidenDB identity request timed out.'
+              : 'CidenDB identity service is unavailable.',
+        },
+      };
+    }
+  }
+
+  return last;
+}
+
+function mergeIdentityIntoVerifyPayload(upstreamBody, identityBody) {
+  const identity = pickIdentityObject(identityBody);
+  if (!identity) {
+    return upstreamBody;
+  }
+
+  const baseUser =
+    upstreamBody && typeof upstreamBody.user === 'object' ? upstreamBody.user : {};
+
+  return {
+    ...upstreamBody,
+    user: {
+      ...baseUser,
+      ...identity,
+    },
+    identity: identityBody,
+    profile: identityBody,
+  };
+}
+
 async function sendOtp(body, env = process.env) {
   const contact = normalizeContact(body);
 
