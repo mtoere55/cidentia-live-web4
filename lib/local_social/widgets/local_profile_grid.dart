@@ -113,6 +113,119 @@ class _OriginalInspiredProfilePageState
   }
 }
 
+class _ProfileIdentityAvatar extends StatelessWidget {
+  const _ProfileIdentityAvatar({
+    required this.initials,
+    required this.verified,
+  });
+
+  final String initials;
+  final bool verified;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          width: 62,
+          height: 62,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: const LinearGradient(
+              colors: [Color(0xFFE879F9), Color(0xFFF97316)],
+            ),
+            border: Border.all(color: Colors.white30, width: 3),
+          ),
+          child: Center(
+            child: Text(
+              initials,
+              style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w900),
+            ),
+          ),
+        ),
+        Positioned(
+          right: -2,
+          bottom: -2,
+          child: Container(
+            width: 22,
+            height: 22,
+            decoration: BoxDecoration(
+              color: verified ? const Color(0xFF60A5FA) : _panelSoft,
+              shape: BoxShape.circle,
+              border: Border.all(color: _panel, width: 2),
+            ),
+            child: Icon(
+              verified ? Icons.verified_rounded : Icons.photo_camera_outlined,
+              size: 13,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ProfileIdentityReadinessRow extends StatelessWidget {
+  const _ProfileIdentityReadinessRow({
+    required this.identityStatus,
+    required this.mediaStatus,
+  });
+
+  final String identityStatus;
+  final String mediaStatus;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      children: [
+        _ProfileMiniStatus(icon: Icons.badge_outlined, label: identityStatus),
+        _ProfileMiniStatus(
+          icon: Icons.photo_library_outlined,
+          label: mediaStatus,
+        ),
+      ],
+    );
+  }
+}
+
+class _ProfileMiniStatus extends StatelessWidget {
+  const _ProfileMiniStatus({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: _panelSoft,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: _line),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: _textSoft),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              color: _textSoft,
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ProfileHero extends StatelessWidget {
   const _ProfileHero();
 
@@ -140,8 +253,16 @@ class _ProfileHero extends StatelessWidget {
         : 'CID Local - Social identity preview';
 
     final profileDescription = verified && email != null
-        ? 'Signed in as $email. Wallet, proof and creator economy modules stay locked until production backend is connected.'
-        : 'Local creator profile. Reels, wallet, proof and trust layers will connect later.';
+        ? 'Signed in as $email. Identity, avatar and cover are preview-ready. Real profile media upload stays locked.'
+        : 'Local creator profile. Avatar, cover, reels, wallet and proof layers will connect later.';
+
+    final identityStatus = verified
+        ? 'CidenDB verified identity'
+        : 'Local identity preview';
+
+    final mediaStatus = verified
+        ? 'Avatar / cover preview ready'
+        : 'Avatar / cover local only';
 
     final cidBadgeLabel = verified && cid != null ? 'CID $cid' : 'CID ready';
     final proofBadgeLabel = verified ? 'Proof verified' : 'Proof planned';
@@ -156,26 +277,7 @@ class _ProfileHero extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 62,
-            height: 62,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: const LinearGradient(
-                colors: [Color(0xFFE879F9), Color(0xFFF97316)],
-              ),
-              border: Border.all(color: Colors.white30, width: 3),
-            ),
-            child: Center(
-              child: Text(
-                avatarLabel,
-                style: const TextStyle(
-                  fontSize: 19,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ),
-          ),
+          _ProfileIdentityAvatar(initials: avatarLabel, verified: verified),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -223,6 +325,11 @@ class _ProfileHero extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(color: Colors.white, height: 1.25),
+                ),
+                const SizedBox(height: 8),
+                _ProfileIdentityReadinessRow(
+                  identityStatus: identityStatus,
+                  mediaStatus: mediaStatus,
                 ),
                 const SizedBox(height: 10),
                 LayoutBuilder(
