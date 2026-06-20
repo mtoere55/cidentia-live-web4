@@ -32,9 +32,9 @@ extension CidentiaUiLanguageText on CidentiaUiLanguage {
       case CidentiaUiLanguage.en:
         return 'Live / social program of the Cidentia ecosystem';
       case CidentiaUiLanguage.tr:
-        return 'Cidentia ekosisteminin live / social programÃ„Â±';
+        return 'Cidentia ekosisteminin live / social programı';
       case CidentiaUiLanguage.de:
-        return 'Live- / Social-Programm des Cidentia-Ãƒâ€“kosystems';
+        return 'Live- / Social-Programm des Cidentia-Ökosystems';
     }
   }
 
@@ -43,9 +43,9 @@ extension CidentiaUiLanguageText on CidentiaUiLanguage {
       case CidentiaUiLanguage.en:
         return 'Connect, create and go live. Your identity is protected by CidenDB, the official identity databank of the Cidentia ecosystem.';
       case CidentiaUiLanguage.tr:
-        return 'BaÃ„Å¸lan, ÃƒÂ¼ret ve canlÃ„Â±ya ÃƒÂ§Ã„Â±k. KimliÃ„Å¸iniz Cidentia ekosisteminin resmi kimlik databankÃ„Â± CidenDB tarafÃ„Â±ndan korunur.';
+        return 'Bağlan, üret ve canlıya çık. Kimliğiniz Cidentia ekosisteminin resmi kimlik databankı CidenDB tarafından korunur.';
       case CidentiaUiLanguage.de:
-        return 'Verbinden, erstellen und live gehen. Ihre IdentitÃƒÂ¤t wird durch CidenDB geschÃƒÂ¼tzt, die offizielle IdentitÃƒÂ¤tsdatenbank des Cidentia-Ãƒâ€“kosystems.';
+        return 'Verbinden, erstellen und live gehen. Ihre Identität wird durch CidenDB geschützt, die offizielle Identitätsdatenbank des Cidentia-Ökosystems.';
     }
   }
 
@@ -54,7 +54,7 @@ extension CidentiaUiLanguageText on CidentiaUiLanguage {
       case CidentiaUiLanguage.en:
         return 'Sign in with CidenDB';
       case CidentiaUiLanguage.tr:
-        return 'CidenDB ile giriÃ…Å¸ yap';
+        return 'CidenDB ile giriş yap';
       case CidentiaUiLanguage.de:
         return 'Mit CidenDB anmelden';
     }
@@ -65,9 +65,9 @@ extension CidentiaUiLanguageText on CidentiaUiLanguage {
       case CidentiaUiLanguage.en:
         return 'We will send a 6-digit verification code to your email.';
       case CidentiaUiLanguage.tr:
-        return 'E-postanÃ„Â±za 6 haneli bir doÃ„Å¸rulama kodu gÃƒÂ¶ndereceÃ„Å¸iz.';
+        return 'E-postanıza 6 haneli bir doğrulama kodu göndereceğiz.';
       case CidentiaUiLanguage.de:
-        return 'Wir senden einen 6-stelligen BestÃƒÂ¤tigungscode an Ihre E-Mail.';
+        return 'Wir senden einen 6-stelligen Bestätigungscode an Ihre E-Mail.';
     }
   }
 
@@ -100,9 +100,9 @@ extension CidentiaUiLanguageText on CidentiaUiLanguage {
       case CidentiaUiLanguage.en:
         return 'Verification code';
       case CidentiaUiLanguage.tr:
-        return 'DoÃ„Å¸rulama kodu';
+        return 'Doğrulama kodu';
       case CidentiaUiLanguage.de:
-        return 'BestÃƒÂ¤tigungscode';
+        return 'Bestätigungscode';
     }
   }
 
@@ -122,9 +122,9 @@ extension CidentiaUiLanguageText on CidentiaUiLanguage {
       case CidentiaUiLanguage.en:
         return 'Verify Code';
       case CidentiaUiLanguage.tr:
-        return 'Kodu doÃ„Å¸rula';
+        return 'Kodu doğrula';
       case CidentiaUiLanguage.de:
-        return 'Code bestÃƒÂ¤tigen';
+        return 'Code bestätigen';
     }
   }
 
@@ -133,7 +133,7 @@ extension CidentiaUiLanguageText on CidentiaUiLanguage {
       case CidentiaUiLanguage.en:
         return 'Go to CidentiaApp';
       case CidentiaUiLanguage.tr:
-        return 'CidentiaAppÃ¢â‚¬â„¢a devam et';
+        return "CidentiaApp'a devam et";
       case CidentiaUiLanguage.de:
         return 'Zu CidentiaApp';
     }
@@ -144,7 +144,7 @@ extension CidentiaUiLanguageText on CidentiaUiLanguage {
       case CidentiaUiLanguage.en:
         return 'Explore without sign-in';
       case CidentiaUiLanguage.tr:
-        return 'GiriÃ…Å¸ yapmadan keÃ…Å¸fet';
+        return 'Giriş yapmadan keşfet';
       case CidentiaUiLanguage.de:
         return 'Ohne Anmeldung entdecken';
     }
@@ -155,7 +155,7 @@ extension CidentiaUiLanguageText on CidentiaUiLanguage {
       case CidentiaUiLanguage.en:
         return 'CID setup required';
       case CidentiaUiLanguage.tr:
-        return 'CID tamamlanmasÃ„Â± gerekiyor';
+        return 'CID tamamlanması gerekiyor';
       case CidentiaUiLanguage.de:
         return 'CID-Einrichtung erforderlich';
     }
@@ -166,9 +166,9 @@ extension CidentiaUiLanguageText on CidentiaUiLanguage {
       case CidentiaUiLanguage.en:
         return 'Your email is verified, but this account does not have an active CID yet. Complete your identity setup in CidentiaApp before continuing.';
       case CidentiaUiLanguage.tr:
-        return 'E-posta doÃ„Å¸rulandÃ„Â±, ancak bu hesap iÃƒÂ§in aktif CID bulunamadÃ„Â±. Devam etmek iÃƒÂ§in CidentiaApp ÃƒÂ¼zerinden kimlik adÃ„Â±mÃ„Â±nÃ„Â± tamamlayÃ„Â±n.';
+        return 'E-posta doğrulandı, ancak bu hesap için aktif CID bulunamadı. Devam etmek için CidentiaApp üzerinden kimlik adımını tamamlayın.';
       case CidentiaUiLanguage.de:
-        return 'Ihre E-Mail wurde bestÃƒÂ¤tigt, aber dieses Konto hat noch keine aktive CID. Bitte schlieÃƒÅ¸en Sie die IdentitÃƒÂ¤tseinrichtung in CidentiaApp ab.';
+        return 'Ihre E-Mail wurde bestätigt, aber dieses Konto hat noch keine aktive CID. Bitte schließen Sie die Identitätseinrichtung in CidentiaApp ab.';
     }
   }
 
@@ -177,7 +177,7 @@ extension CidentiaUiLanguageText on CidentiaUiLanguage {
       case CidentiaUiLanguage.en:
         return 'Verified session ready';
       case CidentiaUiLanguage.tr:
-        return 'DoÃ„Å¸rulanmÃ„Â±Ã…Å¸ oturum hazÃ„Â±r';
+        return 'Doğrulanmış oturum hazır';
       case CidentiaUiLanguage.de:
         return 'Verifizierte Sitzung bereit';
     }
@@ -188,9 +188,9 @@ extension CidentiaUiLanguageText on CidentiaUiLanguage {
       case CidentiaUiLanguage.en:
         return 'Your identity is verified. A safe Cidentia.Live session is ready.';
       case CidentiaUiLanguage.tr:
-        return 'KimliÃ„Å¸iniz doÃ„Å¸rulandÃ„Â±. GÃƒÂ¼venli Cidentia.Live oturumu hazÃ„Â±r.';
+        return 'Kimliğiniz doğrulandı. Güvenli Cidentia.Live oturumu hazır.';
       case CidentiaUiLanguage.de:
-        return 'Ihre IdentitÃƒÂ¤t ist bestÃƒÂ¤tigt. Eine sichere Cidentia.Live-Sitzung ist bereit.';
+        return 'Ihre Identität ist bestätigt. Eine sichere Cidentia.Live-Sitzung ist bereit.';
     }
   }
 
@@ -199,9 +199,9 @@ extension CidentiaUiLanguageText on CidentiaUiLanguage {
       case CidentiaUiLanguage.en:
         return 'Invalid code';
       case CidentiaUiLanguage.tr:
-        return 'Kod doÃ„Å¸rulanamadÃ„Â±';
+        return 'Kod doğrulanamadı';
       case CidentiaUiLanguage.de:
-        return 'UngÃƒÂ¼ltiger Code';
+        return 'Ungültiger Code';
     }
   }
 
@@ -210,9 +210,9 @@ extension CidentiaUiLanguageText on CidentiaUiLanguage {
       case CidentiaUiLanguage.en:
         return 'The code is incorrect or expired. Please check your email and try again.';
       case CidentiaUiLanguage.tr:
-        return 'Kod hatalÃ„Â± veya sÃƒÂ¼resi dolmuÃ…Å¸ olabilir. E-postanÃ„Â±za gelen son kodu kontrol edin.';
+        return 'Kod hatalı veya süresi dolmuş olabilir. E-postanıza gelen son kodu kontrol edin.';
       case CidentiaUiLanguage.de:
-        return 'Der Code ist falsch oder abgelaufen. Bitte prÃƒÂ¼fen Sie Ihre E-Mail und versuchen Sie es erneut.';
+        return 'Der Code ist falsch oder abgelaufen. Bitte prüfen Sie Ihre E-Mail und versuchen Sie es erneut.';
     }
   }
 
@@ -221,9 +221,9 @@ extension CidentiaUiLanguageText on CidentiaUiLanguage {
       case CidentiaUiLanguage.en:
         return 'Service unavailable';
       case CidentiaUiLanguage.tr:
-        return 'Servis kullanÃ„Â±lamÃ„Â±yor';
+        return 'Servis kullanılamıyor';
       case CidentiaUiLanguage.de:
-        return 'Dienst nicht verfÃƒÂ¼gbar';
+        return 'Dienst nicht verfügbar';
     }
   }
 
@@ -232,9 +232,9 @@ extension CidentiaUiLanguageText on CidentiaUiLanguage {
       case CidentiaUiLanguage.en:
         return 'CidenDB connection is currently unavailable. Please try again later.';
       case CidentiaUiLanguage.tr:
-        return 'CidenDB baÃ„Å¸lantÃ„Â±sÃ„Â± Ã…Å¸u anda kullanÃ„Â±lamÃ„Â±yor. LÃƒÂ¼tfen tekrar deneyin.';
+        return 'CidenDB bağlantısı şu anda kullanılamıyor. Lütfen tekrar deneyin.';
       case CidentiaUiLanguage.de:
-        return 'Die CidenDB-Verbindung ist derzeit nicht verfÃƒÂ¼gbar. Bitte versuchen Sie es spÃƒÂ¤ter erneut.';
+        return 'Die CidenDB-Verbindung ist derzeit nicht verfügbar. Bitte versuchen Sie es später erneut.';
     }
   }
 
