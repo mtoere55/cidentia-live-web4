@@ -5,7 +5,10 @@ import 'package:flutter/material.dart';
 
 import '../auth/cidentia_session_state.dart';
 
-const cidentiaEntryBridgeBaseUrl = 'http://localhost:3000';
+const cidentiaEntryBridgeBaseUrl = String.fromEnvironment(
+  'CIDENDB_ENTRY_BRIDGE_BASE_URL',
+  defaultValue: 'http://localhost:3000',
+);
 const cidentiaAppOnboardingUrl = 'https://cidentiaapp.com';
 
 enum CidentiaUiLanguage { en, tr, de }
@@ -1552,7 +1555,6 @@ class _EntryTextLink extends StatelessWidget {
   }
 }
 
-
 class _VisualCard extends StatelessWidget {
   const _VisualCard({
     required this.width,
@@ -1952,7 +1954,6 @@ class _StatusCard extends StatelessWidget {
     );
   }
 }
-
 
 class _Footer extends StatelessWidget {
   const _Footer({required this.language});
