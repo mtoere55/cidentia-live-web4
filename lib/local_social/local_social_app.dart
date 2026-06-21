@@ -446,7 +446,7 @@ class _LocalShellState extends State<LocalShell> {
                 icon: const Icon(Icons.drafts_outlined),
               ),
               IconButton(
-                tooltip: 'Create preview',
+                tooltip: 'Create Hub',
                 onPressed: () => _showLocalCreatePreviewSheet(context),
                 icon: const Icon(Icons.add_box_outlined),
               ),
@@ -626,7 +626,7 @@ class _LocalDraftTraySheet extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 14),
-                  const _DraftTrayBoundaryNotice(),
+                  const _DraftTrayInfoNotice(),
                   const SizedBox(height: 14),
                   if (drafts.isEmpty)
                     const _EmptyDraftTray()
@@ -654,8 +654,8 @@ class _LocalDraftTraySheet extends StatelessWidget {
   }
 }
 
-class _DraftTrayBoundaryNotice extends StatelessWidget {
-  const _DraftTrayBoundaryNotice();
+class _DraftTrayInfoNotice extends StatelessWidget {
+  const _DraftTrayInfoNotice();
 
   @override
   Widget build(BuildContext context) {
@@ -674,7 +674,7 @@ class _DraftTrayBoundaryNotice extends StatelessWidget {
           SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Drafts stay in local app memory only. No upload, publish, storage, backend or payment route is opened.',
+              'Drafts are saved locally for now. You can prepare media and captions before publishing is connected.',
               style: TextStyle(color: _textSoft, height: 1.35),
             ),
           ),
@@ -853,69 +853,76 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
                 onModeChanged: (mode) => setState(() => selectedMode = mode),
               ),
               const SizedBox(height: 14),
-              _CreatePickerPreview(
-                selectedType: selectedMediaType,
-                selectedLabel: selectedMediaLabel,
-                onMediaSelected: (type, label) => setState(() {
-                  selectedMediaType = type;
-                  selectedMediaLabel = label;
-                }),
-              ),
-              const SizedBox(height: 14),
-              _CreateMediaSourcePicker(
-                selectedSource: selectedMediaSource,
-                onSourceSelected: (source) => setState(() {
-                  selectedMediaSource = source;
-                }),
-              ),
-              const SizedBox(height: 14),
-              _CreateMediaPreview(
-                mode: selectedMode,
-                mediaType: selectedMediaType,
-                mediaLabel: selectedMediaLabel,
-              ),
-              const SizedBox(height: 14),
-              _CreateCaptionPreview(controller: captionController),
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () {
-                        Navigator.of(context).pop(
-                          _LocalDraftPreview(
-                            mode: selectedMode,
-                            mediaType: selectedMediaType,
-                            mediaLabel: selectedMediaLabel,
-                            mediaSource: selectedMediaSource,
-                            caption: captionController.text,
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.cloud_upload_outlined),
-                      label: const Text('Upload media'),
+              if (selectedMode == 'Post' ||
+                  selectedMode == 'Reel' ||
+                  selectedMode == 'Story' ||
+                  selectedMode == 'Replay') ...[
+                _CreatePickerPreview(
+                  selectedType: selectedMediaType,
+                  selectedLabel: selectedMediaLabel,
+                  onMediaSelected: (type, label) => setState(() {
+                    selectedMediaType = type;
+                    selectedMediaLabel = label;
+                  }),
+                ),
+                const SizedBox(height: 14),
+                _CreateMediaSourcePicker(
+                  selectedSource: selectedMediaSource,
+                  onSourceSelected: (source) => setState(() {
+                    selectedMediaSource = source;
+                  }),
+                ),
+                const SizedBox(height: 14),
+                _CreateMediaPreview(
+                  mode: selectedMode,
+                  mediaType: selectedMediaType,
+                  mediaLabel: selectedMediaLabel,
+                ),
+                const SizedBox(height: 14),
+                _CreateCaptionPreview(controller: captionController),
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.of(context).pop(
+                            _LocalDraftPreview(
+                              mode: selectedMode,
+                              mediaType: selectedMediaType,
+                              mediaLabel: selectedMediaLabel,
+                              mediaSource: selectedMediaSource,
+                              caption: captionController.text,
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.cloud_upload_outlined),
+                        label: const Text('Upload media'),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: FilledButton.icon(
-                      onPressed: () {
-                        Navigator.of(context).pop(
-                          _LocalDraftPreview(
-                            mode: selectedMode,
-                            mediaType: selectedMediaType,
-                            mediaLabel: selectedMediaLabel,
-                            mediaSource: selectedMediaSource,
-                            caption: captionController.text,
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.save_outlined),
-                      label: const Text('Save draft'),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: () {
+                          Navigator.of(context).pop(
+                            _LocalDraftPreview(
+                              mode: selectedMode,
+                              mediaType: selectedMediaType,
+                              mediaLabel: selectedMediaLabel,
+                              mediaSource: selectedMediaSource,
+                              caption: captionController.text,
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.save_outlined),
+                        label: const Text('Save draft'),
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
+              ] else ...[
+                _CreateHubPreviewCard(mode: selectedMode),
+              ],
             ],
           ),
         ),
@@ -943,7 +950,7 @@ class _CreateSheetHeader extends StatelessWidget {
               ),
               SizedBox(height: 3),
               Text(
-                'Local-only media flow',
+                'Choose what you want to create',
                 style: TextStyle(color: _textSoft, fontWeight: FontWeight.w700),
               ),
             ],
@@ -991,6 +998,42 @@ class _CreateModeRow extends StatelessWidget {
           active: selectedMode == 'Story',
           onTap: () => onModeChanged('Story'),
         ),
+        _CreateModeChip(
+          icon: Icons.live_tv_outlined,
+          label: 'Live',
+          active: selectedMode == 'Live',
+          onTap: () => onModeChanged('Live'),
+        ),
+        _CreateModeChip(
+          icon: Icons.auto_awesome_outlined,
+          label: 'AI',
+          active: selectedMode == 'AI',
+          onTap: () => onModeChanged('AI'),
+        ),
+        _CreateModeChip(
+          icon: Icons.campaign_outlined,
+          label: 'Ad',
+          active: selectedMode == 'Ad',
+          onTap: () => onModeChanged('Ad'),
+        ),
+        _CreateModeChip(
+          icon: Icons.volunteer_activism_outlined,
+          label: 'Donation',
+          active: selectedMode == 'Donation',
+          onTap: () => onModeChanged('Donation'),
+        ),
+        _CreateModeChip(
+          icon: Icons.storefront_outlined,
+          label: 'Market',
+          active: selectedMode == 'Market',
+          onTap: () => onModeChanged('Market'),
+        ),
+        _CreateModeChip(
+          icon: Icons.video_library_outlined,
+          label: 'Replay',
+          active: selectedMode == 'Replay',
+          onTap: () => onModeChanged('Replay'),
+        ),
       ],
     );
   }
@@ -1037,6 +1080,84 @@ class _CreateModeChip extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _CreateHubPreviewCard extends StatelessWidget {
+  const _CreateHubPreviewCard({required this.mode});
+
+  final String mode;
+
+  @override
+  Widget build(BuildContext context) {
+    final data = switch (mode) {
+      'Live' => (
+        Icons.live_tv_outlined,
+        'Open Live Studio',
+        'Create a live room with camera, guests, chat and destinations.',
+      ),
+      'AI' => (
+        Icons.auto_awesome_outlined,
+        'AI Create',
+        'Create images, captions, clips and creator ideas with AI.',
+      ),
+      'Ad' => (
+        Icons.campaign_outlined,
+        'Promotion',
+        'Prepare a campaign for a post, product or creator profile.',
+      ),
+      'Donation' => (
+        Icons.volunteer_activism_outlined,
+        'Donation campaign',
+        'Prepare a verified campaign for community support.',
+      ),
+      'Market' => (
+        Icons.storefront_outlined,
+        'Market listing',
+        'Create a product, service or digital asset listing.',
+      ),
+      _ => (
+        Icons.add_box_outlined,
+        'Create',
+        'Choose a create type to continue.',
+      ),
+    };
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: _panelSoft,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: _line),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            backgroundColor: Colors.white,
+            foregroundColor: Colors.black,
+            child: Icon(data.$1),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  data.$2,
+                  style: const TextStyle(fontWeight: FontWeight.w900),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  data.$3,
+                  style: const TextStyle(color: _textSoft, height: 1.3),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1797,7 +1918,7 @@ void _showStoryLiveRoomPreview(
                         right: 16,
                         bottom: 16,
                         child: Text(
-                          'Story live discovery · Signal, Proof and Effect are preview-only. RTMP, backend and wallet stay locked.',
+                          'Story live discovery · Signal, Proof and Effect tools connect in upcoming creator releases.',
                           style: TextStyle(color: Colors.white70, height: 1.35),
                         ),
                       ),
@@ -2263,7 +2384,7 @@ void _openSearchMediaPreview(
                         bottom: 14,
                         child: Text(
                           isLive
-                              ? 'Live discovery preview. Real streaming stays locked.'
+                              ? 'Live discovery preview. Production streaming connects in a later creator release.'
                               : isReel
                               ? 'Reel discovery preview. Playback connects later.'
                               : 'Post discovery preview. Detail routing connects later.',
@@ -2790,7 +2911,7 @@ class LiveStudioRightPanel extends StatelessWidget {
           child: KeyedSubtree(key: ValueKey(mode), child: _activePanel()),
         ),
         const SizedBox(height: 14),
-        const _StudioPreviewBoundaryCard(),
+        const _StudioPreviewStatusCard(),
         const SizedBox(height: 14),
         const _StudioNextModulesCard(),
       ],
@@ -2811,8 +2932,8 @@ class LiveStudioRightPanel extends StatelessWidget {
   }
 }
 
-class _StudioPreviewBoundaryCard extends StatelessWidget {
-  const _StudioPreviewBoundaryCard();
+class _StudioPreviewStatusCard extends StatelessWidget {
+  const _StudioPreviewStatusCard();
 
   @override
   Widget build(BuildContext context) {
@@ -2849,7 +2970,7 @@ class _StudioPreviewBoundaryCard extends StatelessWidget {
           ),
           SizedBox(height: 10),
           Text(
-            'Studio UI is running as a local preview. Real live backend, wallet, CID and RTMP will open only in their own secured milestones.',
+            'Live Studio tools are being prepared here. Production streaming, wallet and creator services connect in their own release steps.',
             style: TextStyle(color: _textSoft, height: 1.35, fontSize: 12),
           ),
         ],
