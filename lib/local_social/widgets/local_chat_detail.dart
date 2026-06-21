@@ -59,10 +59,7 @@ class _OriginalInspiredChatsPageState extends State<OriginalInspiredChatsPage> {
       ];
     });
 
-    _showChatSnack(
-      context,
-      'Local message preview saved. Real chat backend is still locked.',
-    );
+    _showChatSnack(context, 'Message added to this CID chat session.');
   }
 
   void _attachPreview(String title, String subtitle, IconData icon) {
@@ -85,10 +82,7 @@ class _OriginalInspiredChatsPageState extends State<OriginalInspiredChatsPage> {
       ];
     });
 
-    _showChatSnack(
-      context,
-      'Local attachment preview added. No upload or backend route opened.',
-    );
+    _showChatSnack(context, 'Attachment card added to this CID chat session.');
   }
 
   @override
@@ -117,6 +111,7 @@ class _OriginalInspiredChatsPageState extends State<OriginalInspiredChatsPage> {
                 messages: selectedMessages,
                 onSend: _sendMessage,
                 onAttach: _attachPreview,
+                compact: true,
               ),
             ],
           );
@@ -247,8 +242,7 @@ class _ChatListPanel extends StatelessWidget {
                 ),
                 _RoundIconButton(
                   icon: Icons.edit_square,
-                  onTap: () =>
-                      _showChatSnack(context, 'New chat composer preview'),
+                  onTap: () => _showChatSnack(context, 'New chat composer'),
                 ),
               ],
             ),
@@ -384,6 +378,7 @@ class _ConversationPanel extends StatelessWidget {
     required this.messages,
     required this.onSend,
     required this.onAttach,
+    this.compact = false,
   });
 
   final LocalChat chat;
@@ -391,6 +386,7 @@ class _ConversationPanel extends StatelessWidget {
   final List<_LocalMessage> messages;
   final ValueChanged<String> onSend;
   final void Function(String title, String subtitle, IconData icon) onAttach;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -405,7 +401,7 @@ class _ConversationPanel extends StatelessWidget {
         children: [
           _ConversationHeader(chat: chat, index: index),
           const Divider(height: 1, color: _line),
-          _MessageArea(messages: messages),
+          _MessageArea(messages: messages, compact: compact),
           const Divider(height: 1, color: _line),
           _MessageInputBar(onSend: onSend, onAttach: onAttach),
         ],
@@ -459,7 +455,7 @@ class _ConversationHeader extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
                 const Text(
-                  'Online - local CID chat preview',
+                  'Online · CID chat',
                   style: TextStyle(color: _textSoft, fontSize: 12),
                 ),
               ],
@@ -467,17 +463,17 @@ class _ConversationHeader extends StatelessWidget {
           ),
           _RoundIconButton(
             icon: Icons.call_outlined,
-            onTap: () => _showChatSnack(context, 'Voice call preview'),
+            onTap: () => _showChatSnack(context, 'Voice call route'),
           ),
           const SizedBox(width: 8),
           _RoundIconButton(
             icon: Icons.videocam_outlined,
-            onTap: () => _showChatSnack(context, 'Video call preview'),
+            onTap: () => _showChatSnack(context, 'Video call route'),
           ),
           const SizedBox(width: 8),
           _RoundIconButton(
             icon: Icons.more_horiz_rounded,
-            onTap: () => _showChatSnack(context, 'Chat options preview'),
+            onTap: () => _showChatSnack(context, 'Chat options'),
           ),
         ],
       ),
@@ -486,30 +482,37 @@ class _ConversationHeader extends StatelessWidget {
 }
 
 class _MessageArea extends StatelessWidget {
-  const _MessageArea({required this.messages});
+  const _MessageArea({required this.messages, this.compact = false});
 
   final List<_LocalMessage> messages;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
+    final children = [
+      const _DayChip(label: 'Today'),
+      const SizedBox(height: 16),
+      for (final message in messages)
+        if (message.attachment)
+          _AttachmentBubble(message: message)
+        else if (message.text != 'Today')
+          _MessageBubble(
+            text: message.text,
+            time: message.time,
+            incoming: message.incoming,
+          ),
+    ];
+
+    if (compact) {
+      return Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(children: children),
+      );
+    }
+
     return SizedBox(
       height: 460,
-      child: ListView(
-        padding: const EdgeInsets.all(18),
-        children: [
-          const _DayChip(label: 'Today'),
-          const SizedBox(height: 16),
-          for (final message in messages)
-            if (message.attachment)
-              _AttachmentBubble(message: message)
-            else if (message.text != 'Today')
-              _MessageBubble(
-                text: message.text,
-                time: message.time,
-                incoming: message.incoming,
-              ),
-        ],
-      ),
+      child: ListView(padding: const EdgeInsets.all(18), children: children),
     );
   }
 }

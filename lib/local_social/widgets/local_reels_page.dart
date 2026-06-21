@@ -86,6 +86,8 @@ class _OriginalInspiredReelsPageState extends State<OriginalInspiredReelsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isCompact = MediaQuery.sizeOf(context).width < 760;
+
     return Focus(
       autofocus: true,
       onKeyEvent: _onKeyEvent,
@@ -119,25 +121,26 @@ class _OriginalInspiredReelsPageState extends State<OriginalInspiredReelsPage> {
               ),
             ),
           ),
-          Positioned(right: 18, top: 24, child: _ReelCounter(index: _index)),
-          Positioned(
-            right: 18,
-            top: 92,
-            child: Column(
-              children: [
-                _RoundControl(
-                  icon: Icons.keyboard_arrow_up_rounded,
-                  onTap: () => _go(-1),
-                ),
-                const SizedBox(height: 10),
-                _RoundControl(
-                  icon: Icons.keyboard_arrow_down_rounded,
-                  onTap: () => _go(1),
-                ),
-              ],
+          if (!isCompact) ...[
+            Positioned(right: 18, top: 24, child: _ReelCounter(index: _index)),
+            Positioned(
+              right: 18,
+              top: 92,
+              child: Column(
+                children: [
+                  _RoundControl(
+                    icon: Icons.keyboard_arrow_up_rounded,
+                    onTap: () => _go(-1),
+                  ),
+                  const SizedBox(height: 10),
+                  _RoundControl(
+                    icon: Icons.keyboard_arrow_down_rounded,
+                    onTap: () => _go(1),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const Positioned(left: 22, top: 24, child: _ReelsTitle()),
+          ],
         ],
       ),
     );
