@@ -859,6 +859,25 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
     }
   }
 
+  Future<void> _reviewCreatorPolicyThenShowPublishNotice() async {
+    final accepted = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) => const _CreatePolicyGateSheet(),
+    );
+
+    if (!mounted || accepted != true) {
+      return;
+    }
+
+    setState(() {
+      mediaPickerStatus =
+          'Policy reviewed. Publish will require verified CID and media release connection.';
+    });
+  }
+
   @override
   void dispose() {
     captionController.dispose();
@@ -947,12 +966,8 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
                         const SizedBox(width: 10),
                         Expanded(
                           child: FilledButton.icon(
-                            onPressed: () {
-                              setState(() {
-                                mediaPickerStatus =
-                                    'Publish will require verified CID and media backend connection.';
-                              });
-                            },
+                            onPressed:
+                                _reviewCreatorPolicyThenShowPublishNotice,
                             icon: const Icon(Icons.publish_outlined),
                             label: const Text('Publish'),
                           ),
@@ -1021,6 +1036,110 @@ class _CreateSheetHeader extends StatelessWidget {
           icon: const Icon(Icons.close_rounded),
         ),
       ],
+    );
+  }
+}
+
+class _CreatePolicyGateSheet extends StatelessWidget {
+  const _CreatePolicyGateSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.all(12),
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+      decoration: BoxDecoration(
+        color: _panel,
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: _line),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x77000000),
+            blurRadius: 30,
+            offset: Offset(0, 18),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Row(
+              children: [
+                Icon(Icons.policy_outlined),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Cidentia creator policy',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            const _PolicyGateLine(
+              icon: Icons.verified_user_outlined,
+              text: 'Publishing requires a verified CidenDB/CID session.',
+            ),
+            const _PolicyGateLine(
+              icon: Icons.video_library_outlined,
+              text:
+                  'Media release, rights and safety checks apply before public posting.',
+            ),
+            const _PolicyGateLine(
+              icon: Icons.account_balance_wallet_outlined,
+              text:
+                  'Ad, donation and market actions stay separated from draft creation.',
+            ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: const Text('Not now'),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    icon: const Icon(Icons.check_circle_outline),
+                    label: const Text('Review and continue'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PolicyGateLine extends StatelessWidget {
+  const _PolicyGateLine({required this.icon, required this.text});
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        children: [
+          Icon(icon, color: _textSoft, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(color: _textSoft, height: 1.35),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
