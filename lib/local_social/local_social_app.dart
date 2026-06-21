@@ -1890,10 +1890,15 @@ class FeedPreviewPage extends StatelessWidget {
             const SliverToBoxAdapter(child: OriginalInspiredStoriesBar()),
             const SliverToBoxAdapter(child: SizedBox(height: 16)),
             SliverList.separated(
-              itemCount: localPosts.length,
+              itemCount: localPosts.length + 1,
               separatorBuilder: (_, __) => const SizedBox(height: 18),
               itemBuilder: (context, index) {
-                return OriginalInspiredPostCard(post: localPosts[index]);
+                if (index == 1) {
+                  return const _SuggestedCreatorsPreview();
+                }
+
+                final postIndex = index > 1 ? index - 1 : index;
+                return OriginalInspiredPostCard(post: localPosts[postIndex]);
               },
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 60)),
@@ -2244,6 +2249,166 @@ class _StoryLiveAction extends StatelessWidget {
             Text(
               label,
               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SuggestedCreatorsPreview extends StatefulWidget {
+  const _SuggestedCreatorsPreview();
+
+  @override
+  State<_SuggestedCreatorsPreview> createState() =>
+      _SuggestedCreatorsPreviewState();
+}
+
+class _SuggestedCreatorsPreviewState extends State<_SuggestedCreatorsPreview> {
+  final Set<String> following = {};
+
+  static const creators = [
+    (
+      name: 'Aylin Creator',
+      handle: '@aylin.creator',
+      signal: 'CID-ready creator',
+      icon: Icons.verified_user_outlined,
+      colors: [Color(0xFF60A5FA), Color(0xFF8B5CF6)],
+    ),
+    (
+      name: 'Live Builder',
+      handle: '@live.builder',
+      signal: 'Live room host',
+      icon: Icons.live_tv_outlined,
+      colors: [Color(0xFF22C55E), Color(0xFF14B8A6)],
+    ),
+    (
+      name: 'Market Studio',
+      handle: '@market.studio',
+      signal: 'Market-ready creator',
+      icon: Icons.storefront_outlined,
+      colors: [Color(0xFFF59E0B), Color(0xFFEF4444)],
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+        decoration: BoxDecoration(
+          color: _panel,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: _line),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              children: [
+                Icon(Icons.person_add_alt_1_outlined, size: 20),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Suggested creators',
+                    style: TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                ),
+                Text(
+                  'Local preview',
+                  style: TextStyle(
+                    color: _textSoft,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 148,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: creators.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 10),
+                itemBuilder: (context, index) {
+                  final creator = creators[index];
+                  final isFollowing = following.contains(creator.handle);
+
+                  return SizedBox(
+                    width: 190,
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: _panelSoft,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: _line),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                width: 42,
+                                height: 42,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: LinearGradient(
+                                    colors: creator.colors,
+                                  ),
+                                ),
+                                child: Icon(creator.icon, size: 20),
+                              ),
+                              const Spacer(),
+                              OutlinedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    if (isFollowing) {
+                                      following.remove(creator.handle);
+                                    } else {
+                                      following.add(creator.handle);
+                                    }
+                                  });
+                                },
+                                child: Text(
+                                  isFollowing ? 'Following' : 'Follow',
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Spacer(),
+                          Text(
+                            creator.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontWeight: FontWeight.w900),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            creator.handle,
+                            style: const TextStyle(
+                              color: _textSoft,
+                              fontSize: 12,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            creator.signal,
+                            style: const TextStyle(
+                              color: _textSoft,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
           ],
         ),
