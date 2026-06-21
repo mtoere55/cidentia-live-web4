@@ -520,7 +520,7 @@ Future<void> _showLocalCreatePreviewSheet(BuildContext context) async {
       behavior: SnackBarBehavior.floating,
       content: Text(
         'Local draft saved: ${draft.mode} ${draft.mediaType} - '
-        '${draft.mediaLabel} - $captionPreview',
+        '${draft.mediaSource} - ${draft.mediaLabel} - $captionPreview',
       ),
     ),
   );
@@ -531,12 +531,14 @@ class _LocalDraftPreview {
     required this.mode,
     required this.mediaType,
     required this.mediaLabel,
+    required this.mediaSource,
     required this.caption,
   });
 
   final String mode;
   final String mediaType;
   final String mediaLabel;
+  final String mediaSource;
   final String caption;
 }
 
@@ -772,6 +774,15 @@ class _DraftTrayCard extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
+                const SizedBox(height: 2),
+                Text(
+                  'Source: ${draft.mediaSource}',
+                  style: const TextStyle(
+                    color: _textSoft,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
                 const SizedBox(height: 5),
                 Text(
                   caption,
@@ -802,6 +813,7 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
   String selectedMode = 'Post';
   String selectedMediaType = 'Photo';
   String selectedMediaLabel = 'Local frame 01';
+  String selectedMediaSource = 'Device gallery';
   final TextEditingController captionController = TextEditingController();
 
   @override
@@ -852,6 +864,13 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
                 }),
               ),
               const SizedBox(height: 14),
+              _CreateMediaSourceReadiness(
+                selectedSource: selectedMediaSource,
+                onSourceSelected: (source) => setState(() {
+                  selectedMediaSource = source;
+                }),
+              ),
+              const SizedBox(height: 14),
               _CreateMediaPreview(
                 mode: selectedMode,
                 mediaType: selectedMediaType,
@@ -875,6 +894,7 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
                         mode: selectedMode,
                         mediaType: selectedMediaType,
                         mediaLabel: selectedMediaLabel,
+                        mediaSource: selectedMediaSource,
                         caption: captionController.text,
                       ),
                     );
@@ -1180,6 +1200,146 @@ class _PickerThumb extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _CreateMediaSourceReadiness extends StatelessWidget {
+  const _CreateMediaSourceReadiness({
+    required this.selectedSource,
+    required this.onSourceSelected,
+  });
+
+  final String selectedSource;
+  final ValueChanged<String> onSourceSelected;
+
+  static const sources = [
+    (
+      Icons.photo_library_outlined,
+      'Device gallery',
+      'Future photo/video picker source. File access stays closed.',
+    ),
+    (
+      Icons.photo_camera_outlined,
+      'Camera capture',
+      'Future camera capture source. Camera permission is not opened.',
+    ),
+    (
+      Icons.replay_circle_filled_outlined,
+      'Live replay',
+      'Future live replay source. No RTMP/WebRTC stream is opened.',
+    ),
+    (
+      Icons.video_library_outlined,
+      'Studio clip',
+      'Future studio clip source. No storage or publish call is opened.',
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: _panelSoft,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _line),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Media source readiness',
+            style: TextStyle(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Prepares the real picker path without opening gallery, camera, upload, storage or live streaming.',
+            style: TextStyle(color: _textSoft, height: 1.25),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final source in sources)
+                ChoiceChip(
+                  selected: selectedSource == source.$2,
+                  avatar: Icon(source.$1, size: 18),
+                  label: Text(source.$2),
+                  onSelected: (_) => onSourceSelected(source.$2),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            sources.firstWhere((source) => source.$2 == selectedSource).$3,
+            style: const TextStyle(color: _textSoft, height: 1.25),
+          ),
+          const SizedBox(height: 12),
+          const _MediaRoutePreviewCard(),
+        ],
+      ),
+    );
+  }
+}
+
+class _MediaRoutePreviewCard extends StatelessWidget {
+  const _MediaRoutePreviewCard();
+
+  @override
+  Widget build(BuildContext context) {
+    const routes = [
+      ('Upload route', 'POST /api/media/upload', '503 guarded'),
+      ('Publish route', 'POST /api/posts/publish', '503 guarded'),
+      ('Feed route', 'GET /api/feed', '503 guarded'),
+      ('Reels route', 'GET /api/reels', '503 guarded'),
+    ];
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _line),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Guarded backend routes',
+            style: TextStyle(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 8),
+          for (final route in routes) ...[
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    route.$1,
+                    style: const TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                ),
+                Text(
+                  route.$3,
+                  style: const TextStyle(
+                    color: _textSoft,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 2),
+            Text(
+              route.$2,
+              style: const TextStyle(color: _textSoft, fontSize: 12),
+            ),
+            if (route != routes.last) const SizedBox(height: 8),
+          ],
+        ],
       ),
     );
   }
