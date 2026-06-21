@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'auth/cidentia_session_scope.dart';
-import 'auth/cidentia_auth_gate_contract.dart';
-import 'auth/cidentia_protected_action_notice.dart';
 import 'auth/cidentia_session_state.dart';
 
 import 'local_social_data.dart';
@@ -864,7 +862,7 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
                 }),
               ),
               const SizedBox(height: 14),
-              _CreateMediaSourceReadiness(
+              _CreateMediaSourcePicker(
                 selectedSource: selectedMediaSource,
                 onSourceSelected: (source) => setState(() {
                   selectedMediaSource = source;
@@ -879,29 +877,44 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
               const SizedBox(height: 14),
               _CreateCaptionPreview(controller: captionController),
               const SizedBox(height: 14),
-              const _CreateUploadReadinessCard(),
-              const SizedBox(height: 10),
-              const _CreateBoundaryNotice(),
-              const SizedBox(height: 14),
-              const _CreateProductionBoundaryActions(),
-              const SizedBox(height: 14),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: () {
-                    Navigator.of(context).pop(
-                      _LocalDraftPreview(
-                        mode: selectedMode,
-                        mediaType: selectedMediaType,
-                        mediaLabel: selectedMediaLabel,
-                        mediaSource: selectedMediaSource,
-                        caption: captionController.text,
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.save_outlined),
-                  label: const Text('Save readiness draft'),
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).pop(
+                          _LocalDraftPreview(
+                            mode: selectedMode,
+                            mediaType: selectedMediaType,
+                            mediaLabel: selectedMediaLabel,
+                            mediaSource: selectedMediaSource,
+                            caption: captionController.text,
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.cloud_upload_outlined),
+                      label: const Text('Upload media'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).pop(
+                          _LocalDraftPreview(
+                            mode: selectedMode,
+                            mediaType: selectedMediaType,
+                            mediaLabel: selectedMediaLabel,
+                            mediaSource: selectedMediaSource,
+                            caption: captionController.text,
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.save_outlined),
+                      label: const Text('Save draft'),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -1205,8 +1218,8 @@ class _PickerThumb extends StatelessWidget {
   }
 }
 
-class _CreateMediaSourceReadiness extends StatelessWidget {
-  const _CreateMediaSourceReadiness({
+class _CreateMediaSourcePicker extends StatelessWidget {
+  const _CreateMediaSourcePicker({
     required this.selectedSource,
     required this.onSourceSelected,
   });
@@ -1214,36 +1227,20 @@ class _CreateMediaSourceReadiness extends StatelessWidget {
   final String selectedSource;
   final ValueChanged<String> onSourceSelected;
 
-  static const sources = [
-    (
-      Icons.photo_library_outlined,
-      'Device gallery',
-      'Future photo/video picker source. File access stays closed.',
-    ),
-    (
-      Icons.photo_camera_outlined,
-      'Camera capture',
-      'Future camera capture source. Camera permission is not opened.',
-    ),
-    (
-      Icons.replay_circle_filled_outlined,
-      'Live replay',
-      'Future live replay source. No RTMP/WebRTC stream is opened.',
-    ),
-    (
-      Icons.video_library_outlined,
-      'Studio clip',
-      'Future studio clip source. No storage or publish call is opened.',
-    ),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    const sources = [
+      ('Device gallery', Icons.photo_library_outlined),
+      ('Camera capture', Icons.photo_camera_outlined),
+      ('Live replay', Icons.history_rounded),
+      ('Studio clip', Icons.video_library_outlined),
+    ];
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: _panelSoft,
+        color: _panel,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: _line),
       ),
@@ -1251,96 +1248,49 @@ class _CreateMediaSourceReadiness extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Media source readiness',
+            'Choose media source',
             style: TextStyle(fontWeight: FontWeight.w900),
           ),
-          const SizedBox(height: 4),
-          const Text(
-            'Prepares the real picker path without opening gallery, camera, upload, storage or live streaming.',
-            style: TextStyle(color: _textSoft, height: 1.25),
-          ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: [
               for (final source in sources)
-                ChoiceChip(
-                  selected: selectedSource == source.$2,
-                  avatar: Icon(source.$1, size: 18),
-                  label: Text(source.$2),
-                  onSelected: (_) => onSourceSelected(source.$2),
+                _CreateSourceOptionChip(
+                  label: source.$1,
+                  icon: source.$2,
+                  selected: selectedSource == source.$1,
+                  onTap: () => onSourceSelected(source.$1),
                 ),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            sources.firstWhere((source) => source.$2 == selectedSource).$3,
-            style: const TextStyle(color: _textSoft, height: 1.25),
-          ),
-          const SizedBox(height: 12),
-          const _MediaRoutePreviewCard(),
         ],
       ),
     );
   }
 }
 
-class _MediaRoutePreviewCard extends StatelessWidget {
-  const _MediaRoutePreviewCard();
+class _CreateSourceOptionChip extends StatelessWidget {
+  const _CreateSourceOptionChip({
+    required this.label,
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    const routes = [
-      ('Upload route', 'POST /api/media/upload', '503 guarded'),
-      ('Publish route', 'POST /api/posts/publish', '503 guarded'),
-      ('Feed route', 'GET /api/feed', '503 guarded'),
-      ('Reels route', 'GET /api/reels', '503 guarded'),
-    ];
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.72),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _line),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Guarded backend routes',
-            style: TextStyle(fontWeight: FontWeight.w900),
-          ),
-          const SizedBox(height: 8),
-          for (final route in routes) ...[
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    route.$1,
-                    style: const TextStyle(fontWeight: FontWeight.w800),
-                  ),
-                ),
-                Text(
-                  route.$3,
-                  style: const TextStyle(
-                    color: _textSoft,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 2),
-            Text(
-              route.$2,
-              style: const TextStyle(color: _textSoft, fontSize: 12),
-            ),
-            if (route != routes.last) const SizedBox(height: 8),
-          ],
-        ],
-      ),
+    return ChoiceChip(
+      selected: selected,
+      avatar: Icon(icon, size: 16),
+      label: Text(label),
+      onSelected: (_) => onTap(),
     );
   }
 }
@@ -1432,241 +1382,6 @@ class _CreateCaptionPreview extends StatelessWidget {
           borderRadius: BorderRadius.circular(18),
           borderSide: const BorderSide(color: _line),
         ),
-      ),
-    );
-  }
-}
-
-class _CreateProductionBoundaryActions extends StatelessWidget {
-  const _CreateProductionBoundaryActions();
-
-  void _showLockedBoundary(
-    BuildContext context,
-    CidentiaProtectedAction action,
-  ) {
-    CidentiaProtectedActionNotice.show(context, action: action);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.black26,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _line),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Upload / Publish boundary',
-            style: TextStyle(fontWeight: FontWeight.w900),
-          ),
-          const SizedBox(height: 4),
-          const Text(
-            'These buttons test the protected action boundary only. No file, storage, backend, or publish call is opened.',
-            style: TextStyle(color: _textSoft, height: 1.3),
-          ),
-          const SizedBox(height: 12),
-          _CreateLockedActionTile(
-            icon: Icons.cloud_upload_outlined,
-            title: 'Upload media',
-            subtitle: 'Protected upload route preview',
-            onTap: () => _showLockedBoundary(
-              context,
-              CidentiaProtectedAction.uploadMedia,
-            ),
-          ),
-          const SizedBox(height: 8),
-          _CreateLockedActionTile(
-            icon: Icons.publish_outlined,
-            title: 'Publish media',
-            subtitle: 'Protected publishing route preview',
-            onTap: () => _showLockedBoundary(
-              context,
-              CidentiaProtectedAction.publishMedia,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CreateLockedActionTile extends StatelessWidget {
-  const _CreateLockedActionTile({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return OutlinedButton(
-      onPressed: onTap,
-      style: OutlinedButton.styleFrom(
-        alignment: Alignment.centerLeft,
-        padding: const EdgeInsets.all(12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      ),
-      child: Row(
-        children: [
-          Icon(icon),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(fontWeight: FontWeight.w900),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: const TextStyle(color: _textSoft, fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          const Icon(Icons.lock_outline_rounded, size: 18),
-        ],
-      ),
-    );
-  }
-}
-
-class _CreateUploadReadinessCard extends StatelessWidget {
-  const _CreateUploadReadinessCard();
-
-  @override
-  Widget build(BuildContext context) {
-    const items = [
-      (Icons.photo_library_outlined, 'Picker', 'Visual only'),
-      (Icons.lock_outline_rounded, 'Upload', 'Locked'),
-      (Icons.storage_outlined, 'Storage', 'Closed'),
-      (Icons.publish_outlined, 'Publish', 'Blocked'),
-    ];
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: _panelSoft,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _line),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Icon(Icons.fact_check_outlined, size: 18),
-              SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Media upload readiness boundary',
-                  style: TextStyle(fontWeight: FontWeight.w900),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'This prepares the future upload flow without opening file access, storage, backend publish, wallet or payment.',
-            style: TextStyle(color: _textSoft, height: 1.3, fontSize: 12),
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final item in items)
-                _CreateReadinessPill(
-                  icon: item.$1,
-                  label: item.$2,
-                  value: item.$3,
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CreateReadinessPill extends StatelessWidget {
-  const _CreateReadinessPill({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  final IconData icon;
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: _line),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: _textSoft),
-          const SizedBox(width: 5),
-          Text(
-            '$label: $value',
-            style: const TextStyle(
-              color: _textSoft,
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CreateBoundaryNotice extends StatelessWidget {
-  const _CreateBoundaryNotice();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
-      ),
-      child: const Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.lock_outline_rounded, size: 20),
-          SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'Preview only. No upload, storage, backend, CidenDB session, RTMP, wallet, token, payment, blockchain or real publishing is opened.',
-              style: TextStyle(color: _textSoft, height: 1.35),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -1827,87 +1542,6 @@ class _LocalStatusCard extends StatelessWidget {
   }
 }
 
-class _ServerBackedPostBoundaryCard extends StatelessWidget {
-  const _ServerBackedPostBoundaryCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 2),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: _panelSoft,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: _line),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Server-backed post model boundary',
-            style: TextStyle(fontWeight: FontWeight.w900),
-          ),
-          SizedBox(height: 4),
-          const Text(
-            'Feed is still using local preview posts. Future posts will come from guarded backend routes after CID session validation.',
-            style: TextStyle(color: _textSoft, height: 1.3),
-          ),
-          SizedBox(height: 10),
-          _ServerRouteRow(label: 'Feed', route: cidentiaPostBoundary.feedRoute),
-          _ServerRouteRow(
-            label: 'Reels',
-            route: cidentiaPostBoundary.reelsRoute,
-          ),
-          _ServerRouteRow(
-            label: 'Profile',
-            route: cidentiaPostBoundary.profilePostsRoute,
-          ),
-          SizedBox(height: 6),
-          Text(
-            cidentiaPostBoundary.status,
-            style: const TextStyle(
-              color: _textSoft,
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ServerRouteRow extends StatelessWidget {
-  const _ServerRouteRow({required this.label, required this.route});
-
-  final String label;
-  final String route;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 58,
-            child: Text(
-              label,
-              style: const TextStyle(fontWeight: FontWeight.w800),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              route,
-              style: const TextStyle(color: _textSoft, fontSize: 12),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class FeedPreviewPage extends StatelessWidget {
   const FeedPreviewPage({super.key});
 
@@ -1921,8 +1555,6 @@ class FeedPreviewPage extends StatelessWidget {
             const SliverToBoxAdapter(child: SizedBox(height: 18)),
             const SliverToBoxAdapter(child: OriginalInspiredStoriesBar()),
             const SliverToBoxAdapter(child: SizedBox(height: 16)),
-            const SliverToBoxAdapter(child: _ServerBackedPostBoundaryCard()),
-            const SliverToBoxAdapter(child: SizedBox(height: 14)),
             SliverList.separated(
               itemCount: localPosts.length,
               separatorBuilder: (_, __) => const SizedBox(height: 18),
