@@ -2273,21 +2273,18 @@ class _SuggestedCreatorsPreviewState extends State<_SuggestedCreatorsPreview> {
       name: 'Aylin Creator',
       handle: '@aylin.creator',
       signal: 'CID-ready creator',
-      icon: Icons.verified_user_outlined,
       colors: [Color(0xFF60A5FA), Color(0xFF8B5CF6)],
     ),
     (
       name: 'Live Builder',
       handle: '@live.builder',
       signal: 'Live room host',
-      icon: Icons.live_tv_outlined,
       colors: [Color(0xFF22C55E), Color(0xFF14B8A6)],
     ),
     (
       name: 'Market Studio',
       handle: '@market.studio',
       signal: 'Market-ready creator',
-      icon: Icons.storefront_outlined,
       colors: [Color(0xFFF59E0B), Color(0xFFEF4444)],
     ),
   ];
@@ -2295,9 +2292,10 @@ class _SuggestedCreatorsPreviewState extends State<_SuggestedCreatorsPreview> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
+      padding: EdgeInsets.zero,
       child: Container(
-        padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
         decoration: BoxDecoration(
           color: _panel,
           borderRadius: BorderRadius.circular(22),
@@ -2328,7 +2326,7 @@ class _SuggestedCreatorsPreviewState extends State<_SuggestedCreatorsPreview> {
             ),
             const SizedBox(height: 12),
             SizedBox(
-              height: 148,
+              height: 214,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: creators.length,
@@ -2338,7 +2336,7 @@ class _SuggestedCreatorsPreviewState extends State<_SuggestedCreatorsPreview> {
                   final isFollowing = following.contains(creator.handle);
 
                   return SizedBox(
-                    width: 190,
+                    width: 180,
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
@@ -2347,60 +2345,76 @@ class _SuggestedCreatorsPreviewState extends State<_SuggestedCreatorsPreview> {
                         border: Border.all(color: _line),
                       ),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              Container(
-                                width: 42,
-                                height: 42,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  gradient: LinearGradient(
-                                    colors: creator.colors,
+                          Container(
+                            width: 66,
+                            height: 66,
+                            padding: const EdgeInsets.all(3),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(colors: creator.colors),
+                            ),
+                            child: Container(
+                              decoration: const BoxDecoration(
+                                color: _panel,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Center(
+                                child: Text(
+                                  creator.name.substring(0, 1),
+                                  style: const TextStyle(
+                                    fontSize: 26,
+                                    fontWeight: FontWeight.w900,
                                   ),
                                 ),
-                                child: Icon(creator.icon, size: 20),
                               ),
-                              const Spacer(),
-                              OutlinedButton(
-                                onPressed: () {
-                                  setState(() {
-                                    if (isFollowing) {
-                                      following.remove(creator.handle);
-                                    } else {
-                                      following.add(creator.handle);
-                                    }
-                                  });
-                                },
-                                child: Text(
-                                  isFollowing ? 'Following' : 'Follow',
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
-                          const Spacer(),
+                          const SizedBox(height: 10),
                           Text(
                             creator.name,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
                             style: const TextStyle(fontWeight: FontWeight.w900),
                           ),
                           const SizedBox(height: 3),
                           Text(
                             creator.handle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
                             style: const TextStyle(
                               color: _textSoft,
                               fontSize: 12,
                             ),
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 5),
                           Text(
                             creator.signal,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
                             style: const TextStyle(
                               color: _textSoft,
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const Spacer(),
+                          SizedBox(
+                            width: double.infinity,
+                            child: FilledButton(
+                              onPressed: () {
+                                setState(() {
+                                  if (isFollowing) {
+                                    following.remove(creator.handle);
+                                  } else {
+                                    following.add(creator.handle);
+                                  }
+                                });
+                              },
+                              child: Text(isFollowing ? 'Following' : 'Follow'),
                             ),
                           ),
                         ],
