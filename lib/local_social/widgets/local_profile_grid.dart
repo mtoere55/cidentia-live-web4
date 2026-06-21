@@ -1,4 +1,7 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../auth/cidentia_auth_gate_contract.dart';
 import '../auth/cidentia_protected_action_notice.dart';
@@ -75,6 +78,17 @@ String _profileHandle(String value) {
 }
 
 enum _ProfileTabKind { posts, reels, live, proof }
+
+class _ProfileHeroDraft {
+  const _ProfileHeroDraft({this.coverBytes, this.headline, this.intro});
+
+  final Uint8List? coverBytes;
+  final String? headline;
+  final String? intro;
+}
+
+final ValueNotifier<_ProfileHeroDraft> _profileHeroDraft =
+    ValueNotifier<_ProfileHeroDraft>(const _ProfileHeroDraft());
 
 class OriginalInspiredProfilePage extends StatefulWidget {
   const OriginalInspiredProfilePage({super.key});
@@ -254,7 +268,7 @@ class _ProfileHero extends StatelessWidget {
         ? 'Verified CID: $cid'
         : 'CID-ready creator identity';
 
-    final profileDescription = verified && email != null
+    final defaultDescription = verified && email != null
         ? 'Signed in as $email. Creator identity, avatar and cover workspace are ready.'
         : 'Build your Cidentia creator profile with live rooms, proof signals and media tools.';
 
@@ -262,204 +276,262 @@ class _ProfileHero extends StatelessWidget {
         ? 'CidenDB verified identity'
         : 'CID sign-in available';
 
-    final mediaStatus = verified
-        ? 'Avatar / cover ready'
-        : 'Avatar / cover ready';
+    final mediaStatus = 'Avatar / cover ready';
 
     final cidBadgeLabel = verified && cid != null ? 'CID $cid' : 'CID entry';
     final proofBadgeLabel = verified ? 'Proof verified' : 'Proof path';
     final wideHero = MediaQuery.sizeOf(context).width >= 760;
 
-    return Container(
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: verified
-              ? const Color(0x6658A6FF)
-              : Colors.white.withValues(alpha: 0.12),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color:
-                (verified ? const Color(0xFF2563EB) : const Color(0xFFE879F9))
-                    .withValues(alpha: 0.18),
-            blurRadius: 28,
-            offset: const Offset(0, 18),
-          ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: verified
-                      ? const [
-                          Color(0xFF101114),
-                          Color(0xFF172554),
-                          Color(0xFF111827),
-                        ]
-                      : const [
-                          Color(0xFF101114),
-                          Color(0xFF3B0764),
-                          Color(0xFF111827),
-                        ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
+    return ValueListenableBuilder<_ProfileHeroDraft>(
+      valueListenable: _profileHeroDraft,
+      builder: (context, draft, _) {
+        final headline = draft.headline?.trim();
+        final intro = draft.intro?.trim();
+        final hasHeadline = headline != null && headline.isNotEmpty;
+        final description = intro != null && intro.isNotEmpty
+            ? intro
+            : defaultDescription;
+
+        return Container(
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(
+              color: verified
+                  ? const Color(0x6658A6FF)
+                  : Colors.white.withValues(alpha: 0.12),
             ),
-          ),
-          Positioned(
-            right: -80,
-            top: -90,
-            child: Container(
-              width: 230,
-              height: 230,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
                 color:
                     (verified
-                            ? const Color(0xFF60A5FA)
-                            : const Color(0xFFF472B6))
+                            ? const Color(0xFF2563EB)
+                            : const Color(0xFFE879F9))
                         .withValues(alpha: 0.18),
+                blurRadius: 28,
+                offset: const Offset(0, 18),
               ),
-            ),
+            ],
           ),
-          Positioned(
-            left: -70,
-            bottom: -90,
-            child: Container(
-              width: 220,
-              height: 220,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFFF97316).withValues(alpha: 0.12),
-              ),
-            ),
-          ),
-          if (wideHero)
-            const Positioned(
-              right: 18,
-              bottom: 18,
-              child: _ProfileHeroSignalStack(),
-            ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _ProfileIdentityAvatar(
-                  initials: avatarLabel,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: _ProfileHeroCoverBackground(
                   verified: verified,
+                  coverBytes: draft.coverBytes,
                 ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              profileName,
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: -0.7,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          if (verified)
-                            const Icon(
-                              Icons.verified_rounded,
-                              color: Color(0xFF60A5FA),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        profileHandle,
-                        style: const TextStyle(
-                          color: _textSoft,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        identityLine,
-                        style: const TextStyle(
-                          color: Color(0xFF86EFAC),
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        profileDescription,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          height: 1.25,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      _ProfileIdentityReadinessRow(
-                        identityStatus: identityStatus,
-                        mediaStatus: mediaStatus,
-                      ),
-                      const SizedBox(height: 10),
-                      LayoutBuilder(
-                        builder: (context, constraints) {
-                          final compact = constraints.maxWidth < 360;
-
-                          final badges = [
-                            _ProfileBadge(
-                              icon: Icons.badge_outlined,
-                              label: cidBadgeLabel,
-                            ),
-                            _ProfileBadge(
-                              icon: Icons.fingerprint_rounded,
-                              label: proofBadgeLabel,
-                            ),
-                            const _ProfileBadge(
-                              icon: Icons.wallet_outlined,
-                              label: 'Wallet gateway',
-                            ),
-                          ];
-
-                          if (!compact) {
-                            return Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: badges,
-                            );
-                          }
-
-                          return SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: [
-                                for (final badge in badges) ...[
-                                  badge,
-                                  const SizedBox(width: 8),
-                                ],
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                    ],
+              ),
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.black.withValues(alpha: 0.72),
+                        Colors.black.withValues(alpha: 0.30),
+                        Colors.black.withValues(alpha: 0.76),
+                      ],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
                   ),
                 ),
-              ],
-            ),
+              ),
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withValues(alpha: 0.46),
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                right: -80,
+                top: -90,
+                child: Container(
+                  width: 230,
+                  height: 230,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color:
+                        (verified
+                                ? const Color(0xFF60A5FA)
+                                : const Color(0xFFF472B6))
+                            .withValues(alpha: 0.16),
+                  ),
+                ),
+              ),
+              if (wideHero)
+                const Positioned(
+                  right: 18,
+                  bottom: 18,
+                  child: _ProfileHeroSignalStack(),
+                ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _ProfileIdentityAvatar(
+                      initials: avatarLabel,
+                      verified: verified,
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  profileName,
+                                  style: const TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: -0.7,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              if (verified)
+                                const Icon(
+                                  Icons.verified_rounded,
+                                  color: Color(0xFF60A5FA),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            profileHandle,
+                            style: const TextStyle(
+                              color: _textSoft,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            identityLine,
+                            style: const TextStyle(
+                              color: Color(0xFF86EFAC),
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          if (hasHeadline) ...[
+                            const SizedBox(height: 6),
+                            Text(
+                              headline,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ],
+                          const SizedBox(height: 8),
+                          Text(
+                            description,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              height: 1.25,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          _ProfileIdentityReadinessRow(
+                            identityStatus: identityStatus,
+                            mediaStatus: mediaStatus,
+                          ),
+                          const SizedBox(height: 10),
+                          LayoutBuilder(
+                            builder: (context, constraints) {
+                              final compact = constraints.maxWidth < 360;
+
+                              final badges = [
+                                _ProfileBadge(
+                                  icon: Icons.badge_outlined,
+                                  label: cidBadgeLabel,
+                                ),
+                                _ProfileBadge(
+                                  icon: Icons.fingerprint_rounded,
+                                  label: proofBadgeLabel,
+                                ),
+                                const _ProfileBadge(
+                                  icon: Icons.wallet_outlined,
+                                  label: 'Wallet gateway',
+                                ),
+                              ];
+
+                              if (!compact) {
+                                return Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: badges,
+                                );
+                              }
+
+                              return SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children: [
+                                    for (final badge in badges) ...[
+                                      badge,
+                                      const SizedBox(width: 8),
+                                    ],
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
+        );
+      },
+    );
+  }
+}
+
+class _ProfileHeroCoverBackground extends StatelessWidget {
+  const _ProfileHeroCoverBackground({
+    required this.verified,
+    required this.coverBytes,
+  });
+
+  final bool verified;
+  final Uint8List? coverBytes;
+
+  @override
+  Widget build(BuildContext context) {
+    final bytes = coverBytes;
+
+    if (bytes != null) {
+      return Image.memory(bytes, fit: BoxFit.cover, gaplessPlayback: true);
+    }
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: verified
+              ? const [Color(0xFF101114), Color(0xFF172554), Color(0xFF111827)]
+              : const [Color(0xFF101114), Color(0xFF3B0764), Color(0xFF111827)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
       ),
+      child: CustomPaint(painter: _GridPatternPainter()),
     );
   }
 }
@@ -1564,7 +1636,11 @@ class _ProfileEditPreviewFormState extends State<_ProfileEditPreviewForm> {
   late final TextEditingController handleController;
   late final TextEditingController bioController;
   late final TextEditingController initialsController;
+  late final TextEditingController headlineController;
+  late final TextEditingController introController;
 
+  final ImagePicker _imagePicker = ImagePicker();
+  Uint8List? coverBytes;
   String initials = 'LC';
   bool _initialized = false;
 
@@ -1589,11 +1665,24 @@ class _ProfileEditPreviewFormState extends State<_ProfileEditPreviewForm> {
 
     nameController = TextEditingController(text: profileName);
     handleController = TextEditingController(text: handle);
+    final currentHeroDraft = _profileHeroDraft.value;
+
     bioController = TextEditingController(
       text:
           'Cidentia.Live creator profile connected to verified CidenDB/CID session.',
     );
     initialsController = TextEditingController(text: avatarInitials);
+    headlineController = TextEditingController(
+      text:
+          currentHeroDraft.headline ??
+          'Creator identity for live, proof and media.',
+    );
+    introController = TextEditingController(
+      text:
+          currentHeroDraft.intro ??
+          'My Cidentia.Live space brings live rooms, proof signals and creator media together.',
+    );
+    coverBytes = currentHeroDraft.coverBytes;
     initials = avatarInitials;
     initialsController.addListener(_refreshAvatarPreview);
     _initialized = true;
@@ -1606,12 +1695,36 @@ class _ProfileEditPreviewFormState extends State<_ProfileEditPreviewForm> {
     handleController.dispose();
     bioController.dispose();
     initialsController.dispose();
+    headlineController.dispose();
+    introController.dispose();
     super.dispose();
   }
 
   void _refreshAvatarPreview() {
     if (!mounted) return;
     setState(() {});
+  }
+
+  Future<void> _pickCoverImage() async {
+    final picked = await _imagePicker.pickImage(source: ImageSource.gallery);
+    if (picked == null) {
+      return;
+    }
+
+    final bytes = await picked.readAsBytes();
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      coverBytes = bytes;
+    });
+
+    _profileHeroDraft.value = _ProfileHeroDraft(
+      coverBytes: bytes,
+      headline: headlineController.text,
+      intro: introController.text,
+    );
   }
 
   void _showPhotoPreviewNotice() {
@@ -1626,6 +1739,12 @@ class _ProfileEditPreviewFormState extends State<_ProfileEditPreviewForm> {
 
   void _saveLocalDraft() {
     FocusScope.of(context).unfocus();
+
+    _profileHeroDraft.value = _ProfileHeroDraft(
+      coverBytes: coverBytes,
+      headline: headlineController.text,
+      intro: introController.text,
+    );
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -1647,13 +1766,18 @@ class _ProfileEditPreviewFormState extends State<_ProfileEditPreviewForm> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Local profile editor',
+            'Creator profile editor',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 6),
           const Text(
             'Shape your public creator identity before publishing it to the profile service.',
             style: TextStyle(color: _textSoft, height: 1.35),
+          ),
+          const SizedBox(height: 14),
+          _ProfileCoverPreviewCard(
+            coverBytes: coverBytes,
+            onChangeCover: _pickCoverImage,
           ),
           const SizedBox(height: 14),
           _ProfileAvatarPreviewCard(
@@ -1680,6 +1804,19 @@ class _ProfileEditPreviewFormState extends State<_ProfileEditPreviewForm> {
           ),
           const SizedBox(height: 10),
           _ProfileDraftField(
+            controller: headlineController,
+            label: 'Hero headline',
+            icon: Icons.campaign_outlined,
+          ),
+          const SizedBox(height: 10),
+          _ProfileDraftField(
+            controller: introController,
+            label: 'Hero intro',
+            icon: Icons.auto_stories_outlined,
+            maxLines: 3,
+          ),
+          const SizedBox(height: 10),
+          _ProfileDraftField(
             controller: bioController,
             label: 'Bio',
             icon: Icons.notes_rounded,
@@ -1689,7 +1826,96 @@ class _ProfileEditPreviewFormState extends State<_ProfileEditPreviewForm> {
           FilledButton.icon(
             onPressed: _saveLocalDraft,
             icon: const Icon(Icons.save_outlined),
-            label: const Text('Save local draft'),
+            label: const Text('Save profile draft'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileCoverPreviewCard extends StatelessWidget {
+  const _ProfileCoverPreviewCard({
+    required this.coverBytes,
+    required this.onChangeCover,
+  });
+
+  final Uint8List? coverBytes;
+  final VoidCallback onChangeCover;
+
+  @override
+  Widget build(BuildContext context) {
+    final bytes = coverBytes;
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.black26,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: _line),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Hero cover',
+            style: TextStyle(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(18),
+            child: AspectRatio(
+              aspectRatio: 16 / 5,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (bytes != null)
+                    Image.memory(
+                      bytes,
+                      fit: BoxFit.cover,
+                      gaplessPlayback: true,
+                    )
+                  else
+                    DecoratedBox(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Color(0xFF101114),
+                            Color(0xFF3B0764),
+                            Color(0xFF111827),
+                          ],
+                        ),
+                      ),
+                      child: CustomPaint(painter: _GridPatternPainter()),
+                    ),
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.black.withValues(alpha: 0.45),
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.50),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const Positioned(
+                    left: 14,
+                    bottom: 12,
+                    child: Text(
+                      'Cover image keeps your creator message readable.',
+                      style: TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          OutlinedButton.icon(
+            onPressed: onChangeCover,
+            icon: const Icon(Icons.image_outlined, size: 18),
+            label: const Text('Choose cover image'),
           ),
         ],
       ),
@@ -1755,14 +1981,14 @@ class _ProfileAvatarPreviewCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 const Text(
-                  'Avatar and cover media will publish through the creator media flow.',
+                  'Avatar and cover media shape how your creator profile appears.',
                   style: TextStyle(color: _textSoft, height: 1.35),
                 ),
                 const SizedBox(height: 10),
                 OutlinedButton.icon(
                   onPressed: onChangePhoto,
                   icon: const Icon(Icons.photo_camera_outlined, size: 18),
-                  label: const Text('Change photo preview'),
+                  label: const Text('Change photo'),
                 ),
               ],
             ),
