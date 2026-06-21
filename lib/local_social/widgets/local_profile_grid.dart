@@ -105,6 +105,8 @@ class _OriginalInspiredProfilePageState
         const SizedBox(height: 10),
         const _CreatorEconomyPreviewCard(),
         const SizedBox(height: 10),
+        const _ProfileServerBoundaryNotice(),
+        const SizedBox(height: 10),
         _ProfileTabs(activeTab: activeTab, onChanged: _setTab),
         const SizedBox(height: 10),
         _ProfileGrid(activeTab: activeTab),
@@ -899,6 +901,35 @@ class _ProfileTab extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ProfileServerBoundaryNotice extends StatelessWidget {
+  const _ProfileServerBoundaryNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: _panelSoft,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _line),
+      ),
+      child: const Row(
+        children: [
+          Icon(Icons.storage_outlined, size: 18, color: _textSoft),
+          SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Profile posts/reels still use local preview data. Future profile media reads from GET /api/profile/posts after CID session validation.',
+              style: TextStyle(color: _textSoft, height: 1.3),
+            ),
+          ),
+        ],
       ),
     );
   }

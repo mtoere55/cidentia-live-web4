@@ -20,6 +20,27 @@ class LocalPost {
   final String comments;
 }
 
+class ServerBackedPostBoundary {
+  const ServerBackedPostBoundary({
+    required this.feedRoute,
+    required this.reelsRoute,
+    required this.profilePostsRoute,
+    required this.status,
+  });
+
+  final String feedRoute;
+  final String reelsRoute;
+  final String profilePostsRoute;
+  final String status;
+}
+
+const cidentiaPostBoundary = ServerBackedPostBoundary(
+  feedRoute: 'GET /api/feed',
+  reelsRoute: 'GET /api/reels',
+  profilePostsRoute: 'GET /api/profile/posts',
+  status: '503 guarded - server-backed post model locked',
+);
+
 const localPosts = [
   LocalPost(
     author: 'Mira Studio',

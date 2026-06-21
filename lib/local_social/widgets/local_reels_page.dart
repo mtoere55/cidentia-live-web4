@@ -127,6 +127,11 @@ class _OriginalInspiredReelsPageState extends State<OriginalInspiredReelsPage> {
             ),
           ),
           const Positioned(left: 22, top: 24, child: _ReelsTitle()),
+          const Positioned(
+            right: 22,
+            top: 24,
+            child: _ReelsServerBoundaryBadge(),
+          ),
           if (MediaQuery.sizeOf(context).width >= 1280)
             const Positioned(
               left: 22,
@@ -134,6 +139,41 @@ class _OriginalInspiredReelsPageState extends State<OriginalInspiredReelsPage> {
               bottom: 28,
               child: _ReelsLiveDiscoverySidebar(),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ReelsServerBoundaryBadge extends StatelessWidget {
+  const _ReelsServerBoundaryBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 220),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.44),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white24),
+      ),
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Server reels locked',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w900,
+              fontSize: 12,
+            ),
+          ),
+          SizedBox(height: 2),
+          Text(
+            'GET /api/reels - 503 guarded',
+            style: TextStyle(color: Colors.white70, fontSize: 11),
+          ),
         ],
       ),
     );
