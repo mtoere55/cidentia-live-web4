@@ -289,22 +289,6 @@ class _PostMedia extends StatelessWidget {
             Positioned.fill(
               child: CustomPaint(painter: _MediaPatternPainter()),
             ),
-            const Positioned(
-              left: 18,
-              top: 18,
-              child: _OverlayBadge(
-                icon: Icons.verified_rounded,
-                label: 'CID proof',
-              ),
-            ),
-            const Positioned(
-              right: 18,
-              top: 18,
-              child: _OverlayBadge(
-                icon: Icons.offline_bolt_rounded,
-                label: 'Local media',
-              ),
-            ),
             Center(
               child: Container(
                 width: 112,
@@ -1272,7 +1256,6 @@ class _PreviewComment extends StatelessWidget {
     );
   }
 }
-
 
 class _OverlayBadge extends StatelessWidget {
   const _OverlayBadge({required this.icon, required this.label});

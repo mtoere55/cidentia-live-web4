@@ -35,10 +35,10 @@ class ServerBackedPostBoundary {
 }
 
 const cidentiaPostBoundary = ServerBackedPostBoundary(
-  feedRoute: 'GET /api/feed',
-  reelsRoute: 'GET /api/reels',
-  profilePostsRoute: 'GET /api/profile/posts',
-  status: '503 guarded - server-backed post model locked',
+  feedRoute: 'Feed preview',
+  reelsRoute: 'Reels preview',
+  profilePostsRoute: 'Profile posts preview',
+  status: 'Creator posts and reels connect in an upcoming release.',
 );
 
 class LivePermissionStateModel {
@@ -194,7 +194,7 @@ const cidentiaLiveSessionBoundary = LiveSessionStateModel(
     mediaId: 'not_created',
     postId: 'not_published',
   ),
-  routeStatus: '503 guarded - live session model locked',
+  routeStatus: 'Live session preview connects in an upcoming creator release.',
 );
 
 const localPosts = [
