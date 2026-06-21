@@ -931,20 +931,38 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
                 const SizedBox(height: 14),
                 _CreateCaptionPreview(controller: captionController),
                 const SizedBox(height: 14),
-                Row(
+                Column(
                   children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () async {
-                          await _pickDeviceMedia();
-                        },
-                        icon: const Icon(Icons.cloud_upload_outlined),
-                        label: const Text('Upload media'),
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () async {
+                              await _pickDeviceMedia();
+                            },
+                            icon: const Icon(Icons.cloud_upload_outlined),
+                            label: const Text('Upload media'),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: FilledButton.icon(
+                            onPressed: () {
+                              setState(() {
+                                mediaPickerStatus =
+                                    'Publish will require verified CID and media backend connection.';
+                              });
+                            },
+                            icon: const Icon(Icons.publish_outlined),
+                            label: const Text('Publish'),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: FilledButton.icon(
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
                         onPressed: () {
                           Navigator.of(context).pop(
                             _LocalDraftPreview(
