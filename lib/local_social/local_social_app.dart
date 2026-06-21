@@ -702,12 +702,12 @@ class _EmptyDraftTray extends StatelessWidget {
       child: const Column(
         children: [
           Icon(Icons.drafts_outlined, size: 34, color: _textSoft),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Text(
             'No local drafts yet',
             style: TextStyle(fontWeight: FontWeight.w900),
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           Text(
             'Use Create preview and save a local draft to see it here.',
             textAlign: TextAlign.center,
@@ -1814,12 +1814,93 @@ class _LocalStatusCard extends StatelessWidget {
             'Cidentia local preview',
             style: TextStyle(fontWeight: FontWeight.w900),
           ),
-          SizedBox(height: 6),
+          const SizedBox(height: 6),
           Text(
             'Local preview only. Backend, CidenDB, wallet and RTMP stay closed.',
             maxLines: 3,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(color: _textSoft, height: 1.2),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ServerBackedPostBoundaryCard extends StatelessWidget {
+  const _ServerBackedPostBoundaryCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 2),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: _panelSoft,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _line),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Server-backed post model boundary',
+            style: TextStyle(fontWeight: FontWeight.w900),
+          ),
+          SizedBox(height: 4),
+          const Text(
+            'Feed is still using local preview posts. Future posts will come from guarded backend routes after CID session validation.',
+            style: TextStyle(color: _textSoft, height: 1.3),
+          ),
+          SizedBox(height: 10),
+          _ServerRouteRow(label: 'Feed', route: cidentiaPostBoundary.feedRoute),
+          _ServerRouteRow(
+            label: 'Reels',
+            route: cidentiaPostBoundary.reelsRoute,
+          ),
+          _ServerRouteRow(
+            label: 'Profile',
+            route: cidentiaPostBoundary.profilePostsRoute,
+          ),
+          SizedBox(height: 6),
+          Text(
+            cidentiaPostBoundary.status,
+            style: const TextStyle(
+              color: _textSoft,
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ServerRouteRow extends StatelessWidget {
+  const _ServerRouteRow({required this.label, required this.route});
+
+  final String label;
+  final String route;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 58,
+            child: Text(
+              label,
+              style: const TextStyle(fontWeight: FontWeight.w800),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              route,
+              style: const TextStyle(color: _textSoft, fontSize: 12),
+            ),
           ),
         ],
       ),
@@ -1840,6 +1921,8 @@ class FeedPreviewPage extends StatelessWidget {
             const SliverToBoxAdapter(child: SizedBox(height: 18)),
             const SliverToBoxAdapter(child: OriginalInspiredStoriesBar()),
             const SliverToBoxAdapter(child: SizedBox(height: 16)),
+            const SliverToBoxAdapter(child: _ServerBackedPostBoundaryCard()),
+            const SliverToBoxAdapter(child: SizedBox(height: 14)),
             SliverList.separated(
               itemCount: localPosts.length,
               separatorBuilder: (_, __) => const SizedBox(height: 18),
