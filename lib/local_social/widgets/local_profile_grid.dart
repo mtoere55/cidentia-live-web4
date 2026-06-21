@@ -973,10 +973,42 @@ class _CreatorEconomyPreviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const items = [
-      (Icons.ssid_chart_rounded, 'Signal', '94%', 'Live trust pulse'),
-      (Icons.volunteer_activism_outlined, 'Support', 'Ready', 'Gateway'),
-      (Icons.verified_user_outlined, 'Proof', 'Ready', 'CID route'),
-      (Icons.auto_awesome_rounded, 'Effect', 'Earned', 'NFT-ready'),
+      (
+        Icons.account_balance_wallet_outlined,
+        'Credits',
+        'Gateway',
+        'Metered actions',
+      ),
+      (
+        Icons.auto_awesome_rounded,
+        'AI Credits',
+        'Metered',
+        'Image and video tools',
+      ),
+      (
+        Icons.volunteer_activism_outlined,
+        'Earnings',
+        'Creator',
+        'Support and gifts',
+      ),
+      (
+        Icons.card_giftcard_outlined,
+        'Gift Balance',
+        'Support',
+        'Live room gifts',
+      ),
+      (
+        Icons.verified_user_outlined,
+        'Proof Fees',
+        'Prepared',
+        'CID proof route',
+      ),
+      (
+        Icons.workspace_premium_outlined,
+        'Pro Status',
+        'Creator',
+        'Advanced tools',
+      ),
     ];
 
     return Container(
@@ -1004,14 +1036,14 @@ class _CreatorEconomyPreviewCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           const Text(
-            'Activity-based Web4 layer for signal, support, proof and earned creator assets.',
+            'Creator economy gateway for credits, earnings, gifts, proof fees and Pro access.',
             style: TextStyle(color: _textSoft, height: 1.35, fontSize: 12),
           ),
           const SizedBox(height: 12),
           LayoutBuilder(
             builder: (context, constraints) {
               final metricWidth = constraints.maxWidth >= 760
-                  ? (constraints.maxWidth - 24) / 4
+                  ? (constraints.maxWidth - 16) / 3
                   : (constraints.maxWidth - 8) / 2;
 
               return Wrap(
