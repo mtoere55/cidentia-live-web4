@@ -95,7 +95,7 @@ class _OriginalInspiredProfilePageState
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 90),
+      padding: const EdgeInsets.fromLTRB(12, 16, 12, 96),
       children: [
         const _ProfileHero(),
         const SizedBox(height: 8),
@@ -263,129 +263,260 @@ class _ProfileHero extends StatelessWidget {
         : 'CID sign-in available';
 
     final mediaStatus = verified
-        ? 'Avatar / cover preview ready'
+        ? 'Avatar / cover ready'
         : 'Avatar / cover ready';
 
     final cidBadgeLabel = verified && cid != null ? 'CID $cid' : 'CID entry';
     final proofBadgeLabel = verified ? 'Proof verified' : 'Proof path';
+    final wideHero = MediaQuery.sizeOf(context).width >= 760;
 
     return Container(
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: _panel,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: _line),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: verified
+              ? const Color(0x6658A6FF)
+              : Colors.white.withValues(alpha: 0.12),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color:
+                (verified ? const Color(0xFF2563EB) : const Color(0xFFE879F9))
+                    .withValues(alpha: 0.18),
+            blurRadius: 28,
+            offset: const Offset(0, 18),
+          ),
+        ],
       ),
-      padding: const EdgeInsets.all(10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
         children: [
-          _ProfileIdentityAvatar(initials: avatarLabel, verified: verified),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: verified
+                      ? const [
+                          Color(0xFF101114),
+                          Color(0xFF172554),
+                          Color(0xFF111827),
+                        ]
+                      : const [
+                          Color(0xFF101114),
+                          Color(0xFF3B0764),
+                          Color(0xFF111827),
+                        ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            right: -80,
+            top: -90,
+            child: Container(
+              width: 230,
+              height: 230,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color:
+                    (verified
+                            ? const Color(0xFF60A5FA)
+                            : const Color(0xFFF472B6))
+                        .withValues(alpha: 0.18),
+              ),
+            ),
+          ),
+          Positioned(
+            left: -70,
+            bottom: -90,
+            child: Container(
+              width: 220,
+              height: 220,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFFF97316).withValues(alpha: 0.12),
+              ),
+            ),
+          ),
+          if (wideHero)
+            const Positioned(
+              right: 18,
+              bottom: 18,
+              child: _ProfileHeroSignalStack(),
+            ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        profileName,
+                _ProfileIdentityAvatar(
+                  initials: avatarLabel,
+                  verified: verified,
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              profileName,
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -0.7,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          if (verified)
+                            const Icon(
+                              Icons.verified_rounded,
+                              color: Color(0xFF60A5FA),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        profileHandle,
                         style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: -0.7,
+                          color: _textSoft,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    if (verified)
-                      const Icon(
-                        Icons.verified_rounded,
-                        color: Color(0xFF60A5FA),
+                      const SizedBox(height: 6),
+                      Text(
+                        identityLine,
+                        style: const TextStyle(
+                          color: Color(0xFF86EFAC),
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  profileHandle,
-                  style: const TextStyle(
-                    color: _textSoft,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  identityLine,
-                  style: const TextStyle(
-                    color: _textSoft,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  profileDescription,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Colors.white, height: 1.25),
-                ),
-                const SizedBox(height: 8),
-                _ProfileIdentityReadinessRow(
-                  identityStatus: identityStatus,
-                  mediaStatus: mediaStatus,
-                ),
-                const SizedBox(height: 10),
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final compact = constraints.maxWidth < 360;
-
-                    if (!compact) {
-                      return Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          _ProfileBadge(
-                            icon: Icons.badge_outlined,
-                            label: cidBadgeLabel,
-                          ),
-                          _ProfileBadge(
-                            icon: Icons.fingerprint_rounded,
-                            label: proofBadgeLabel,
-                          ),
-                          const _ProfileBadge(
-                            icon: Icons.wallet_outlined,
-                            label: 'Wallet gateway',
-                          ),
-                        ],
-                      );
-                    }
-
-                    return SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          _ProfileBadge(
-                            icon: Icons.badge_outlined,
-                            label: cidBadgeLabel,
-                          ),
-                          const SizedBox(width: 8),
-                          _ProfileBadge(
-                            icon: Icons.fingerprint_rounded,
-                            label: proofBadgeLabel,
-                          ),
-                          const SizedBox(width: 8),
-                          const _ProfileBadge(
-                            icon: Icons.wallet_outlined,
-                            label: 'Wallet gateway',
-                          ),
-                        ],
+                      const SizedBox(height: 8),
+                      Text(
+                        profileDescription,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          height: 1.25,
+                        ),
                       ),
-                    );
-                  },
+                      const SizedBox(height: 8),
+                      _ProfileIdentityReadinessRow(
+                        identityStatus: identityStatus,
+                        mediaStatus: mediaStatus,
+                      ),
+                      const SizedBox(height: 10),
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final compact = constraints.maxWidth < 360;
+
+                          final badges = [
+                            _ProfileBadge(
+                              icon: Icons.badge_outlined,
+                              label: cidBadgeLabel,
+                            ),
+                            _ProfileBadge(
+                              icon: Icons.fingerprint_rounded,
+                              label: proofBadgeLabel,
+                            ),
+                            const _ProfileBadge(
+                              icon: Icons.wallet_outlined,
+                              label: 'Wallet gateway',
+                            ),
+                          ];
+
+                          if (!compact) {
+                            return Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: badges,
+                            );
+                          }
+
+                          return SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                for (final badge in badges) ...[
+                                  badge,
+                                  const SizedBox(width: 8),
+                                ],
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ProfileHeroSignalStack extends StatelessWidget {
+  const _ProfileHeroSignalStack();
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: const [
+        _ProfileHeroSignalChip(
+          icon: Icons.live_tv_rounded,
+          label: 'Live ready',
+        ),
+        _ProfileHeroSignalChip(
+          icon: Icons.verified_user_outlined,
+          label: 'Proof ready',
+        ),
+        _ProfileHeroSignalChip(
+          icon: Icons.auto_awesome_rounded,
+          label: 'Creator layer',
+        ),
+      ],
+    );
+  }
+}
+
+class _ProfileHeroSignalChip extends StatelessWidget {
+  const _ProfileHeroSignalChip({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.28),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.16)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: Colors.white),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -460,11 +591,15 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: _panel,
-        borderRadius: BorderRadius.circular(14),
+        gradient: LinearGradient(
+          colors: [_panel, Colors.white.withValues(alpha: 0.035)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: _line),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
       child: Column(
         children: [
           Text(
@@ -653,9 +788,20 @@ class _CreatorRoleStrip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: _panel,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: _line),
+        gradient: LinearGradient(
+          colors: [_panel, const Color(0xFF151827), _panel],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF8B5CF6).withValues(alpha: 0.12),
+            blurRadius: 26,
+            offset: const Offset(0, 16),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -711,9 +857,13 @@ class _CreatorRoleCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: _panelSoft,
+        gradient: LinearGradient(
+          colors: [_panelSoft, Colors.white.withValues(alpha: 0.045)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _line),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
       ),
       child: Row(
         children: [
@@ -752,8 +902,8 @@ class _CreatorEconomyPreviewCard extends StatelessWidget {
   Widget build(BuildContext context) {
     const items = [
       (Icons.ssid_chart_rounded, 'Signal', '94%', 'Live trust pulse'),
-      (Icons.volunteer_activism_outlined, 'Support', 'Locked', 'No payment'),
-      (Icons.verified_user_outlined, 'Proof', 'Ready', 'CID later'),
+      (Icons.volunteer_activism_outlined, 'Support', 'Ready', 'Gateway'),
+      (Icons.verified_user_outlined, 'Proof', 'Ready', 'CID route'),
       (Icons.auto_awesome_rounded, 'Effect', 'Earned', 'NFT-ready'),
     ];
 
@@ -1021,35 +1171,6 @@ class _ProfileTab extends StatelessWidget {
   }
 }
 
-class _ProfileServerBoundaryNotice extends StatelessWidget {
-  const _ProfileServerBoundaryNotice();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: _panelSoft,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: _line),
-      ),
-      child: const Row(
-        children: [
-          Icon(Icons.storage_outlined, size: 18, color: _textSoft),
-          SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'Profile posts/reels still use local preview data. Future profile media reads from GET /api/profile/posts after CID session validation.',
-              style: TextStyle(color: _textSoft, height: 1.3),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _ProfileGrid extends StatelessWidget {
   const _ProfileGrid({required this.activeTab});
 
@@ -1119,7 +1240,9 @@ class _GridTile extends StatelessWidget {
               left: 10,
               top: 10,
               child: Icon(
-                isTagged
+                isLive
+                    ? Icons.live_tv_rounded
+                    : isTagged
                     ? Icons.verified_user_outlined
                     : isReel
                     ? Icons.play_circle_fill_rounded
@@ -1161,7 +1284,11 @@ class _GridTile extends StatelessWidget {
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
-                      isTagged ? 'Proof' : post.likes,
+                      isLive
+                          ? 'Live'
+                          : isTagged
+                          ? 'Proof'
+                          : post.likes,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -1212,7 +1339,7 @@ void _openProfileActionSheet(
                 _ProfileGatewayItem(
                   icon: Icons.verified_user_outlined,
                   label: 'CID session',
-                  description: 'Ready for future wallet routing.',
+                  description: 'Ready for wallet routing.',
                 ),
                 _ProfileGatewayItem(
                   icon: Icons.lock_outline_rounded,
@@ -1491,7 +1618,7 @@ class _ProfileEditPreviewFormState extends State<_ProfileEditPreviewForm> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text(
-          'Profile photo picker is preview-only. Upload and storage are still locked.',
+          'Profile image workspace opens with the media release flow.',
         ),
       ),
     );
@@ -1502,9 +1629,7 @@ class _ProfileEditPreviewFormState extends State<_ProfileEditPreviewForm> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text(
-          'Local profile draft saved. Production backend save is still locked.',
-        ),
+        content: Text('Creator profile draft saved for this session.'),
       ),
     );
   }
@@ -1527,7 +1652,7 @@ class _ProfileEditPreviewFormState extends State<_ProfileEditPreviewForm> {
           ),
           const SizedBox(height: 6),
           const Text(
-            'These fields are local preview controls only. Real profile save will connect to the production backend later.',
+            'Shape your public creator identity before publishing it to the profile service.',
             style: TextStyle(color: _textSoft, height: 1.35),
           ),
           const SizedBox(height: 14),
@@ -1625,12 +1750,12 @@ class _ProfileAvatarPreviewCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Profile image preview',
+                  'Profile image',
                   style: TextStyle(fontWeight: FontWeight.w900),
                 ),
                 const SizedBox(height: 4),
                 const Text(
-                  'Local avatar preview only. Real photo upload and storage will connect later.',
+                  'Avatar and cover media will publish through the creator media flow.',
                   style: TextStyle(color: _textSoft, height: 1.35),
                 ),
                 const SizedBox(height: 10),
