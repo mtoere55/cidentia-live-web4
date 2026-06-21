@@ -40,7 +40,7 @@ class _LocalSocialAppState extends State<LocalSocialApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Social Local Preview',
+      title: 'Cidentia.Live',
       debugShowCheckedModeBanner: false,
       themeMode: ThemeMode.dark,
       theme: ThemeData.dark(useMaterial3: true).copyWith(
@@ -433,11 +433,11 @@ class _LocalShellState extends State<LocalShell> {
             ),
             actions: [
               IconButton(
-                tooltip: 'Local favorites',
+                tooltip: 'Saved items',
                 onPressed: () => _showLocalShellNotice(
                   context,
-                  'Local favorites',
-                  'Saved and liked items are local-preview only in this milestone.',
+                  'Saved items',
+                  'Saved and liked creator items will open through the personal library.',
                 ),
                 icon: const Icon(Icons.favorite_border_rounded),
               ),
@@ -1860,12 +1860,12 @@ class _LocalStatusCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Cidentia local preview',
+            'Creator workspace',
             style: TextStyle(fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 6),
           Text(
-            'Local preview only. Backend, CidenDB, wallet and RTMP stay closed.',
+            'Profile, live rooms, drafts and creator tools are ready for CID flow.',
             maxLines: 3,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(color: _textSoft, height: 1.2),
@@ -2986,10 +2986,10 @@ void _openSearchMediaPreview(
                         bottom: 14,
                         child: Text(
                           isLive
-                              ? 'Live discovery preview. Production streaming connects in a later creator release.'
+                              ? 'Live room discovery. Creator stream route opens through verified access.'
                               : isReel
-                              ? 'Reel discovery preview. Playback connects later.'
-                              : 'Post discovery preview. Detail routing connects later.',
+                              ? 'Reel discovery. Playback opens through the creator media route.'
+                              : 'Post discovery. Detail opens through the creator content route.',
                           style: const TextStyle(
                             color: Colors.white,
                             height: 1.3,
@@ -3178,7 +3178,7 @@ class ProfilePreviewPage extends StatelessWidget {
                             ),
                             SizedBox(height: 8),
                             Text(
-                              'Local social profile preview. Verified CID and wallet will be connected later.',
+                              'Cidentia creator profile. Verified CID, wallet and proof routes connect through protected access.',
                               style: TextStyle(color: _textSoft, height: 1.35),
                             ),
                           ],
@@ -3310,7 +3310,7 @@ class RightPreviewPanel extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         const Text(
-          'Bu alan ileride CID, wallet, trust ve proof mod\u{00FC}llerinin merkezi olacak.',
+          'CID, wallet, trust and proof modules open through protected creator access.',
           style: TextStyle(color: _textSoft, height: 1.35),
         ),
         const SizedBox(height: 18),
@@ -3404,36 +3404,6 @@ class _MetricPill extends StatelessWidget {
           fontSize: 11,
           fontWeight: FontWeight.w800,
           color: Colors.white,
-        ),
-      ),
-    );
-  }
-}
-
-class _InfoTile extends StatelessWidget {
-  const _InfoTile({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Material(
-        color: Colors.transparent,
-        child: ListTile(
-          leading: Icon(icon),
-          title: Text(
-            title,
-            style: const TextStyle(fontWeight: FontWeight.w800),
-          ),
-          subtitle: Text(subtitle),
         ),
       ),
     );
@@ -3971,7 +3941,7 @@ class _StudioDestinationsPanelCard extends StatelessWidget {
             onPressed: () => _showLocalShellNotice(
               context,
               'Add Destination',
-              'Destination creation is protected. Real RTMP/backend setup opens only in its own approved milestone.',
+              'Destination creation is protected. RTMP and multi-platform routing open through creator studio access.',
             ),
             icon: const Icon(Icons.add_rounded),
             label: const Text('Add Destination'),
