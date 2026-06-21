@@ -1127,11 +1127,11 @@ class _CreatorAssetStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const assets = [
-      (Icons.local_fire_department_outlined, 'Live streak'),
+      (Icons.account_balance_wallet_outlined, 'Credit gateway'),
+      (Icons.auto_awesome_outlined, 'AI credit'),
+      (Icons.card_giftcard_outlined, 'Gift support'),
       (Icons.workspace_premium_outlined, 'Creator proof'),
-      (Icons.auto_awesome_outlined, 'Earned effect'),
-      (Icons.groups_2_outlined, 'Community support'),
-      (Icons.emoji_events_outlined, 'Contest badge'),
+      (Icons.workspace_premium_outlined, 'Pro creator'),
       (Icons.token_outlined, 'NFT-ready asset'),
     ];
 
