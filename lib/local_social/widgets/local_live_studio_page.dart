@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -11,6 +13,11 @@ const _panel = Color(0xFF101114);
 const _panelSoft = Color(0xFF181A20);
 const _line = Color(0xFF262A33);
 const _textSoft = Color(0xFFA1A1AA);
+const _accent = Color(0xFF22D3EE);
+const cidentiaLiveBridgeBaseUrl = String.fromEnvironment(
+  'CIDENTIA_LIVE_BRIDGE_BASE_URL',
+  defaultValue: 'http://localhost:3000',
+);
 
 String _studioNameFromEmail(String? email) {
   final value = email?.trim();
@@ -177,6 +184,8 @@ class _OriginalInspiredLiveStudioPageState
             ),
             const SizedBox(height: 12),
             const _StudioReadinessBoundaryCard(),
+            const SizedBox(height: 12),
+            const _LiveBackendStatusPreviewCard(),
             const SizedBox(height: 16),
             _DesktopStudioPreview(
               showStageChatOverlay: widget.showStageChatOverlay,
@@ -483,6 +492,139 @@ class _LivePermissionReadinessNote extends StatelessWidget {
                 ],
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LiveBackendStatusPreviewCard extends StatefulWidget {
+  const _LiveBackendStatusPreviewCard();
+
+  @override
+  State<_LiveBackendStatusPreviewCard> createState() =>
+      _LiveBackendStatusPreviewCardState();
+}
+
+class _LiveBackendStatusPreviewCardState
+    extends State<_LiveBackendStatusPreviewCard> {
+  bool _loading = false;
+  String _title = 'Live backend preview';
+  String _message =
+      'Disabled live bridge status is not checked yet. No live stream starts here.';
+  String _code = 'LOCAL_PREVIEW_NOT_CHECKED';
+
+  Future<void> _checkStatus() async {
+    setState(() {
+      _loading = true;
+      _title = 'Checking live backend';
+      _message = '/api/live/health/status';
+      _code = 'LOCAL_BRIDGE_PENDING';
+    });
+
+    try {
+      final uri = Uri.parse(
+        '$cidentiaLiveBridgeBaseUrl/api/live/health/status',
+      );
+      final client = HttpClient()
+        ..connectionTimeout = const Duration(seconds: 6);
+      final request = await client.getUrl(uri);
+      final response = await request.close();
+      final body = await response.transform(utf8.decoder).join();
+      client.close(force: true);
+
+      final decoded = jsonDecode(body);
+      final code = decoded is Map<String, dynamic>
+          ? decoded['code']?.toString() ?? 'LIVE_BACKEND_RESPONSE'
+          : 'LIVE_BACKEND_RESPONSE';
+
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _title = response.statusCode == 503
+            ? 'Live backend guarded'
+            : 'Live backend status';
+        _code = code;
+        _message =
+            'HTTP ${response.statusCode}. Real camera, mic, screen, RTMP, WebRTC, recording and broadcast remain locked.';
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _title = 'Live backend unreachable';
+        _code = 'LOCAL_BRIDGE_UNREACHABLE';
+        _message =
+            'Local bridge did not answer. This does not open live streaming.';
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: _panel,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: _line),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: _panelSoft,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: _line),
+            ),
+            child: Icon(
+              _loading ? Icons.sync_rounded : Icons.dns_outlined,
+              color: _accent,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _code,
+                  style: const TextStyle(
+                    color: _accent,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _message,
+                  style: const TextStyle(
+                    color: _textSoft,
+                    fontSize: 11,
+                    height: 1.25,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          OutlinedButton.icon(
+            onPressed: _loading ? null : _checkStatus,
+            icon: const Icon(Icons.health_and_safety_outlined, size: 16),
+            label: const Text('Check'),
           ),
         ],
       ),
