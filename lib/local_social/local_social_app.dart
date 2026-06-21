@@ -2287,7 +2287,147 @@ class _SuggestedCreatorsPreviewState extends State<_SuggestedCreatorsPreview> {
       signal: 'Market-ready creator',
       colors: [Color(0xFFF59E0B), Color(0xFFEF4444)],
     ),
+    (
+      name: 'Truth Creator',
+      handle: '@truth.creator',
+      signal: 'Proof signal creator',
+      colors: [Color(0xFF6366F1), Color(0xFFEC4899)],
+    ),
   ];
+
+  void _openCreatorProfile(
+    BuildContext context, {
+    required String name,
+    required String handle,
+    required String signal,
+    required List<Color> colors,
+  }) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) {
+        return Container(
+          margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: _panel,
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(color: _line),
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Container(
+                  height: 180,
+                  clipBehavior: Clip.antiAlias,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(24),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: colors,
+                    ),
+                  ),
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: CustomPaint(painter: _SubtlePatternPainter()),
+                      ),
+                      Center(
+                        child: Container(
+                          width: 92,
+                          height: 92,
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
+                            gradient: LinearGradient(colors: colors),
+                          ),
+                          child: CircleAvatar(
+                            backgroundColor: _panel,
+                            child: Text(
+                              name.characters.first,
+                              style: const TextStyle(
+                                fontSize: 34,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  name,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(handle, style: const TextStyle(color: _textSoft)),
+                const SizedBox(height: 10),
+                Text(
+                  signal,
+                  style: const TextStyle(
+                    color: Color(0xFF86EFAC),
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                const Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _MiniCreatorStat(label: 'Posts', value: 'Preview'),
+                    _MiniCreatorStat(label: 'Live', value: 'Ready'),
+                    _MiniCreatorStat(label: 'CID', value: 'Needed'),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          _showLocalShellNotice(
+                            context,
+                            'Follow preview',
+                            'Creator follow activates after the social graph is connected.',
+                          );
+                        },
+                        icon: const Icon(Icons.person_add_alt_1_rounded),
+                        label: const Text('Follow'),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          _showLocalShellNotice(
+                            context,
+                            'Creator profile',
+                            'Full creator profile opens after profile routes are connected.',
+                          );
+                        },
+                        icon: const Icon(Icons.person_outline_rounded),
+                        label: const Text('View profile'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -2314,112 +2454,130 @@ class _SuggestedCreatorsPreviewState extends State<_SuggestedCreatorsPreview> {
                     style: TextStyle(fontWeight: FontWeight.w900),
                   ),
                 ),
-                Text(
-                  'Local preview',
-                  style: TextStyle(
-                    color: _textSoft,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
               ],
             ),
             const SizedBox(height: 12),
             SizedBox(
-              height: 214,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: creators.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 10),
-                itemBuilder: (context, index) {
-                  final creator = creators[index];
-                  final isFollowing = following.contains(creator.handle);
+              height: 204,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final isWide = constraints.maxWidth >= 700;
+                  final visibleCount = isWide ? 4 : 2;
+                  final gapTotal = 10 * (visibleCount - 1);
+                  final cardWidth =
+                      (constraints.maxWidth - gapTotal) / visibleCount;
 
-                  return SizedBox(
-                    width: 180,
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: _panelSoft,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: _line),
-                      ),
-                      child: Column(
-                        children: [
-                          Container(
-                            width: 66,
-                            height: 66,
-                            padding: const EdgeInsets.all(3),
+                  return ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: creators.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 10),
+                    itemBuilder: (context, index) {
+                      final creator = creators[index];
+                      final isFollowing = following.contains(creator.handle);
+
+                      return SizedBox(
+                        width: cardWidth,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(20),
+                          onTap: () => _openCreatorProfile(
+                            context,
+                            name: creator.name,
+                            handle: creator.handle,
+                            signal: creator.signal,
+                            colors: creator.colors,
+                          ),
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: LinearGradient(colors: creator.colors),
+                              color: _panelSoft,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: _line),
                             ),
-                            child: Container(
-                              decoration: const BoxDecoration(
-                                color: _panel,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Center(
-                                child: Text(
-                                  creator.name.substring(0, 1),
+                            child: Column(
+                              children: [
+                                Container(
+                                  width: 54,
+                                  height: 54,
+                                  padding: const EdgeInsets.all(3),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    gradient: LinearGradient(
+                                      colors: creator.colors,
+                                    ),
+                                  ),
+                                  child: Container(
+                                    decoration: const BoxDecoration(
+                                      color: _panel,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        creator.name.substring(0, 1),
+                                        style: const TextStyle(
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  creator.name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
                                   style: const TextStyle(
-                                    fontSize: 26,
                                     fontWeight: FontWeight.w900,
                                   ),
                                 ),
-                              ),
+                                const SizedBox(height: 3),
+                                Text(
+                                  creator.handle,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    color: _textSoft,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                const SizedBox(height: 5),
+                                Text(
+                                  creator.signal,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    color: _textSoft,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                const Spacer(),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: FilledButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        if (isFollowing) {
+                                          following.remove(creator.handle);
+                                        } else {
+                                          following.add(creator.handle);
+                                        }
+                                      });
+                                    },
+                                    child: Text(
+                                      isFollowing ? 'Following' : 'Follow',
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 10),
-                          Text(
-                            creator.name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(fontWeight: FontWeight.w900),
-                          ),
-                          const SizedBox(height: 3),
-                          Text(
-                            creator.handle,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: _textSoft,
-                              fontSize: 12,
-                            ),
-                          ),
-                          const SizedBox(height: 5),
-                          Text(
-                            creator.signal,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: _textSoft,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const Spacer(),
-                          SizedBox(
-                            width: double.infinity,
-                            child: FilledButton(
-                              onPressed: () {
-                                setState(() {
-                                  if (isFollowing) {
-                                    following.remove(creator.handle);
-                                  } else {
-                                    following.add(creator.handle);
-                                  }
-                                });
-                              },
-                              child: Text(isFollowing ? 'Following' : 'Follow'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                        ),
+                      );
+                    },
                   );
                 },
               ),
@@ -2427,6 +2585,58 @@ class _SuggestedCreatorsPreviewState extends State<_SuggestedCreatorsPreview> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _SubtlePatternPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final line = Paint()
+      ..color = Colors.white.withValues(alpha: 0.10)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.1;
+
+    for (var i = 0; i < 7; i++) {
+      final dx = size.width * (i / 6);
+      canvas.drawLine(
+        Offset(dx, 0),
+        Offset(size.width - dx, size.height),
+        line,
+      );
+    }
+
+    canvas.drawCircle(
+      Offset(size.width * 0.78, size.height * 0.30),
+      size.shortestSide * 0.22,
+      line,
+    );
+
+    canvas.drawCircle(
+      Offset(size.width * 0.20, size.height * 0.86),
+      size.shortestSide * 0.26,
+      line,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _MiniCreatorStat extends StatelessWidget {
+  const _MiniCreatorStat({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(value, style: const TextStyle(fontWeight: FontWeight.w900)),
+        const SizedBox(height: 3),
+        Text(label, style: const TextStyle(color: _textSoft, fontSize: 12)),
+      ],
     );
   }
 }

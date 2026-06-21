@@ -1114,116 +1114,50 @@ void _showLiveWatchPreviewSheet(BuildContext context, LocalPost post) {
         title: 'Cidentia Live Room',
         subtitle: '${post.author} · CID-safe local watch surface',
         children: [
-          Container(
-            height: 320,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: post.accent,
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: _line),
-            ),
-            child: Stack(
-              children: [
-                const Positioned(
-                  left: 16,
-                  top: 16,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: Color(0xFFFF1744),
-                      borderRadius: BorderRadius.all(Radius.circular(99)),
-                    ),
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      child: Text(
-                        'LIVE',
-                        style: TextStyle(fontWeight: FontWeight.w900),
-                      ),
-                    ),
-                  ),
-                ),
-                Center(
-                  child: CircleAvatar(
-                    radius: 42,
-                    backgroundColor: Colors.black38,
-                    child: Text(
-                      post.author.characters.first,
-                      style: const TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
-                ),
-                const Positioned(
-                  left: 16,
-                  right: 16,
-                  bottom: 16,
-                  child: Text(
-                    'Live watch surface preview. Production streaming connects in a later creator release.',
-                    style: TextStyle(color: Colors.white70, height: 1.35),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          _LiveRoomHeroPreview(post: post),
           const SizedBox(height: 14),
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1B1B22),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: _line),
-            ),
-            child: const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.remove_red_eye_outlined, size: 16),
-                    SizedBox(width: 6),
-                    Text(
-                      'CID-safe viewers · 1.2K',
-                      style: TextStyle(fontWeight: FontWeight.w900),
-                    ),
-                    Spacer(),
-                    Text(
-                      'Signal 94%',
-                      style: TextStyle(color: Color(0xFF22C55E)),
-                    ),
-                  ],
+          const Row(
+            children: [
+              Expanded(
+                child: _LiveRoomSignalCard(
+                  icon: Icons.remove_red_eye_outlined,
+                  label: 'Viewers',
+                  value: '12.8K',
                 ),
-                SizedBox(height: 12),
-                Text(
-                  'Mira: Welcome to the Cidentia Live Room.',
-                  style: TextStyle(color: Colors.white70, height: 1.3),
+              ),
+              SizedBox(width: 8),
+              Expanded(
+                child: _LiveRoomSignalCard(
+                  icon: Icons.sensors_rounded,
+                  label: 'Signal',
+                  value: '94%',
                 ),
-                SizedBox(height: 6),
-                Text(
-                  'Viewer: Proof reaction sent · effect preview earned.',
-                  style: TextStyle(color: Colors.white60, height: 1.3),
+              ),
+              SizedBox(width: 8),
+              Expanded(
+                child: _LiveRoomSignalCard(
+                  icon: Icons.verified_user_outlined,
+                  label: 'Proof',
+                  value: 'Ready',
                 ),
-                SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    _LiveRoomMiniPill(label: 'Signal'),
-                    _LiveRoomMiniPill(label: 'Support'),
-                    _LiveRoomMiniPill(label: 'Proof'),
-                    _LiveRoomMiniPill(label: 'Effect'),
-                  ],
-                ),
-                SizedBox(height: 12),
-                _ReelActiveRoomMode(),
-              ],
-            ),
+              ),
+            ],
           ),
+          const SizedBox(height: 12),
+          const _LiveRoomChatPreview(),
+          const SizedBox(height: 12),
+          const Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _LiveRoomMiniPill(label: 'Signal'),
+              _LiveRoomMiniPill(label: 'Support'),
+              _LiveRoomMiniPill(label: 'Proof'),
+              _LiveRoomMiniPill(label: 'Effect'),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const _ReelActiveRoomMode(),
           const SizedBox(height: 16),
           _ReelSheetAction(
             icon: Icons.remove_red_eye_outlined,
@@ -1276,6 +1210,264 @@ void _showLiveWatchPreviewSheet(BuildContext context, LocalPost post) {
       );
     },
   );
+}
+
+class _LiveRoomHeroPreview extends StatelessWidget {
+  const _LiveRoomHeroPreview({required this.post});
+
+  final LocalPost post;
+
+  @override
+  Widget build(BuildContext context) {
+    final initial = post.author.isEmpty ? '?' : post.author.characters.first;
+
+    return Container(
+      height: 360,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: _line),
+      ),
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: post.accent,
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+            ),
+          ),
+          Positioned.fill(child: CustomPaint(painter: _ReelPatternPainter())),
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withValues(alpha: 0.08),
+                    Colors.black.withValues(alpha: 0.62),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const Positioned(
+            left: 16,
+            top: 16,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: Color(0xFFFF1744),
+                borderRadius: BorderRadius.all(Radius.circular(99)),
+              ),
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                child: Text(
+                  'LIVE',
+                  style: TextStyle(fontWeight: FontWeight.w900),
+                ),
+              ),
+            ),
+          ),
+          const Positioned(
+            right: 16,
+            top: 16,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: Color(0x88000000),
+                borderRadius: BorderRadius.all(Radius.circular(99)),
+              ),
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                child: Text(
+                  'Local preview',
+                  style: TextStyle(fontWeight: FontWeight.w800),
+                ),
+              ),
+            ),
+          ),
+          Center(
+            child: CircleAvatar(
+              radius: 44,
+              backgroundColor: Colors.black.withValues(alpha: 0.34),
+              child: const Icon(
+                Icons.play_arrow_rounded,
+                color: Colors.white,
+                size: 58,
+              ),
+            ),
+          ),
+          Positioned(
+            right: 18,
+            bottom: 22,
+            child: CircleAvatar(
+              radius: 30,
+              backgroundColor: Colors.black.withValues(alpha: 0.38),
+              child: Text(
+                initial,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 18,
+            right: 88,
+            bottom: 22,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  post.author,
+                  style: const TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -0.6,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Most watched live today · creator reward surface',
+                  style: TextStyle(
+                    color: Color(0xFF86EFAC),
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  post.caption,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Colors.white70, height: 1.3),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LiveRoomSignalCard extends StatelessWidget {
+  const _LiveRoomSignalCard({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1B1B22),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _line),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: Colors.white70),
+          const SizedBox(height: 8),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w900)),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white54, fontSize: 12),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LiveRoomChatPreview extends StatelessWidget {
+  const _LiveRoomChatPreview();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1B1B22),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _line),
+      ),
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.chat_bubble_outline_rounded, size: 16),
+              SizedBox(width: 8),
+              Text(
+                'Room signal chat',
+                style: TextStyle(fontWeight: FontWeight.w900),
+              ),
+              Spacer(),
+              Text(
+                'CID lane',
+                style: TextStyle(
+                  color: Color(0xFF86EFAC),
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 12),
+          _LiveRoomChatLine(
+            name: 'Mira',
+            text: 'Welcome to the Cidentia Live Room.',
+          ),
+          SizedBox(height: 6),
+          _LiveRoomChatLine(
+            name: 'Viewer',
+            text: 'Proof reaction sent · effect preview earned.',
+          ),
+          SizedBox(height: 6),
+          _LiveRoomChatLine(
+            name: 'System',
+            text:
+                'Wallet, support and real stream stay closed in local preview.',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LiveRoomChatLine extends StatelessWidget {
+  const _LiveRoomChatLine({required this.name, required this.text});
+
+  final String name;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(
+            text: '$name: ',
+            style: const TextStyle(fontWeight: FontWeight.w900),
+          ),
+          TextSpan(text: text),
+        ],
+      ),
+      style: const TextStyle(color: Colors.white70, height: 1.3),
+    );
+  }
 }
 
 class _LiveRoomMiniPill extends StatelessWidget {
