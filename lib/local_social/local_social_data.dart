@@ -41,6 +41,162 @@ const cidentiaPostBoundary = ServerBackedPostBoundary(
   status: '503 guarded - server-backed post model locked',
 );
 
+class LivePermissionStateModel {
+  const LivePermissionStateModel({
+    required this.camera,
+    required this.microphone,
+    required this.screenCapture,
+  });
+
+  final String camera;
+  final String microphone;
+  final String screenCapture;
+}
+
+class LiveSourceStateModel {
+  const LiveSourceStateModel({
+    required this.sourceId,
+    required this.type,
+    required this.label,
+    required this.status,
+    required this.permissionStatus,
+  });
+
+  final String sourceId;
+  final String type;
+  final String label;
+  final String status;
+  final String permissionStatus;
+}
+
+class LiveDestinationStateModel {
+  const LiveDestinationStateModel({
+    required this.destinationId,
+    required this.type,
+    required this.displayName,
+    required this.status,
+    required this.credentialStatus,
+  });
+
+  final String destinationId;
+  final String type;
+  final String displayName;
+  final String status;
+  final String credentialStatus;
+}
+
+class LiveGuestStateModel {
+  const LiveGuestStateModel({
+    required this.guestId,
+    required this.displayName,
+    required this.role,
+    required this.status,
+  });
+
+  final String guestId;
+  final String displayName;
+  final String role;
+  final String status;
+}
+
+class LiveReplayStateModel {
+  const LiveReplayStateModel({
+    required this.replayId,
+    required this.status,
+    required this.mediaId,
+    required this.postId,
+  });
+
+  final String replayId;
+  final String status;
+  final String mediaId;
+  final String postId;
+}
+
+class LiveSessionStateModel {
+  const LiveSessionStateModel({
+    required this.liveSessionId,
+    required this.ownerCid,
+    required this.title,
+    required this.mode,
+    required this.status,
+    required this.viewerCount,
+    required this.permissions,
+    required this.sources,
+    required this.destinations,
+    required this.guests,
+    required this.replay,
+    required this.routeStatus,
+  });
+
+  final String liveSessionId;
+  final String ownerCid;
+  final String title;
+  final String mode;
+  final String status;
+  final int viewerCount;
+  final LivePermissionStateModel permissions;
+  final List<LiveSourceStateModel> sources;
+  final List<LiveDestinationStateModel> destinations;
+  final List<LiveGuestStateModel> guests;
+  final LiveReplayStateModel replay;
+  final String routeStatus;
+}
+
+const cidentiaLiveSessionBoundary = LiveSessionStateModel(
+  liveSessionId: 'local-preview-live-session',
+  ownerCid: 'verified-cid-required',
+  title: 'Cidentia.Live guarded live session preview',
+  mode: 'normal',
+  status: 'guarded_disabled',
+  viewerCount: 0,
+  permissions: LivePermissionStateModel(
+    camera: 'locked_no_camera_permission',
+    microphone: 'locked_no_record_audio_permission',
+    screenCapture: 'locked_no_capture_permission',
+  ),
+  sources: [
+    LiveSourceStateModel(
+      sourceId: 'camera-preview',
+      type: 'camera',
+      label: 'Camera',
+      status: 'preview_only',
+      permissionStatus: 'permission_locked',
+    ),
+    LiveSourceStateModel(
+      sourceId: 'screen-preview',
+      type: 'screen',
+      label: 'Screen Share',
+      status: 'preview_only',
+      permissionStatus: 'capture_locked',
+    ),
+  ],
+  destinations: [
+    LiveDestinationStateModel(
+      destinationId: 'custom-rtmp-preview',
+      type: 'custom_rtmp',
+      displayName: 'Custom RTMP',
+      status: 'connection_locked',
+      credentialStatus: 'no_stream_key_stored',
+    ),
+  ],
+  guests: [
+    LiveGuestStateModel(
+      guestId: 'guest-preview-slot',
+      displayName: 'Guest slot',
+      role: 'guest',
+      status: 'invite_locked',
+    ),
+  ],
+  replay: LiveReplayStateModel(
+    replayId: 'replay-preview',
+    status: 'recording_locked',
+    mediaId: 'not_created',
+    postId: 'not_published',
+  ),
+  routeStatus: '503 guarded - live session model locked',
+);
+
 const localPosts = [
   LocalPost(
     author: 'Mira Studio',
