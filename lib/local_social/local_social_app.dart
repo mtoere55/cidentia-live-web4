@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'auth/cidentia_session_scope.dart';
 import 'auth/cidentia_session_state.dart';
@@ -812,7 +813,51 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
   String selectedMediaType = 'Photo';
   String selectedMediaLabel = 'Local frame 01';
   String selectedMediaSource = 'Device gallery';
+  String? mediaPickerStatus;
+  final ImagePicker _imagePicker = ImagePicker();
   final TextEditingController captionController = TextEditingController();
+
+  Future<void> _pickDeviceMedia() async {
+    final useVideo =
+        selectedMediaType == 'Video' ||
+        selectedMode == 'Reel' ||
+        selectedMode == 'Replay';
+    final source = selectedMediaSource == 'Camera capture'
+        ? ImageSource.camera
+        : ImageSource.gallery;
+
+    try {
+      final picked = useVideo
+          ? await _imagePicker.pickVideo(source: source)
+          : await _imagePicker.pickImage(source: source);
+
+      if (!mounted) {
+        return;
+      }
+
+      if (picked == null) {
+        setState(() => mediaPickerStatus = 'No media selected.');
+        return;
+      }
+
+      setState(() {
+        selectedMediaType = useVideo ? 'Video' : 'Photo';
+        selectedMediaLabel = picked.name.isEmpty
+            ? 'Selected media'
+            : picked.name;
+        mediaPickerStatus = 'Selected: $selectedMediaLabel';
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(
+        () => mediaPickerStatus =
+            'Media picker is not available on this device yet.',
+      );
+    }
+  }
 
   @override
   void dispose() {
@@ -863,6 +908,7 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
                   onMediaSelected: (type, label) => setState(() {
                     selectedMediaType = type;
                     selectedMediaLabel = label;
+                    mediaPickerStatus = null;
                   }),
                 ),
                 const SizedBox(height: 14),
@@ -872,6 +918,10 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
                     selectedMediaSource = source;
                   }),
                 ),
+                if (mediaPickerStatus != null) ...[
+                  const SizedBox(height: 10),
+                  _CreateMediaPickerStatus(message: mediaPickerStatus!),
+                ],
                 const SizedBox(height: 14),
                 _CreateMediaPreview(
                   mode: selectedMode,
@@ -885,16 +935,8 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
                   children: [
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () {
-                          Navigator.of(context).pop(
-                            _LocalDraftPreview(
-                              mode: selectedMode,
-                              mediaType: selectedMediaType,
-                              mediaLabel: selectedMediaLabel,
-                              mediaSource: selectedMediaSource,
-                              caption: captionController.text,
-                            ),
-                          );
+                        onPressed: () async {
+                          await _pickDeviceMedia();
                         },
                         icon: const Icon(Icons.cloud_upload_outlined),
                         label: const Text('Upload media'),
@@ -1412,6 +1454,40 @@ class _CreateSourceOptionChip extends StatelessWidget {
       avatar: Icon(icon, size: 16),
       label: Text(label),
       onSelected: (_) => onTap(),
+    );
+  }
+}
+
+class _CreateMediaPickerStatus extends StatelessWidget {
+  const _CreateMediaPickerStatus({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _line),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.attach_file_rounded, size: 17, color: _textSoft),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: _textSoft,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

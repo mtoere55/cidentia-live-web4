@@ -46,6 +46,7 @@ dependencies:
   go_router: ^14.2.7
   google_sign_in: ^6.3.0
   hydrated_bloc: ^10.1.1
+  image_picker: ^1.1.2
   insta_blocks:
     path: packages/insta_blocks
   instagram_blocks_ui:
