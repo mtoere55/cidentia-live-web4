@@ -327,8 +327,9 @@ class _StudioReadinessBoundaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const items = [
-      (Icons.videocam_outlined, 'Camera', 'Preview toggle'),
-      (Icons.monitor_rounded, 'Screen', 'Locked'),
+      (Icons.videocam_outlined, 'Camera', 'Permission locked'),
+      (Icons.mic_none_rounded, 'Mic', 'Permission locked'),
+      (Icons.monitor_rounded, 'Screen', 'Capture locked'),
       (Icons.public_rounded, 'RTMP', 'Closed'),
       (Icons.fiber_manual_record_rounded, 'Record', 'No file'),
       (Icons.account_balance_wallet_outlined, 'Wallet', 'Locked'),
@@ -367,9 +368,11 @@ class _StudioReadinessBoundaryCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           const Text(
-            'Studio is ready as a creator preview. Real camera capture, screen share, RTMP, recording, wallet support and live broadcast remain locked.',
+            'Studio is ready as a creator preview. Real camera, microphone, screen capture, RTMP, recording, wallet support and live broadcast remain locked.',
             style: TextStyle(color: _textSoft, height: 1.3, fontSize: 12),
           ),
+          const SizedBox(height: 10),
+          const _LivePermissionReadinessNote(),
           const SizedBox(height: 10),
           Wrap(
             spacing: 8,
@@ -420,6 +423,65 @@ class _StudioReadinessPill extends StatelessWidget {
               color: _textSoft,
               fontSize: 11,
               fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LivePermissionReadinessNote extends StatelessWidget {
+  const _LivePermissionReadinessNote();
+
+  @override
+  Widget build(BuildContext context) {
+    const rows = [
+      ('Camera', 'No CAMERA permission requested'),
+      ('Mic', 'No RECORD_AUDIO permission requested'),
+      ('Screen', 'No MediaProjection / desktop capture opened'),
+    ];
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: _panelSoft,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _line),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Permission readiness',
+            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
+          ),
+          const SizedBox(height: 8),
+          ...rows.map(
+            (row) => Padding(
+              padding: const EdgeInsets.only(bottom: 5),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 58,
+                    child: Text(
+                      row.$1,
+                      style: const TextStyle(
+                        color: _textSoft,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      row.$2,
+                      style: const TextStyle(color: _textSoft, fontSize: 11),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
