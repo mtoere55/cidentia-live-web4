@@ -17,6 +17,7 @@ class OriginalInspiredReelsPage extends StatefulWidget {
 
 class _OriginalInspiredReelsPageState extends State<OriginalInspiredReelsPage> {
   static const int _reelCount = 6;
+  static const int _contentCount = _reelCount + 1;
 
   final ScrollController _controller = ScrollController();
   int _index = 0;
@@ -24,7 +25,7 @@ class _OriginalInspiredReelsPageState extends State<OriginalInspiredReelsPage> {
   void _go(int direction) {
     if (!_controller.hasClients) return;
 
-    final next = (_index + direction).clamp(0, _reelCount - 1).toInt();
+    final next = (_index + direction).clamp(0, _contentCount - 1).toInt();
     if (next == _index) return;
 
     final viewport = _controller.position.viewportDimension;
@@ -47,7 +48,7 @@ class _OriginalInspiredReelsPageState extends State<OriginalInspiredReelsPage> {
 
     final next = (metrics.pixels / metrics.viewportDimension)
         .round()
-        .clamp(0, _reelCount - 1)
+        .clamp(0, _contentCount - 1)
         .toInt();
 
     if (next != _index) {
@@ -100,9 +101,19 @@ class _OriginalInspiredReelsPageState extends State<OriginalInspiredReelsPage> {
                 slivers: [
                   SliverFillViewport(
                     delegate: SliverChildBuilderDelegate((context, index) {
-                      final post = localPosts[index % localPosts.length];
-                      return _ReelSlide(post: post, index: index);
-                    }, childCount: _reelCount),
+                      if (index == 1) {
+                        return _ReelsLiveDiscoveryPage(
+                          onRoomTap: () => _showLiveWatchPreviewSheet(
+                            context,
+                            localPosts.first,
+                          ),
+                        );
+                      }
+
+                      final postIndex = index > 1 ? index - 1 : index;
+                      final post = localPosts[postIndex % localPosts.length];
+                      return _ReelSlide(post: post, index: postIndex);
+                    }, childCount: _contentCount),
                   ),
                 ],
               ),
@@ -127,103 +138,308 @@ class _OriginalInspiredReelsPageState extends State<OriginalInspiredReelsPage> {
             ),
           ),
           const Positioned(left: 22, top: 24, child: _ReelsTitle()),
-          if (MediaQuery.sizeOf(context).width >= 1280)
-            const Positioned(
-              left: 22,
-              top: 86,
-              bottom: 28,
-              child: _ReelsLiveDiscoverySidebar(),
-            ),
         ],
       ),
     );
   }
 }
 
-class _ReelsLiveDiscoverySidebar extends StatelessWidget {
-  const _ReelsLiveDiscoverySidebar();
+class _ReelsLiveDiscoveryPage extends StatelessWidget {
+  const _ReelsLiveDiscoveryPage({required this.onRoomTap});
+
+  final VoidCallback onRoomTap;
+
+  static const rooms = [
+    (
+      name: 'Mira Studio',
+      mode: 'Normal Live',
+      viewers: '1.2K',
+      icon: Icons.sensors_rounded,
+      colors: [Color(0xFFE879F9), Color(0xFFF97316)],
+    ),
+    (
+      name: 'Web4 Proof',
+      mode: 'Proof Room',
+      viewers: '860',
+      icon: Icons.verified_user_outlined,
+      colors: [Color(0xFF22C55E), Color(0xFF06B6D4)],
+    ),
+    (
+      name: 'CID Battle',
+      mode: 'VS active',
+      viewers: '3.7K',
+      icon: Icons.compare_arrows_rounded,
+      colors: [Color(0xFF60A5FA), Color(0xFF8B5CF6)],
+    ),
+    (
+      name: 'Community Room',
+      mode: 'Guest grid',
+      viewers: '2.4K',
+      icon: Icons.grid_view_rounded,
+      colors: [Color(0xFFF59E0B), Color(0xFFEF4444)],
+    ),
+    (
+      name: 'Truth Room',
+      mode: 'CID signal',
+      viewers: '640',
+      icon: Icons.shield_outlined,
+      colors: [Color(0xFF14B8A6), Color(0xFF6366F1)],
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    const sections = [
-      (
-        'Following Live',
-        [
-          ('Mira Studio', 'Normal Live', '1.2K', Icons.sensors_rounded),
-          ('Web4 Proof', 'Proof Room', '860', Icons.verified_user_outlined),
-        ],
-      ),
-      (
-        'VS / Battle',
-        [('CID Battle', 'VS active', '3.7K', Icons.compare_arrows_rounded)],
-      ),
-      (
-        'Multi Guest',
-        [('Community Room', 'Guest grid', '2.4K', Icons.grid_view_rounded)],
-      ),
-      (
-        'Proof Rooms',
-        [('Truth Room', 'CID signal', '640', Icons.shield_outlined)],
-      ),
-    ];
-
-    return SizedBox(
-      width: 292,
-      child: ListView.separated(
-        padding: EdgeInsets.zero,
-        itemCount: sections.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 12),
-        itemBuilder: (context, index) {
-          final section = sections[index];
-
-          return _ReelsLiveDiscoverySection(
-            title: section.$1,
-            rooms: section.$2,
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _ReelsLiveDiscoverySection extends StatelessWidget {
-  const _ReelsLiveDiscoverySection({required this.title, required this.rooms});
-
-  final String title;
-  final List<(String, String, String, IconData)> rooms;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.34),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 11, 12, 4),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 12,
-                fontWeight: FontWeight.w900,
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 560),
+        child: Container(
+          margin: const EdgeInsets.fromLTRB(4, 8, 4, 10),
+          constraints: const BoxConstraints.expand(),
+          padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+          decoration: BoxDecoration(
+            color: _panel,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: _line),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.live_tv_rounded, size: 22),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Live rooms',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    'Preview',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 9),
-            for (final room in rooms)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: _ReelsLiveDiscoveryProfile(
-                  name: room.$1,
-                  mode: room.$2,
-                  viewers: room.$3,
-                  icon: room.$4,
+              const SizedBox(height: 8),
+              const Text(
+                'Choose a room to enter the local watch surface. No real stream is opened.',
+                style: TextStyle(color: Colors.white70, height: 1.35),
+              ),
+              const SizedBox(height: 14),
+              SizedBox(
+                height: 272,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final cardWidth = (constraints.maxWidth - 12) / 2;
+
+                    return ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      padding: EdgeInsets.zero,
+                      itemCount: rooms.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 12),
+                      itemBuilder: (context, index) {
+                        final room = rooms[index];
+
+                        return SizedBox(
+                          width: cardWidth,
+                          child: _ReelsLiveRoomGalleryCard(
+                            name: room.name,
+                            mode: room.mode,
+                            viewers: room.viewers,
+                            icon: room.icon,
+                            colors: room.colors,
+                            onTap: onRoomTap,
+                          ),
+                        );
+                      },
+                    );
+                  },
                 ),
               ),
+              const SizedBox(height: 14),
+              Expanded(
+                child: _FeaturedLiveRoomPreview(
+                  name: 'Mira Studio',
+                  mode: 'Most watched live today',
+                  viewers: '12.8K watching',
+                  colors: [
+                    Color(0xFFE879F9),
+                    Color(0xFFEC4899),
+                    Color(0xFFF97316),
+                  ],
+                  onTap: onRoomTap,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FeaturedLiveRoomPreview extends StatelessWidget {
+  const _FeaturedLiveRoomPreview({
+    required this.name,
+    required this.mode,
+    required this.viewers,
+    required this.colors,
+    required this.onTap,
+  });
+
+  final String name;
+  final String mode;
+  final String viewers;
+  final List<Color> colors;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(24),
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: const Color(0xFF18181B),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+        ),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: colors,
+                  ),
+                ),
+              ),
+            ),
+            Positioned.fill(child: CustomPaint(painter: _ReelPatternPainter())),
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withValues(alpha: 0.04),
+                      Colors.black.withValues(alpha: 0.62),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const Positioned(
+              left: 14,
+              top: 14,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Color(0xFFE11D48),
+                  borderRadius: BorderRadius.all(Radius.circular(99)),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  child: Text(
+                    'TOP LIVE',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900),
+                  ),
+                ),
+              ),
+            ),
+            Center(
+              child: CircleAvatar(
+                radius: 42,
+                backgroundColor: Colors.black.withValues(alpha: 0.34),
+                child: const Icon(
+                  Icons.play_arrow_rounded,
+                  color: Colors.white,
+                  size: 54,
+                ),
+              ),
+            ),
+            Positioned(
+              right: 16,
+              top: 16,
+              child: CircleAvatar(
+                radius: 24,
+                backgroundColor: Colors.black.withValues(alpha: 0.38),
+                child: Text(
+                  name.characters.first,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              left: 18,
+              right: 18,
+              bottom: 18,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          name,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -0.6,
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        Text(
+                          mode,
+                          style: const TextStyle(
+                            color: Color(0xFF86EFAC),
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.remove_red_eye_rounded,
+                              color: Colors.white70,
+                              size: 16,
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              viewers,
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(
+                    Icons.chevron_right_rounded,
+                    color: Colors.white,
+                    size: 34,
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -231,92 +447,160 @@ class _ReelsLiveDiscoverySection extends StatelessWidget {
   }
 }
 
-class _ReelsLiveDiscoveryProfile extends StatelessWidget {
-  const _ReelsLiveDiscoveryProfile({
+class _ReelsLiveRoomGalleryCard extends StatelessWidget {
+  const _ReelsLiveRoomGalleryCard({
     required this.name,
     required this.mode,
     required this.viewers,
     required this.icon,
+    required this.colors,
+    required this.onTap,
   });
 
   final String name;
   final String mode;
   final String viewers;
   final IconData icon;
+  final List<Color> colors;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Stack(
-          clipBehavior: Clip.none,
+    return InkWell(
+      borderRadius: BorderRadius.circular(22),
+      onTap: onTap,
+      child: Container(
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: const Color(0xFF18181B),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CircleAvatar(
-              radius: 19,
-              backgroundColor: const Color(0xFF27272A),
-              child: Icon(icon, color: Colors.white, size: 17),
-            ),
-            const Positioned(
-              left: 1,
-              right: 1,
-              bottom: -7,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: Color(0xFFFF1744),
-                  borderRadius: BorderRadius.all(Radius.circular(99)),
-                ),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 2),
-                  child: Text(
-                    'LIVE',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 7, fontWeight: FontWeight.w900),
+            Expanded(
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: colors,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.black.withValues(alpha: 0.06),
+                            Colors.black.withValues(alpha: 0.42),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  Center(
+                    child: CircleAvatar(
+                      radius: 34,
+                      backgroundColor: Colors.black.withValues(alpha: 0.32),
+                      child: Icon(icon, color: Colors.white, size: 30),
+                    ),
+                  ),
+                  Positioned(
+                    left: 10,
+                    top: 10,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE11D48),
+                        borderRadius: BorderRadius.circular(99),
+                        border: Border.all(color: Colors.white70),
+                      ),
+                      child: const Text(
+                        'LIVE',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: 10,
+                    bottom: 10,
+                    child: CircleAvatar(
+                      radius: 18,
+                      backgroundColor: Colors.black.withValues(alpha: 0.40),
+                      child: Text(
+                        name.characters.first,
+                        style: const TextStyle(fontWeight: FontWeight.w900),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    mode,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Color(0xFF86EFAC),
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 7),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.remove_red_eye_rounded,
+                        size: 14,
+                        color: Colors.white54,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        viewers,
+                        style: const TextStyle(
+                          color: Colors.white54,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const Spacer(),
+                      const Icon(
+                        Icons.chevron_right_rounded,
+                        color: Colors.white70,
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ],
         ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.w900),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                mode,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: Color(0xFF86EFAC),
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const Icon(
-          Icons.remove_red_eye_outlined,
-          size: 13,
-          color: Colors.white60,
-        ),
-        const SizedBox(width: 3),
-        Text(
-          viewers,
-          style: const TextStyle(
-            color: Colors.white60,
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
