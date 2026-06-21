@@ -34,7 +34,7 @@ String _profileDisplayName({
     return 'Verified CidenDB User';
   }
 
-  return 'Local Creator';
+  return 'Cidentia Creator';
 }
 
 String _profileInitials(String value) {
@@ -74,7 +74,7 @@ String _profileHandle(String value) {
   return '@$normalized.cid';
 }
 
-enum _ProfileTabKind { posts, reels, tagged }
+enum _ProfileTabKind { posts, reels, live, proof }
 
 class OriginalInspiredProfilePage extends StatefulWidget {
   const OriginalInspiredProfilePage({super.key});
@@ -103,9 +103,9 @@ class _OriginalInspiredProfilePageState
         const SizedBox(height: 10),
         const _ProfileActionRow(),
         const SizedBox(height: 10),
-        const _CreatorEconomyPreviewCard(),
+        const _CreatorRoleStrip(),
         const SizedBox(height: 10),
-        const _ProfileServerBoundaryNotice(),
+        const _CreatorEconomyPreviewCard(),
         const SizedBox(height: 10),
         _ProfileTabs(activeTab: activeTab, onChanged: _setTab),
         const SizedBox(height: 10),
@@ -246,28 +246,28 @@ class _ProfileHero extends StatelessWidget {
 
     final profileHandle = verified
         ? _profileHandle(profileName)
-        : '@local.creator.preview';
+        : '@cidentia.creator';
 
     final avatarLabel = _profileInitials(profileName);
 
     final identityLine = verified && cid != null
         ? 'Verified CID: $cid'
-        : 'CID Local - Social identity preview';
+        : 'CID-ready creator identity';
 
     final profileDescription = verified && email != null
-        ? 'Signed in as $email. Identity, avatar and cover are preview-ready. Real profile media upload stays locked.'
-        : 'Local creator profile. Avatar, cover, reels, wallet and proof layers will connect later.';
+        ? 'Signed in as $email. Creator identity, avatar and cover workspace are ready.'
+        : 'Build your Cidentia creator profile with live rooms, proof signals and media tools.';
 
     final identityStatus = verified
         ? 'CidenDB verified identity'
-        : 'Local identity preview';
+        : 'CID sign-in available';
 
     final mediaStatus = verified
         ? 'Avatar / cover preview ready'
-        : 'Avatar / cover local only';
+        : 'Avatar / cover ready';
 
-    final cidBadgeLabel = verified && cid != null ? 'CID $cid' : 'CID ready';
-    final proofBadgeLabel = verified ? 'Proof verified' : 'Proof planned';
+    final cidBadgeLabel = verified && cid != null ? 'CID $cid' : 'CID entry';
+    final proofBadgeLabel = verified ? 'Proof verified' : 'Proof path';
 
     return Container(
       decoration: BoxDecoration(
@@ -353,7 +353,7 @@ class _ProfileHero extends StatelessWidget {
                           ),
                           const _ProfileBadge(
                             icon: Icons.wallet_outlined,
-                            label: 'Wallet locked',
+                            label: 'Wallet gateway',
                           ),
                         ],
                       );
@@ -375,7 +375,7 @@ class _ProfileHero extends StatelessWidget {
                           const SizedBox(width: 8),
                           const _ProfileBadge(
                             icon: Icons.wallet_outlined,
-                            label: 'Wallet locked',
+                            label: 'Wallet gateway',
                           ),
                         ],
                       ),
@@ -525,10 +525,10 @@ class _ProfileActionRow extends StatelessWidget {
               _openProfileActionSheet(
                 context,
                 title: 'Edit Profile',
-                subtitle: 'Verified CID profile workspace',
+                subtitle: 'Creator identity workspace',
                 icon: Icons.edit_outlined,
                 text:
-                    '$profileName is connected to $cid. Signed in as $email. Profile editing is preview-only; production save stays locked.',
+                    '$profileName is connected to $cid. Signed in as $email. Profile editing will save after the creator profile service is connected.',
               );
             },
           ),
@@ -553,7 +553,7 @@ class _ProfileActionRow extends StatelessWidget {
                 subtitle: 'CidenBridge wallet gateway',
                 icon: Icons.account_balance_wallet_outlined,
                 text:
-                    'CID session is verified. Wallet preview is locked until CidenBridge is connected.',
+                    'CID session is verified. Wallet access opens through CidenBridge when the wallet gateway is connected.',
               );
             },
           ),
@@ -578,7 +578,7 @@ class _ProfileActionRow extends StatelessWidget {
                 subtitle: 'CidenDB proof gateway',
                 icon: Icons.verified_user_outlined,
                 text:
-                    'CID proof preview is visible. Real proof documents and audit backend stay locked.',
+                    'CID proof status is visible. Proof documents and audit routes open through the protected proof gateway.',
               );
             },
           ),
@@ -638,6 +638,113 @@ class _ProfileActionButton extends StatelessWidget {
   }
 }
 
+class _CreatorRoleStrip extends StatelessWidget {
+  const _CreatorRoleStrip();
+
+  @override
+  Widget build(BuildContext context) {
+    const roles = [
+      (Icons.live_tv_rounded, 'Live creator', 'Rooms and replay'),
+      (Icons.verified_user_outlined, 'Proof creator', 'CID signal'),
+      (Icons.storefront_outlined, 'Market ready', 'Creator commerce'),
+      (Icons.auto_awesome_rounded, 'Effect layer', 'Earned assets'),
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: _panel,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _line),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Creator identity',
+            style: TextStyle(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 10),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final compact = constraints.maxWidth < 560;
+              final itemWidth = compact
+                  ? (constraints.maxWidth - 8) / 2
+                  : 150.0;
+
+              return Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final role in roles)
+                    SizedBox(
+                      width: itemWidth,
+                      child: _CreatorRoleCard(
+                        icon: role.$1,
+                        title: role.$2,
+                        subtitle: role.$3,
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CreatorRoleCard extends StatelessWidget {
+  const _CreatorRoleCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: _panelSoft,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _line),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: Colors.white),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontWeight: FontWeight.w900),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: _textSoft, fontSize: 11),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _CreatorEconomyPreviewCard extends StatelessWidget {
   const _CreatorEconomyPreviewCard();
 
@@ -666,16 +773,16 @@ class _CreatorEconomyPreviewCard extends StatelessWidget {
               SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Creator Economy Preview',
+                  'Creator Economy',
                   style: TextStyle(fontWeight: FontWeight.w900),
                 ),
               ),
-              _ProfilePill(label: 'VISUAL ONLY'),
+              _ProfilePill(label: 'CREATOR'),
             ],
           ),
           const SizedBox(height: 8),
           const Text(
-            'Activity-based Web4 layer preview. Wallet, token, payment, minting and blockchain stay locked.',
+            'Activity-based Web4 layer for signal, support, proof and earned creator assets.',
             style: TextStyle(color: _textSoft, height: 1.35, fontSize: 12),
           ),
           const SizedBox(height: 12),
@@ -851,10 +958,18 @@ class _ProfileTabs extends StatelessWidget {
           ),
           Expanded(
             child: _ProfileTab(
-              icon: Icons.sell_outlined,
-              label: 'Tagged',
-              active: activeTab == _ProfileTabKind.tagged,
-              onTap: () => onChanged(_ProfileTabKind.tagged),
+              icon: Icons.live_tv_rounded,
+              label: 'Live',
+              active: activeTab == _ProfileTabKind.live,
+              onTap: () => onChanged(_ProfileTabKind.live),
+            ),
+          ),
+          Expanded(
+            child: _ProfileTab(
+              icon: Icons.verified_user_outlined,
+              label: 'Proof',
+              active: activeTab == _ProfileTabKind.proof,
+              onTap: () => onChanged(_ProfileTabKind.proof),
             ),
           ),
         ],
@@ -942,7 +1057,12 @@ class _ProfileGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final itemCount = activeTab == _ProfileTabKind.tagged ? 6 : 12;
+    final itemCount = switch (activeTab) {
+      _ProfileTabKind.posts => 12,
+      _ProfileTabKind.reels => 12,
+      _ProfileTabKind.live => 6,
+      _ProfileTabKind.proof => 6,
+    };
 
     return GridView.builder(
       itemCount: itemCount,
@@ -975,7 +1095,8 @@ class _GridTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isReel = activeTab == _ProfileTabKind.reels || index % 4 == 1;
-    final isTagged = activeTab == _ProfileTabKind.tagged;
+    final isTagged = activeTab == _ProfileTabKind.proof;
+    final isLive = activeTab == _ProfileTabKind.live;
 
     return InkWell(
       borderRadius: BorderRadius.circular(22),
@@ -999,7 +1120,7 @@ class _GridTile extends StatelessWidget {
               top: 10,
               child: Icon(
                 isTagged
-                    ? Icons.sell_outlined
+                    ? Icons.verified_user_outlined
                     : isReel
                     ? Icons.play_circle_fill_rounded
                     : Icons.collections_rounded,
@@ -1040,7 +1161,7 @@ class _GridTile extends StatelessWidget {
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
-                      isTagged ? 'Tagged' : post.likes,
+                      isTagged ? 'Proof' : post.likes,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -1083,8 +1204,8 @@ void _openProfileActionSheet(
           ],
           if (title == 'Wallet') ...[
             const _ProfileGatewayStatusCard(
-              title: 'Wallet locked',
-              subtitle: 'CID ready. Real wallet closed.',
+              title: 'Wallet gateway',
+              subtitle: 'CID ready for wallet routing.',
               icon: Icons.account_balance_wallet_outlined,
               accent: Color(0xFFF97316),
               items: [
@@ -1095,8 +1216,9 @@ void _openProfileActionSheet(
                 ),
                 _ProfileGatewayItem(
                   icon: Icons.lock_outline_rounded,
-                  label: 'No balance shown',
-                  description: 'No fake token, payment or balance.',
+                  label: 'Balance hidden',
+                  description:
+                      'No token, payment or balance is displayed here.',
                 ),
                 _ProfileGatewayItem(
                   icon: Icons.hub_outlined,
@@ -1109,8 +1231,8 @@ void _openProfileActionSheet(
           ],
           if (title == 'Proof') ...[
             const _ProfileGatewayStatusCard(
-              title: 'Proof ready',
-              subtitle: 'CID proof preview. Backend closed.',
+              title: 'Proof gateway',
+              subtitle: 'CID proof route is prepared.',
               icon: Icons.verified_user_outlined,
               accent: Color(0xFF60A5FA),
               items: [
@@ -1121,13 +1243,15 @@ void _openProfileActionSheet(
                 ),
                 _ProfileGatewayItem(
                   icon: Icons.fingerprint_rounded,
-                  label: 'Proof module locked',
-                  description: 'No document or audit backend opened.',
+                  label: 'Proof module',
+                  description:
+                      'Document and audit routes open after proof service connection.',
                 ),
                 _ProfileGatewayItem(
                   icon: Icons.token_outlined,
-                  label: 'No minting',
-                  description: 'NFT, token and payment stay closed.',
+                  label: 'Minting closed',
+                  description:
+                      'NFT, token and payment actions stay outside this profile view.',
                 ),
               ],
             ),
@@ -1137,9 +1261,9 @@ void _openProfileActionSheet(
           const SizedBox(height: 10),
           const _ProfileInfoCard(
             icon: Icons.lock_outline_rounded,
-            title: 'Protected action boundary',
+            title: 'Protected creator action',
             text:
-                'This is a local-only profile preview. Protected actions must later require a verified CidenDB/CID session.',
+                'Creator profile changes, wallet access and proof management require a verified CidenDB/CID session.',
           ),
         ],
       );
@@ -1156,13 +1280,15 @@ void _openGridPreview(
   final title = switch (tab) {
     _ProfileTabKind.posts => 'Profile post',
     _ProfileTabKind.reels => 'Profile reel',
-    _ProfileTabKind.tagged => 'Tagged preview',
+    _ProfileTabKind.live => 'Live room',
+    _ProfileTabKind.proof => 'Proof item',
   };
 
   final icon = switch (tab) {
     _ProfileTabKind.posts => Icons.collections_rounded,
     _ProfileTabKind.reels => Icons.play_circle_fill_rounded,
-    _ProfileTabKind.tagged => Icons.sell_outlined,
+    _ProfileTabKind.live => Icons.live_tv_rounded,
+    _ProfileTabKind.proof => Icons.verified_user_outlined,
   };
 
   showModalBottomSheet<void>(
@@ -1173,16 +1299,16 @@ void _openGridPreview(
     builder: (context) {
       return _ProfilePreviewSheet(
         title: '$title #${index + 1}',
-        subtitle: 'Local profile grid preview',
+        subtitle: 'Creator profile item',
         icon: icon,
         children: [
           _ProfileGridPreviewFrame(post: post, icon: icon, tab: tab),
           const SizedBox(height: 12),
           _ProfileInfoCard(
             icon: Icons.info_outline_rounded,
-            title: 'Local grid item',
+            title: 'Creator profile item',
             text:
-                'This preview shows the profile grid opening behavior only. Real post detail, reel playback, tagged routing, and backend data will be added later.',
+                'This item opens the creator content surface. Publishing, playback and proof actions remain protected by the creator release flow.',
           ),
         ],
       );
@@ -1661,7 +1787,8 @@ class _ProfileGridPreviewFrame extends StatelessWidget {
     final label = switch (tab) {
       _ProfileTabKind.posts => 'POST',
       _ProfileTabKind.reels => 'REEL',
-      _ProfileTabKind.tagged => 'TAGGED',
+      _ProfileTabKind.live => 'LIVE',
+      _ProfileTabKind.proof => 'PROOF',
     };
 
     return AspectRatio(
