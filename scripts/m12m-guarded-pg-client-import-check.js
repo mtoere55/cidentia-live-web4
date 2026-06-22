@@ -19,7 +19,8 @@ async function main() {
     missingUrlClient.code === 'DATABASE_URL_MISSING' &&
     (
       guardedClient.code === 'PG_DRIVER_NOT_INSTALLED' ||
-      guardedClient.code === 'PG_DRIVER_GUARDED_NOT_CONNECTED'
+      guardedClient.code === 'PG_DRIVER_GUARDED_NOT_CONNECTED' ||
+      guardedClient.code === 'PG_POOL_GUARDED_NOT_CONNECTED'
     ) &&
     disabledClient.dbConnected === false &&
     guardedClient.dbConnected === false &&
