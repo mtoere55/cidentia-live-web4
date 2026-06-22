@@ -167,6 +167,35 @@ Future<String> _requestProfileUpdateBoundary(
   }
 }
 
+Future<String> _requestProfileReadBoundary(
+  _ProfileIdentityView identity,
+) async {
+  if (!identity.hasCid) {
+    return 'PROFILE_CID_REQUIRED';
+  }
+
+  final endpoint = Uri.parse('$_profileApiBaseUrl/api/profile/me');
+  final client = HttpClient();
+
+  try {
+    final request = await client.getUrl(endpoint);
+    request.headers.set('x-cidentia-cid', identity.cidLabel);
+
+    final response = await request.close();
+    final body = await response.transform(utf8.decoder).join();
+    final decoded = jsonDecode(body);
+    final code = decoded is Map<String, dynamic>
+        ? decoded['code']?.toString()
+        : null;
+
+    return code ?? 'PROFILE_READ_DISABLED';
+  } catch (_) {
+    return 'PROFILE_BOUNDARY_UNAVAILABLE';
+  } finally {
+    client.close(force: true);
+  }
+}
+
 String _profileInitials(String value) {
   final parts = value
       .trim()
@@ -228,6 +257,38 @@ class OriginalInspiredProfilePage extends StatefulWidget {
 class _OriginalInspiredProfilePageState
     extends State<OriginalInspiredProfilePage> {
   _ProfileTabKind activeTab = _ProfileTabKind.posts;
+  String? _lastProfileReadCid;
+  String? _profileReadBoundaryCode;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _requestVerifiedProfileReadBoundary();
+  }
+
+  void _requestVerifiedProfileReadBoundary() {
+    final session = CidentiaSessionScope.maybeOf(context);
+    final verified = session?.hasVerifiedCid ?? false;
+    final identity = _profileIdentityView(
+      verified: verified,
+      rawDisplayName: session?.displayName,
+      email: session?.email,
+      cid: session?.cid,
+    );
+
+    if (!identity.hasCid || _lastProfileReadCid == identity.cidLabel) {
+      return;
+    }
+
+    _lastProfileReadCid = identity.cidLabel;
+    _requestProfileReadBoundary(identity).then((code) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() => _profileReadBoundaryCode = code);
+    });
+  }
 
   void _setTab(_ProfileTabKind tab) {
     setState(() => activeTab = tab);
@@ -235,6 +296,10 @@ class _OriginalInspiredProfilePageState
 
   @override
   Widget build(BuildContext context) {
+    final profileBoundaryVisible =
+        _profileReadBoundaryCode != null &&
+        _profileReadBoundaryCode != 'PROFILE_CID_REQUIRED';
+
     return ListView(
       padding: const EdgeInsets.fromLTRB(12, 16, 12, 96),
       children: [
@@ -243,6 +308,10 @@ class _OriginalInspiredProfilePageState
         const _ProfileStatsRow(),
         const SizedBox(height: 10),
         const _ProfileActionRow(),
+        if (profileBoundaryVisible) ...[
+          const SizedBox(height: 10),
+          _ProfileBoundaryStatusCard(code: _profileReadBoundaryCode!),
+        ],
         const SizedBox(height: 10),
         const _CreatorRoleStrip(),
         const SizedBox(height: 10),
@@ -252,6 +321,40 @@ class _OriginalInspiredProfilePageState
         const SizedBox(height: 10),
         _ProfileGrid(activeTab: activeTab),
       ],
+    );
+  }
+}
+
+class _ProfileBoundaryStatusCard extends StatelessWidget {
+  const _ProfileBoundaryStatusCard({required this.code});
+
+  final String code;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: _panelSoft,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _line),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        children: [
+          const Icon(Icons.storage_outlined, color: _textSoft, size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Profile read boundary: $code',
+              style: const TextStyle(
+                color: _textSoft,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
