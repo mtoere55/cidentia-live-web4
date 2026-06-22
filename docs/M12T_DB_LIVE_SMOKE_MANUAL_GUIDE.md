@@ -31,3 +31,5 @@ $env:CIDENTIA_DATABASE_SSL_MODE="require"
 $env:CIDENTIA_DATABASE_POOL_MAX="5"
 
 node -e "const { runGuardedLiveDatabaseSmoke } = require('./server/db/liveDatabaseSmoke'); runGuardedLiveDatabaseSmoke(process.env).then((r) => console.log(JSON.stringify({ ok:r.ok, code:r.code, dbConnected:r.dbConnected, queryExecuted:r.queryExecuted, secretsExposed:r.secretsExposed }, null, 2))).catch((e) => { console.error(e.message); process.exit(1); })"
+
+DATABASE_LIVE_SMOKE_OK
