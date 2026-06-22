@@ -1,6 +1,7 @@
 ﻿'use strict';
 
 const DATABASE_ENV_KEYS = Object.freeze([
+  'CIDENTIA_DATABASE_ENABLED',
   'CIDENTIA_DATABASE_URL',
   'CIDENTIA_DATABASE_SSL_MODE',
   'CIDENTIA_DATABASE_POOL_MAX',
@@ -25,7 +26,7 @@ function loadDatabaseContract(env = process.env) {
 
   return Object.freeze({
     ok: true,
-    databaseContractVersion: 'm12a-db-foundation-v1',
+    databaseContractVersion: 'm12e-db-connection-guard-v1',
     databaseUrlPresent,
     databaseEnabled,
     dbConnected: false,
