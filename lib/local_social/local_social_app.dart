@@ -1,5 +1,7 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 
 import 'auth/cidentia_session_scope.dart';
 import 'auth/cidentia_session_state.dart';
@@ -813,49 +815,64 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
   String selectedMediaType = 'Photo';
   String selectedMediaLabel = 'Local frame 01';
   String selectedMediaSource = 'Device gallery';
+  static const _uploadRequestEndpoint = String.fromEnvironment(
+    'CIDENTIA_LIVE_API_BASE_URL',
+    defaultValue: 'https://api.cidentia.live',
+  );
+
   String? mediaPickerStatus;
-  final ImagePicker _imagePicker = ImagePicker();
   final TextEditingController captionController = TextEditingController();
 
   Future<void> _pickDeviceMedia() async {
-    final useVideo =
-        selectedMediaType == 'Video' ||
-        selectedMode == 'Reel' ||
-        selectedMode == 'Replay';
-    final source = selectedMediaSource == 'Camera capture'
-        ? ImageSource.camera
-        : ImageSource.gallery;
+    setState(() {
+      mediaPickerStatus = 'Checking upload boundary...';
+    });
+
+    final endpoint = Uri.parse('$_uploadRequestEndpoint/api/upload/request');
 
     try {
-      final picked = useVideo
-          ? await _imagePicker.pickVideo(source: source)
-          : await _imagePicker.pickImage(source: source);
+      final client = HttpClient();
+      final request = await client.postUrl(endpoint);
+      request.headers.contentType = ContentType.json;
+      request.write(
+        jsonEncode({
+          'mode': selectedMode,
+          'mediaType': selectedMediaType,
+          'mediaSource': selectedMediaSource,
+          'mediaLabel': selectedMediaLabel,
+          'client': 'cidentia-live-local-create-preview',
+        }),
+      );
+
+      final response = await request.close();
+      final body = await response.transform(utf8.decoder).join();
+      client.close(force: true);
+
+      final decoded = jsonDecode(body);
+      final code = decoded is Map<String, dynamic>
+          ? decoded['code']?.toString()
+          : null;
+      final message = decoded is Map<String, dynamic>
+          ? decoded['message']?.toString()
+          : null;
 
       if (!mounted) {
         return;
       }
 
-      if (picked == null) {
-        setState(() => mediaPickerStatus = 'No media selected.');
-        return;
-      }
-
       setState(() {
-        selectedMediaType = useVideo ? 'Video' : 'Photo';
-        selectedMediaLabel = picked.name.isEmpty
-            ? 'Selected media'
-            : picked.name;
-        mediaPickerStatus = 'Selected: $selectedMediaLabel';
+        mediaPickerStatus =
+            '${code ?? 'UPLOAD_ROUTE_DISABLED'} - ${message ?? 'Upload remains locked.'}';
       });
     } catch (_) {
       if (!mounted) {
         return;
       }
 
-      setState(
-        () => mediaPickerStatus =
-            'Media picker is not available on this device yet.',
-      );
+      setState(() {
+        mediaPickerStatus =
+            'Upload boundary unavailable. No file access or upload was opened.';
+      });
     }
   }
 
@@ -2095,7 +2112,7 @@ void _showStoryLiveRoomPreview(
               ),
               const SizedBox(height: 6),
               Text(
-                '$creator · Story live discovery',
+                '$creator - Story live discovery',
                 style: const TextStyle(color: _textSoft),
               ),
               const SizedBox(height: 16),
@@ -2136,7 +2153,7 @@ void _showStoryLiveRoomPreview(
                         right: 16,
                         bottom: 16,
                         child: Text(
-                          'Story live discovery · Signal, Proof and Effect tools connect in upcoming creator releases.',
+                          'Story live discovery - Signal, Proof and Effect tools connect in upcoming creator releases.',
                           style: TextStyle(color: Colors.white70, height: 1.35),
                         ),
                       ),
@@ -2160,7 +2177,7 @@ void _showStoryLiveRoomPreview(
                         Icon(Icons.remove_red_eye_outlined, size: 16),
                         SizedBox(width: 6),
                         Text(
-                          'CID-safe viewers · 1.2K',
+                          'CID-safe viewers - 1.2K',
                           style: TextStyle(fontWeight: FontWeight.w900),
                         ),
                         Spacer(),
@@ -2177,7 +2194,7 @@ void _showStoryLiveRoomPreview(
                     ),
                     SizedBox(height: 6),
                     Text(
-                      'Viewer: Proof reaction sent · effect preview earned.',
+                      'Viewer: Proof reaction sent - effect preview earned.',
                       style: TextStyle(color: Colors.white60, height: 1.3),
                     ),
                   ],
