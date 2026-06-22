@@ -13,31 +13,110 @@ const _panelSoft = Color(0xFF181A20);
 const _line = Color(0xFF262A33);
 const _textSoft = Color(0xFFA1A1AA);
 
+class _ProfileIdentityView {
+  const _ProfileIdentityView({
+    required this.verified,
+    required this.hasCid,
+    required this.displayName,
+    required this.handle,
+    required this.initials,
+    required this.identityLine,
+    required this.description,
+    required this.identityStatus,
+    required this.cidBadgeLabel,
+    required this.proofBadgeLabel,
+    required this.emailLabel,
+    required this.cidLabel,
+  });
+
+  final bool verified;
+  final bool hasCid;
+  final String displayName;
+  final String handle;
+  final String initials;
+  final String identityLine;
+  final String description;
+  final String identityStatus;
+  final String cidBadgeLabel;
+  final String proofBadgeLabel;
+  final String emailLabel;
+  final String cidLabel;
+}
+
+_ProfileIdentityView _profileIdentityView({
+  required bool verified,
+  String? rawDisplayName,
+  String? email,
+  String? cid,
+}) {
+  final cleanName = rawDisplayName?.trim();
+  final cleanEmail = email?.trim();
+  final cleanCid = cid?.trim();
+  final hasName =
+      cleanName != null && cleanName.isNotEmpty && !cleanName.contains('@');
+  final hasEmail = cleanEmail != null && cleanEmail.isNotEmpty;
+  final hasCid = cleanCid != null && cleanCid.isNotEmpty;
+
+  final displayName = verified
+      ? hasName
+            ? cleanName
+            : hasCid
+            ? 'CID $cleanCid'
+            : hasEmail
+            ? 'CidenDB profile incomplete'
+            : 'Verified CidenDB User'
+      : 'Cidentia Creator';
+
+  final handle = verified ? _profileHandle(displayName) : '@cidentia.creator';
+  final cidLabel = hasCid ? cleanCid : 'CID required';
+  final emailLabel = hasEmail ? cleanEmail : 'email not provided';
+
+  final identityLine = verified
+      ? hasCid
+            ? 'Verified CID: $cleanCid'
+            : 'CidenDB verified · CID onboarding required'
+      : 'CID-ready creator identity';
+
+  final description = verified
+      ? hasCid
+            ? 'Signed in as $emailLabel. Creator identity, avatar and cover workspace are ready.'
+            : 'Signed in as $emailLabel. Complete CidentiaApp onboarding to receive a CID before protected creator services open.'
+      : 'Build your Cidentia creator profile with live rooms, proof signals and media tools.';
+
+  final identityStatus = verified
+      ? hasCid
+            ? 'CidenDB verified identity'
+            : 'CID required from CidentiaApp'
+      : 'CID sign-in available';
+
+  return _ProfileIdentityView(
+    verified: verified,
+    hasCid: hasCid,
+    displayName: displayName,
+    handle: handle,
+    initials: _profileInitials(displayName),
+    identityLine: identityLine,
+    description: description,
+    identityStatus: identityStatus,
+    cidBadgeLabel: hasCid ? 'CID $cleanCid' : 'CID required',
+    proofBadgeLabel: hasCid ? 'Proof route locked' : 'Proof needs CID',
+    emailLabel: emailLabel,
+    cidLabel: cidLabel,
+  );
+}
+
 String _profileDisplayName({
   required bool verified,
   String? rawDisplayName,
   String? email,
   String? cid,
 }) {
-  final value = rawDisplayName?.trim();
-
-  if (verified) {
-    if (value != null && value.isNotEmpty && !value.contains('@')) {
-      return value;
-    }
-
-    if (email != null && email.trim().isNotEmpty) {
-      return 'CidenDB profile incomplete';
-    }
-
-    if (cid != null && cid.trim().isNotEmpty) {
-      return 'CID ${cid.trim()}';
-    }
-
-    return 'Verified CidenDB User';
-  }
-
-  return 'Cidentia Creator';
+  return _profileIdentityView(
+    verified: verified,
+    rawDisplayName: rawDisplayName,
+    email: email,
+    cid: cid,
+  ).displayName;
 }
 
 String _profileInitials(String value) {
@@ -249,37 +328,14 @@ class _ProfileHero extends StatelessWidget {
   Widget build(BuildContext context) {
     final session = CidentiaSessionScope.maybeOf(context);
     final verified = session?.hasVerifiedCid ?? false;
-    final cid = session?.cid;
-    final email = session?.email;
-    final profileName = _profileDisplayName(
+    final identity = _profileIdentityView(
       verified: verified,
       rawDisplayName: session?.displayName,
-      email: email,
-      cid: cid,
+      email: session?.email,
+      cid: session?.cid,
     );
 
-    final profileHandle = verified
-        ? _profileHandle(profileName)
-        : '@cidentia.creator';
-
-    final avatarLabel = _profileInitials(profileName);
-
-    final identityLine = verified && cid != null
-        ? 'Verified CID: $cid'
-        : 'CID-ready creator identity';
-
-    final defaultDescription = verified && email != null
-        ? 'Signed in as $email. Creator identity, avatar and cover workspace are ready.'
-        : 'Build your Cidentia creator profile with live rooms, proof signals and media tools.';
-
-    final identityStatus = verified
-        ? 'CidenDB verified identity'
-        : 'CID sign-in available';
-
     final mediaStatus = 'Avatar / cover ready';
-
-    final cidBadgeLabel = verified && cid != null ? 'CID $cid' : 'CID entry';
-    final proofBadgeLabel = verified ? 'Proof verified' : 'Proof path';
     final wideHero = MediaQuery.sizeOf(context).width >= 760;
 
     return ValueListenableBuilder<_ProfileHeroDraft>(
@@ -290,7 +346,7 @@ class _ProfileHero extends StatelessWidget {
         final hasHeadline = headline != null && headline.isNotEmpty;
         final description = intro != null && intro.isNotEmpty
             ? intro
-            : defaultDescription;
+            : identity.description;
 
         return Container(
           clipBehavior: Clip.antiAlias,
@@ -378,7 +434,7 @@ class _ProfileHero extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _ProfileIdentityAvatar(
-                      initials: avatarLabel,
+                      initials: identity.initials,
                       verified: verified,
                     ),
                     const SizedBox(width: 14),
@@ -390,7 +446,7 @@ class _ProfileHero extends StatelessWidget {
                             children: [
                               Flexible(
                                 child: Text(
-                                  profileName,
+                                  identity.displayName,
                                   style: const TextStyle(
                                     fontSize: 24,
                                     fontWeight: FontWeight.w900,
@@ -408,7 +464,7 @@ class _ProfileHero extends StatelessWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            profileHandle,
+                            identity.handle,
                             style: const TextStyle(
                               color: _textSoft,
                               fontWeight: FontWeight.w800,
@@ -416,7 +472,7 @@ class _ProfileHero extends StatelessWidget {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            identityLine,
+                            identity.identityLine,
                             style: const TextStyle(
                               color: Color(0xFF86EFAC),
                               fontWeight: FontWeight.w800,
@@ -446,7 +502,7 @@ class _ProfileHero extends StatelessWidget {
                           ),
                           const SizedBox(height: 8),
                           _ProfileIdentityReadinessRow(
-                            identityStatus: identityStatus,
+                            identityStatus: identity.identityStatus,
                             mediaStatus: mediaStatus,
                           ),
                           const SizedBox(height: 10),
@@ -457,11 +513,11 @@ class _ProfileHero extends StatelessWidget {
                               final badges = [
                                 _ProfileBadge(
                                   icon: Icons.badge_outlined,
-                                  label: cidBadgeLabel,
+                                  label: identity.cidBadgeLabel,
                                 ),
                                 _ProfileBadge(
                                   icon: Icons.fingerprint_rounded,
-                                  label: proofBadgeLabel,
+                                  label: identity.proofBadgeLabel,
                                 ),
                                 const _ProfileBadge(
                                   icon: Icons.wallet_outlined,
@@ -702,9 +758,7 @@ class _ProfileActionRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final session = CidentiaSessionScope.maybeOf(context);
     final verified = session?.hasVerifiedCid ?? false;
-    final cid = session?.cid ?? 'CID pending';
-    final email = session?.email ?? 'verified CidenDB user';
-    final profileName = _profileDisplayName(
+    final identity = _profileIdentityView(
       verified: verified,
       rawDisplayName: session?.displayName,
       email: session?.email,
@@ -734,8 +788,9 @@ class _ProfileActionRow extends StatelessWidget {
                 title: 'Edit Profile',
                 subtitle: 'Creator identity workspace',
                 icon: Icons.edit_outlined,
-                text:
-                    '$profileName is connected to $cid. Signed in as $email. Profile editing will save after the creator profile service is connected.',
+                text: identity.hasCid
+                    ? '${identity.displayName} is connected to ${identity.cidLabel}. Signed in as ${identity.emailLabel}. Profile editing will save after the creator profile service is connected.'
+                    : '${identity.displayName} is signed in as ${identity.emailLabel}, but no CID is attached yet. Complete CidentiaApp onboarding before profile changes can be saved to production.',
               );
             },
           ),
@@ -759,8 +814,9 @@ class _ProfileActionRow extends StatelessWidget {
                 title: 'Wallet',
                 subtitle: 'CidenBridge wallet gateway',
                 icon: Icons.account_balance_wallet_outlined,
-                text:
-                    'CID session is verified. Wallet access opens through CidenBridge when the wallet gateway is connected.',
+                text: identity.hasCid
+                    ? 'CID ${identity.cidLabel} is verified. Wallet access remains locked until the CidenBridge wallet gateway is connected.'
+                    : 'Wallet access requires a CidenDB session with CID. Complete CidentiaApp onboarding first.',
               );
             },
           ),
@@ -784,8 +840,9 @@ class _ProfileActionRow extends StatelessWidget {
                 title: 'Proof',
                 subtitle: 'CidenDB proof gateway',
                 icon: Icons.verified_user_outlined,
-                text:
-                    'CID proof status is visible. Proof documents and audit routes open through the protected proof gateway.',
+                text: identity.hasCid
+                    ? 'CID ${identity.cidLabel} is visible. Proof documents and audit routes remain locked until the protected proof gateway is connected.'
+                    : 'Proof access requires a CidenDB session with CID. Complete CidentiaApp onboarding first.',
               );
             },
           ),
