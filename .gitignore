@@ -148,3 +148,6 @@ app.*.map.json
 !.idea/dictionaries/
 !.idea/runConfigurations/
 .qodo
+
+# Cidentia.Live backend local dependencies
+server/node_modules/
