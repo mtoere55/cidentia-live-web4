@@ -1,0 +1,15 @@
+{
+  "name": "cidentia-live-backend",
+  "version": "0.0.0-m12j-disabled-boundary",
+  "private": true,
+  "description": "Cidentia.Live guarded backend runtime boundary. Dependencies stay server-side only.",
+  "type": "commonjs",
+  "scripts": {
+    "check:db-guard": "node ../scripts/m12e-db-connection-guard-check.js",
+    "check:profile-repository": "node ../scripts/m12f-profile-repository-check.js",
+    "check:profile-api": "node ../scripts/m12g-profile-api-repository-wire-check.js",
+    "smoke:profile-api": "node ../scripts/m12h-profile-api-local-smoke-check.js"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
