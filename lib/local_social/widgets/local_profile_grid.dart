@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -12,6 +14,11 @@ const _panel = Color(0xFF101114);
 const _panelSoft = Color(0xFF181A20);
 const _line = Color(0xFF262A33);
 const _textSoft = Color(0xFFA1A1AA);
+
+const _profileApiBaseUrl = String.fromEnvironment(
+  'CIDENTIA_LIVE_API_BASE_URL',
+  defaultValue: 'https://api.cidentia.live',
+);
 
 class _ProfileIdentityView {
   const _ProfileIdentityView({
@@ -117,6 +124,47 @@ String _profileDisplayName({
     email: email,
     cid: cid,
   ).displayName;
+}
+
+Future<String> _requestProfileUpdateBoundary(
+  _ProfileIdentityView identity,
+) async {
+  if (!identity.hasCid) {
+    return 'PROFILE_CID_REQUIRED - Complete CidentiaApp onboarding before profile changes can be saved.';
+  }
+
+  final endpoint = Uri.parse('$_profileApiBaseUrl/api/profile/update');
+  final client = HttpClient();
+
+  try {
+    final request = await client.postUrl(endpoint);
+    request.headers.contentType = ContentType.json;
+    request.headers.set('x-cidentia-cid', identity.cidLabel);
+    request.write(
+      jsonEncode({
+        'ownerCid': identity.cidLabel,
+        'displayName': identity.displayName,
+        'email': identity.emailLabel,
+        'client': 'cidentia-live-profile-preview',
+      }),
+    );
+
+    final response = await request.close();
+    final body = await response.transform(utf8.decoder).join();
+    final decoded = jsonDecode(body);
+    final code = decoded is Map<String, dynamic>
+        ? decoded['code']?.toString()
+        : null;
+    final message = decoded is Map<String, dynamic>
+        ? decoded['message']?.toString()
+        : null;
+
+    return '${code ?? 'PROFILE_WRITE_DISABLED'} - ${message ?? 'Profile write remains locked.'}';
+  } catch (_) {
+    return 'PROFILE_BOUNDARY_UNAVAILABLE - Profile backend boundary could not be reached.';
+  } finally {
+    client.close(force: true);
+  }
 }
 
 String _profileInitials(String value) {
@@ -774,12 +822,20 @@ class _ProfileActionRow extends StatelessWidget {
             icon: Icons.edit_outlined,
             label: 'Edit Profile',
             primary: true,
-            onTap: () {
+            onTap: () async {
               if (!verified) {
                 CidentiaProtectedActionNotice.show(
                   context,
                   action: CidentiaProtectedAction.editProfile,
                 );
+                return;
+              }
+
+              final boundaryStatus = await _requestProfileUpdateBoundary(
+                identity,
+              );
+
+              if (!context.mounted) {
                 return;
               }
 
@@ -789,8 +845,8 @@ class _ProfileActionRow extends StatelessWidget {
                 subtitle: 'Creator identity workspace',
                 icon: Icons.edit_outlined,
                 text: identity.hasCid
-                    ? '${identity.displayName} is connected to ${identity.cidLabel}. Signed in as ${identity.emailLabel}. Profile editing will save after the creator profile service is connected.'
-                    : '${identity.displayName} is signed in as ${identity.emailLabel}, but no CID is attached yet. Complete CidentiaApp onboarding before profile changes can be saved to production.',
+                    ? '${identity.displayName} is connected to ${identity.cidLabel}. Signed in as ${identity.emailLabel}. $boundaryStatus'
+                    : '${identity.displayName} is signed in as ${identity.emailLabel}, but no CID is attached yet. $boundaryStatus',
               );
             },
           ),
