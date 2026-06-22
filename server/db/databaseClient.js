@@ -2,7 +2,7 @@
 
 const { loadDatabaseContract } = require('./databaseContract');
 
-function createDisabledDatabaseClient(reason, contract) {
+function createDisabledDatabaseClient(reason, contract, extra = {}) {
   return Object.freeze({
     ok: false,
     code: reason,
@@ -11,6 +11,7 @@ function createDisabledDatabaseClient(reason, contract) {
     queryEnabled: false,
     secretsExposed: false,
     contract,
+    ...extra,
     async query() {
       return Object.freeze({
         ok: false,
@@ -29,6 +30,21 @@ function createDisabledDatabaseClient(reason, contract) {
   });
 }
 
+function loadPgDriver() {
+  try {
+    // Loaded only after DB env gates pass. Do not move this to top-level.
+    return {
+      ok: true,
+      pg: require('pg'),
+    };
+  } catch (_) {
+    return {
+      ok: false,
+      pg: null,
+    };
+  }
+}
+
 function createDatabaseClient(env = process.env) {
   const contract = loadDatabaseContract(env);
 
@@ -40,12 +56,20 @@ function createDatabaseClient(env = process.env) {
     return createDisabledDatabaseClient('DATABASE_URL_MISSING', contract);
   }
 
-  return createDisabledDatabaseClient(
-    'DATABASE_CLIENT_NOT_IMPLEMENTED',
-    contract,
-  );
+  const driver = loadPgDriver();
+
+  if (!driver.ok) {
+    return createDisabledDatabaseClient('PG_DRIVER_NOT_INSTALLED', contract, {
+      pgDriverLoaded: false,
+    });
+  }
+
+  return createDisabledDatabaseClient('PG_DRIVER_GUARDED_NOT_CONNECTED', contract, {
+    pgDriverLoaded: true,
+  });
 }
 
 module.exports = {
   createDatabaseClient,
+  loadPgDriver,
 };
