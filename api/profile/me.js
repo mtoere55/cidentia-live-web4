@@ -1,8 +1,9 @@
-﻿const {
+const {
   cidFromProfileRequest,
   profileCidRequiredBoundary,
   profileReadDisabledBoundary,
 } = require('../../server/profile/profileBoundary');
+const { readProfileByCid } = require('../../server/profile/profileRepository');
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -21,7 +22,15 @@ module.exports = async function handler(req, res) {
     );
   }
 
-  return res.status(503).json(
-    profileReadDisabledBoundary('/api/profile/me', cid),
-  );
+  const result = await readProfileByCid(cid);
+
+  if (!result.ok) {
+    return res.status(503).json({
+      ...profileReadDisabledBoundary('/api/profile/me', cid),
+      repositoryCode: result.code,
+      queryEnabled: result.queryEnabled,
+    });
+  }
+
+  return res.status(200).json(result);
 };

@@ -1,8 +1,9 @@
-﻿const {
+const {
   cidFromProfileRequest,
   profileCidRequiredBoundary,
   profileWriteDisabledBoundary,
 } = require('../../server/profile/profileBoundary');
+const { upsertProfileByCid } = require('../../server/profile/profileRepository');
 
 async function readJsonBody(req) {
   if (req.body && typeof req.body === 'object') {
@@ -53,7 +54,16 @@ module.exports = async function handler(req, res) {
     );
   }
 
-  return res.status(503).json(
-    profileWriteDisabledBoundary('/api/profile/update', cid),
-  );
+  const result = await upsertProfileByCid(cid, body);
+
+  if (!result.ok) {
+    return res.status(503).json({
+      ...profileWriteDisabledBoundary('/api/profile/update', cid),
+      repositoryCode: result.code,
+      queryEnabled: result.queryEnabled,
+      profileDraft: result.profileDraft,
+    });
+  }
+
+  return res.status(200).json(result);
 };
