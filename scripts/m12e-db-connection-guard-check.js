@@ -18,7 +18,8 @@ async function main() {
   const ok =
     disabledClient.code === 'DATABASE_DISABLED' &&
     missingUrlClient.code === 'DATABASE_URL_MISSING' &&
-    guardedClient.code === 'DATABASE_CLIENT_NOT_IMPLEMENTED' &&
+    (guardedClient.code === 'PG_DRIVER_NOT_INSTALLED' ||
+    guardedClient.code === 'PG_DRIVER_GUARDED_NOT_CONNECTED') &&
     disabledClient.dbConnected === false &&
     guardedClient.dbConnected === false &&
     guardedClient.secretsExposed === false &&
@@ -50,6 +51,7 @@ async function main() {
         disabledCode: disabledClient.code,
         missingUrlCode: missingUrlClient.code,
         guardedCode: guardedClient.code,
+        pgDriverLoaded: guardedClient.pgDriverLoaded === true,
         dbConnected: guardedClient.dbConnected,
         migrationExecuted: guardedClient.migrationExecuted,
         queryEnabled: guardedClient.queryEnabled,
