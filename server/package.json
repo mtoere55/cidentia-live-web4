@@ -1,6 +1,6 @@
 {
   "name": "cidentia-live-backend",
-  "version": "0.0.0-m12j-disabled-boundary",
+  "version": "0.0.0-m12k-pg-dependency-boundary",
   "private": true,
   "description": "Cidentia.Live guarded backend runtime boundary. Dependencies stay server-side only.",
   "type": "commonjs",
@@ -8,8 +8,11 @@
     "check:db-guard": "node ../scripts/m12e-db-connection-guard-check.js",
     "check:profile-repository": "node ../scripts/m12f-profile-repository-check.js",
     "check:profile-api": "node ../scripts/m12g-profile-api-repository-wire-check.js",
-    "smoke:profile-api": "node ../scripts/m12h-profile-api-local-smoke-check.js"
+    "smoke:profile-api": "node ../scripts/m12h-profile-api-local-smoke-check.js",
+    "check:pg-boundary": "node ../scripts/m12k-pg-dependency-boundary-check.js"
   },
-  "dependencies": {},
+  "dependencies": {
+    "pg": "^8.13.1"
+  },
   "devDependencies": {}
 }
