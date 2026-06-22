@@ -45,6 +45,23 @@ function loadPgDriver() {
   }
 }
 
+function buildPgPoolConfig(env = process.env) {
+  const sslMode = env.CIDENTIA_DATABASE_SSL_MODE || 'require';
+  const maxRaw = Number(env.CIDENTIA_DATABASE_POOL_MAX || 5);
+  const max = Number.isFinite(maxRaw) && maxRaw > 0 ? maxRaw : 5;
+
+  return Object.freeze({
+    connectionStringPresent:
+      typeof env.CIDENTIA_DATABASE_URL === 'string' &&
+      env.CIDENTIA_DATABASE_URL.trim().length > 0,
+    ssl: sslMode === 'disable' ? false : { rejectUnauthorized: false },
+    max,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 5000,
+    secretsExposed: false,
+  });
+}
+
 function createDatabaseClient(env = process.env) {
   const contract = loadDatabaseContract(env);
 
@@ -64,12 +81,17 @@ function createDatabaseClient(env = process.env) {
     });
   }
 
-  return createDisabledDatabaseClient('PG_DRIVER_GUARDED_NOT_CONNECTED', contract, {
+  const poolConfig = buildPgPoolConfig(env);
+
+  return createDisabledDatabaseClient('PG_POOL_GUARDED_NOT_CONNECTED', contract, {
     pgDriverLoaded: true,
+    poolPrepared: true,
+    poolConfig,
   });
 }
 
 module.exports = {
+  buildPgPoolConfig,
   createDatabaseClient,
   loadPgDriver,
 };
