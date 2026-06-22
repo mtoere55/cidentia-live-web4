@@ -1,4 +1,4 @@
-﻿'use strict';
+'use strict';
 
 const { loadDatabaseContract } = require('./databaseContract');
 
@@ -51,6 +51,7 @@ function buildPgPoolConfig(env = process.env) {
   const max = Number.isFinite(maxRaw) && maxRaw > 0 ? maxRaw : 5;
 
   return Object.freeze({
+    connectionString: env.CIDENTIA_DATABASE_URL,
     connectionStringPresent:
       typeof env.CIDENTIA_DATABASE_URL === 'string' &&
       env.CIDENTIA_DATABASE_URL.trim().length > 0,
@@ -83,10 +84,52 @@ function createDatabaseClient(env = process.env) {
 
   const poolConfig = buildPgPoolConfig(env);
 
-  return createDisabledDatabaseClient('PG_POOL_GUARDED_NOT_CONNECTED', contract, {
+  if (!contract.queryEnabled) {
+    return createDisabledDatabaseClient('PG_POOL_GUARDED_NOT_CONNECTED', contract, {
+      pgDriverLoaded: true,
+      poolPrepared: true,
+      poolConfig: {
+        connectionStringPresent: poolConfig.connectionStringPresent,
+        ssl: poolConfig.ssl,
+        max: poolConfig.max,
+        idleTimeoutMillis: poolConfig.idleTimeoutMillis,
+        connectionTimeoutMillis: poolConfig.connectionTimeoutMillis,
+        secretsExposed: false,
+      },
+    });
+  }
+
+  const pool = new driver.pg.Pool(poolConfig);
+
+  return Object.freeze({
+    ok: true,
+    code: 'DATABASE_QUERY_CLIENT_READY',
+    dbConnected: true,
+    migrationExecuted: false,
+    queryEnabled: true,
+    secretsExposed: false,
+    contract,
     pgDriverLoaded: true,
     poolPrepared: true,
-    poolConfig,
+    async query(text, params = []) {
+      const result = await pool.query(text, params);
+
+      return Object.freeze({
+        ok: true,
+        code: 'DATABASE_QUERY_OK',
+        rows: result.rows,
+        rowCount: result.rowCount,
+        dbConnected: true,
+      });
+    },
+    async close() {
+      await pool.end();
+
+      return Object.freeze({
+        ok: true,
+        dbConnected: false,
+      });
+    },
   });
 }
 
