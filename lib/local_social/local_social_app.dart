@@ -829,11 +829,19 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
     });
 
     final endpoint = Uri.parse('$_uploadRequestEndpoint/api/upload/request');
+    final session = CidentiaSessionScope.of(context);
+    final cid = session.hasVerifiedCid ? session.cid?.trim() : null;
+    final hasCid = cid != null && cid.isNotEmpty;
 
     try {
       final client = HttpClient();
       final request = await client.postUrl(endpoint);
       request.headers.contentType = ContentType.json;
+
+      if (hasCid) {
+        request.headers.set('x-cidentia-cid', cid);
+      }
+
       request.write(
         jsonEncode({
           'mode': selectedMode,
@@ -841,6 +849,8 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
           'mediaSource': selectedMediaSource,
           'mediaLabel': selectedMediaLabel,
           'client': 'cidentia-live-local-create-preview',
+          if (hasCid) 'ownerCid': cid,
+          if (session.email != null) 'ownerEmail': session.email,
         }),
       );
 
