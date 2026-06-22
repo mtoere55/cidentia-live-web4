@@ -1,8 +1,10 @@
-include: package:very_good_analysis/analysis_options.6.0.0.yaml
+﻿include: package:very_good_analysis/analysis_options.6.0.0.yaml
 analyzer:
   errors:
     specify_nonobvious_property_types: ignore
   exclude:
+    - _reference/**
+    - flutter-instagram-offline-first-clone-main/**
     - lib/l10n/generated/*
     - lib/generated/*
     - lib/**/*.g.dart
