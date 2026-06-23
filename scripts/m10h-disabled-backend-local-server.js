@@ -1,10 +1,12 @@
-const http = require('http');
+﻿const http = require('http');
 
 const routes = {
   'GET /api/health': require('../api/health'),
   'GET /api/status': require('../api/status'),
   'GET /api/storage/status': require('../api/storage/status'),
   'POST /api/upload/request': require('../api/upload/request'),
+  'GET /api/profile/me': require('../api/profile/me'),
+  'POST /api/profile/update': require('../api/profile/update'),
   'GET /api/cidendb/session/status': require('../api/cidendb/session/status'),
 };
 
@@ -41,14 +43,7 @@ const server = http.createServer(async (req, res) => {
   }
 
   try {
-    await handler(
-      {
-        method: req.method,
-        url: req.url,
-        headers: req.headers,
-      },
-      createResponse(res),
-    );
+    await handler(req, createResponse(res));
   } catch (error) {
     res.writeHead(500, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
@@ -63,5 +58,5 @@ const port = Number(process.env.CIDENTIA_DISABLED_BACKEND_PORT || 3010);
 
 server.listen(port, '127.0.0.1', () => {
   console.log(`Cidentia disabled backend test server listening on http://127.0.0.1:${port}`);
-  console.log('Routes are locked/read-only. No upload, storage write, wallet, CidenDB live session, RTMP, or deploy is opened.');
+  console.log('Routes are locked/read-only. Profile API is CID-gated. No upload, storage write, wallet, CidenDB live session, RTMP, or deploy is opened.');
 });
