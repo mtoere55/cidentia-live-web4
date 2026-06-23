@@ -1,4 +1,6 @@
-const { sendLocked } = require('../../server/runtime/backendStatusGuard');
+﻿const {
+  createSignedUploadUrl,
+} = require('../../server/media/objectStoragePresignerClient');
 const {
   cidFromUploadRequest,
   uploadCidRequiredBoundary,
@@ -45,26 +47,50 @@ module.exports = async function handler(req, res) {
   }
 
   const body = await readJsonBody(req);
-  const cid = cidFromUploadRequest(req, body);
+  const ownerCid = cidFromUploadRequest(req, body);
 
-  if (!cid) {
+  if (!ownerCid) {
     return res.status(401).json(
       uploadCidRequiredBoundary('/api/upload/request'),
     );
   }
 
-  return sendLocked(
-    res,
-    '/api/upload/request',
-    'UPLOAD_ROUTE_DISABLED',
-    'Upload permission route is disabled until the media contract is implemented.',
-    {
-      ownerCid: cid,
+  try {
+    const result = await createSignedUploadUrl({
+      ownerCid,
+      filename: body.filename,
+      mimeType: body.mimeType,
+      surface: body.surface,
+    });
+
+    const status = result.ok ? 200 : 503;
+
+    return res.status(status).json({
+      ...result,
+      route: '/api/upload/request',
+      ownerCid,
       cidRequired: true,
-      cidVerified: false,
-      uploadCreated: false,
+      cidVerified: true,
+      guarded: true,
+      readOnly: !result.ok,
+    });
+  } catch (_) {
+    return res.status(503).json({
+      ok: false,
+      route: '/api/upload/request',
+      code: 'UPLOAD_REQUEST_BOUNDARY_ERROR',
+      message: 'Upload request boundary failed safely.',
+      ownerCid,
+      cidRequired: true,
+      cidVerified: true,
       signedUploadUrlCreated: false,
+      objectStorageConnected: false,
+      objectStorageWrite: false,
+      uploadCreated: false,
       mediaMetadataCreated: false,
-    },
-  );
+      secretsExposed: false,
+      guarded: true,
+      readOnly: true,
+    });
+  }
 };
