@@ -823,9 +823,54 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
   String? mediaPickerStatus;
   final TextEditingController captionController = TextEditingController();
 
+  String get _selectedUploadMimeType {
+    switch (selectedMediaType) {
+      case 'Video':
+        return 'video/mp4';
+      case 'Audio':
+        return 'audio/mpeg';
+      case 'Photo':
+      default:
+        return 'image/png';
+    }
+  }
+
+  String get _selectedUploadFilename {
+    final safeLabel = selectedMediaLabel
+        .trim()
+        .replaceAll(RegExp('[^a-zA-Z0-9._-]+'), '-')
+        .replaceAll(RegExp(r'^-+|-+$'), '');
+
+    final base = safeLabel.isEmpty ? 'cidentia-upload-preview' : safeLabel;
+
+    switch (selectedMediaType) {
+      case 'Video':
+        return '$base.mp4';
+      case 'Audio':
+        return '$base.mp3';
+      case 'Photo':
+      default:
+        return '$base.png';
+    }
+  }
+
+  String get _selectedUploadSurface {
+    switch (selectedMode) {
+      case 'Reel':
+        return 'reel';
+      case 'Story':
+        return 'story';
+      case 'Replay':
+        return 'replay';
+      case 'Post':
+      default:
+        return 'post';
+    }
+  }
+
   Future<void> _pickDeviceMedia() async {
     setState(() {
-      mediaPickerStatus = 'Checking upload boundary...';
+      mediaPickerStatus = 'Requesting upload permission from backend...';
     });
 
     final endpoint = Uri.parse('$_uploadRequestEndpoint/api/upload/request');
@@ -839,7 +884,7 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
       request.headers.contentType = ContentType.json;
 
       if (hasCid) {
-        request.headers.set('x-cidentia-cid', cid);
+        request.headers.add('x-cidentia-cid', cid);
       }
 
       request.write(
@@ -848,6 +893,9 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
           'mediaType': selectedMediaType,
           'mediaSource': selectedMediaSource,
           'mediaLabel': selectedMediaLabel,
+          'filename': _selectedUploadFilename,
+          'mimeType': _selectedUploadMimeType,
+          'surface': _selectedUploadSurface,
           'client': 'cidentia-live-local-create-preview',
           if (hasCid) 'ownerCid': cid,
           if (session.email != null) 'ownerEmail': session.email,
@@ -859,20 +907,25 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
       client.close(force: true);
 
       final decoded = jsonDecode(body);
-      final code = decoded is Map<String, dynamic>
-          ? decoded['code']?.toString()
-          : null;
-      final message = decoded is Map<String, dynamic>
-          ? decoded['message']?.toString()
-          : null;
+      final data = decoded is Map<String, dynamic> ? decoded : null;
+      final code = data?['code'];
+      final message = data?['message'];
+      final signedUrlCreated = data?['signedUploadUrlCreated'] == true;
+      final objectKey = data?['storageObjectKey'];
+      final expires = data?['expiresInSeconds'];
 
       if (!mounted) {
         return;
       }
 
       setState(() {
-        mediaPickerStatus =
-            '${code ?? 'UPLOAD_ROUTE_DISABLED'} - ${message ?? 'Upload remains locked.'}';
+        if (signedUrlCreated) {
+          mediaPickerStatus =
+              'SIGNED_UPLOAD_URL_CREATED - Upload permission ready. Object: ${objectKey ?? _selectedUploadFilename}. Expires: ${expires ?? 0}s.';
+        } else {
+          mediaPickerStatus =
+              '${code ?? 'UPLOAD_REQUEST_PENDING'} - ${message ?? 'Upload request did not return a signed URL yet.'}';
+        }
       });
     } catch (_) {
       if (!mounted) {
@@ -881,7 +934,7 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
 
       setState(() {
         mediaPickerStatus =
-            'Upload boundary unavailable. No file access or upload was opened.';
+            'Upload request unavailable. Backend connection did not answer.';
       });
     }
   }
@@ -1403,7 +1456,7 @@ class _CreatePickerPreview extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           const Text(
-            'Visual-only picker. No file access or upload is opened.',
+            'Backend upload request is connected. File picking opens in the next upload step.',
             style: TextStyle(color: _textSoft, height: 1.25),
           ),
           const SizedBox(height: 12),
