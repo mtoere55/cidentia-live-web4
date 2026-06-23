@@ -934,13 +934,25 @@ class _ProfileActionRow extends StatelessWidget {
                 return;
               }
 
-              final boundaryStatus = await _requestProfileUpdateBoundary(
-                identity,
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Profile boundary checking...'),
+                  duration: Duration(seconds: 2),
+                ),
               );
+
+              final boundaryStatus =
+                  await _requestProfileUpdateBoundary(identity).timeout(
+                    const Duration(seconds: 6),
+                    onTimeout: () =>
+                        'PROFILE_BOUNDARY_TIMEOUT - Profile backend boundary did not answer in time.',
+                  );
 
               if (!context.mounted) {
                 return;
               }
+
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
               _openProfileActionSheet(
                 context,
