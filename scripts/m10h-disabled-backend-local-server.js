@@ -1,4 +1,4 @@
-const http = require('http');
+﻿const http = require('http');
 
 const routes = {
   'GET /api/health': require('../api/health'),
@@ -7,60 +7,22 @@ const routes = {
   'POST /api/upload/request': require('../api/upload/request'),
   'GET /api/profile/me': require('../api/profile/me'),
   'POST /api/profile/update': require('../api/profile/update'),
-  'POST /api/cidendb/otp/send': require('../api/cidendb/otp/send'),
-  'POST /api/cidendb/otp/verify': require('../api/cidendb/otp/verify'),
   'GET /api/cidendb/session/status': require('../api/cidendb/session/status'),
 };
 
 function createResponse(nativeRes) {
   return {
     statusCode: 200,
-    headersSent: false,
-
     status(code) {
       this.statusCode = code;
       return this;
     },
-
-    setHeader(name, value) {
-      nativeRes.setHeader(name, value);
-      return this;
-    },
-
-    getHeader(name) {
-      return nativeRes.getHeader(name);
-    },
-
-    hasHeader(name) {
-      return nativeRes.hasHeader(name);
-    },
-
-    writeHead(statusCode, headers) {
-      this.statusCode = statusCode;
-      this.headersSent = true;
-      nativeRes.writeHead(statusCode, headers);
-      return this;
-    },
-
-    end(body) {
-      nativeRes.statusCode = this.statusCode;
-      this.headersSent = true;
-      nativeRes.end(body);
-    },
-
     json(payload) {
       const body = JSON.stringify(payload);
-
-      if (!nativeRes.hasHeader('Content-Type')) {
-        nativeRes.setHeader('Content-Type', 'application/json');
-      }
-
-      if (!nativeRes.hasHeader('Cache-Control')) {
-        nativeRes.setHeader('Cache-Control', 'no-store');
-      }
-
-      nativeRes.statusCode = this.statusCode;
-      this.headersSent = true;
+      nativeRes.writeHead(this.statusCode, {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store',
+      });
       nativeRes.end(body);
     },
   };
