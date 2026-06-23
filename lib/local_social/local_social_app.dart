@@ -495,12 +495,14 @@ void _showLocalShellNotice(BuildContext context, String title, String message) {
 }
 
 Future<void> _showLocalCreatePreviewSheet(BuildContext context) async {
+  final session = CidentiaSessionScope.of(context);
+
   final draft = await showModalBottomSheet<_LocalDraftPreview>(
     context: context,
     backgroundColor: Colors.transparent,
     isScrollControlled: true,
     useSafeArea: true,
-    builder: (context) => const _LocalCreatePreviewSheet(),
+    builder: (context) => _LocalCreatePreviewSheet(session: session),
   );
 
   if (!context.mounted || draft == null) {
@@ -803,7 +805,9 @@ class _DraftTrayCard extends StatelessWidget {
 }
 
 class _LocalCreatePreviewSheet extends StatefulWidget {
-  const _LocalCreatePreviewSheet();
+  const _LocalCreatePreviewSheet({required this.session});
+
+  final CidentiaSessionState session;
 
   @override
   State<_LocalCreatePreviewSheet> createState() =>
@@ -874,7 +878,7 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
     });
 
     final endpoint = Uri.parse('$_uploadRequestEndpoint/api/upload/request');
-    final session = CidentiaSessionScope.of(context);
+    final session = widget.session;
     final cid = session.hasVerifiedCid ? session.cid?.trim() : null;
     final hasCid = cid != null && cid.isNotEmpty;
 
