@@ -12,7 +12,8 @@
     "check:pg-boundary": "node ../scripts/m12k-pg-dependency-boundary-check.js"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1075.0",
+    "@aws-sdk/s3-request-presigner": "^3.1075.0",
     "pg": "^8.13.1"
-  },
-  "devDependencies": {}
+  }
 }
