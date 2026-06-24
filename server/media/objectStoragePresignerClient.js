@@ -1,4 +1,4 @@
-﻿'use strict';
+'use strict';
 
 const { loadCidentiaEnvContract } = require('../runtime/envContract');
 
@@ -142,7 +142,10 @@ function loadAwsS3PresignerDriver() {
 function safeObjectKeySegment(value) {
   return String(value || '')
     .trim()
-    .replace(/[^a-zA-Z0-9._-]+/g, '-')
+    .replace(/[\\/]+/g, '-')
+    .replace(/\.+/g, '-')
+    .replace(/[^a-zA-Z0-9_-]+/g, '-')
+    .replace(/-+/g, '-')
     .replace(/^-+/, '')
     .replace(/-+$/, '')
     .slice(0, 120);

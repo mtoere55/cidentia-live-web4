@@ -31,7 +31,7 @@ function main() {
   assertNoUnsafePath(traversal, 'traversal');
   assert(
     traversal ===
-      'uploads/Cid-26-00004/profile-cover/2026-06-24T19-45-00-000Z-evil-cover-image-.jpg',
+      'uploads/Cid-26-00004/profile-cover/2026-06-24T19-45-00-000Z-evil-cover-image-jpg',
     `traversal sanitized key mismatch: ${traversal}`,
   );
 
