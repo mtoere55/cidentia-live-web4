@@ -263,6 +263,30 @@ Future<String> _requestProfileCoverUploadBoundary({
   }
 }
 
+String _profileCoverUploadBoundaryMessage(String status) {
+  if (status.startsWith('UPLOAD_ROUTE_DISABLED')) {
+    return 'Cover preview saved locally. Upload route is still locked.';
+  }
+
+  if (status.startsWith('OBJECT_STORAGE_PRESIGNER_DISABLED')) {
+    return 'Cover preview saved locally. Object Storage presigner is still locked.';
+  }
+
+  if (status.startsWith('CID_REQUIRED_FOR_UPLOAD')) {
+    return 'Verified CID required for cover upload boundary.';
+  }
+
+  if (status.startsWith('UPLOAD_BOUNDARY_TIMEOUT')) {
+    return 'Cover preview saved locally. Upload boundary timed out.';
+  }
+
+  if (status.startsWith('UPLOAD_BOUNDARY_UNAVAILABLE')) {
+    return 'Cover preview saved locally. Upload boundary is unavailable.';
+  }
+
+  return status;
+}
+
 String _profileInitials(String value) {
   final parts = value
       .trim()
@@ -2086,7 +2110,7 @@ class _ProfileEditPreviewFormState extends State<_ProfileEditPreviewForm> {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(uploadStatus),
+        content: Text(_profileCoverUploadBoundaryMessage(uploadStatus)),
         duration: const Duration(seconds: 5),
       ),
     );
