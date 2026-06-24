@@ -962,6 +962,7 @@ class _ProfileActionRow extends StatelessWidget {
                 text: identity.hasCid
                     ? '${identity.displayName} is connected to ${identity.cidLabel}. Signed in as ${identity.emailLabel}. $boundaryStatus'
                     : '${identity.displayName} is signed in as ${identity.emailLabel}, but no CID is attached yet. $boundaryStatus',
+                identity: identity,
               );
             },
           ),
@@ -1645,6 +1646,7 @@ void _openProfileActionSheet(
   required String subtitle,
   required IconData icon,
   required String text,
+  _ProfileIdentityView? identity,
 }) {
   showModalBottomSheet<void>(
     context: context,
@@ -1658,7 +1660,7 @@ void _openProfileActionSheet(
         icon: icon,
         children: [
           if (title == 'Edit Profile') ...[
-            const _ProfileEditPreviewForm(),
+            _ProfileEditPreviewForm(identity: identity),
             const SizedBox(height: 10),
           ],
           if (title == 'Wallet') ...[
@@ -1884,7 +1886,9 @@ class _ProfileGatewayItem {
 }
 
 class _ProfileEditPreviewForm extends StatefulWidget {
-  const _ProfileEditPreviewForm();
+  const _ProfileEditPreviewForm({this.identity});
+
+  final _ProfileIdentityView? identity;
 
   @override
   State<_ProfileEditPreviewForm> createState() =>
@@ -1914,12 +1918,15 @@ class _ProfileEditPreviewFormState extends State<_ProfileEditPreviewForm> {
 
     final session = CidentiaSessionScope.maybeOf(context);
     final verified = session?.hasVerifiedCid ?? false;
-    final profileName = _profileDisplayName(
-      verified: verified,
-      rawDisplayName: session?.displayName,
-      email: session?.email,
-      cid: session?.cid,
-    );
+    final identity =
+        widget.identity ??
+        _profileIdentityView(
+          verified: verified,
+          rawDisplayName: session?.displayName,
+          email: session?.email,
+          cid: session?.cid,
+        );
+    final profileName = identity.displayName;
     final handle = _profileHandle(profileName).replaceFirst('@', '');
     final avatarInitials = _profileInitials(profileName);
 
