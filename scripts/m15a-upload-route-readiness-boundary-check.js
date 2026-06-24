@@ -14,7 +14,7 @@ function createMockRequest({ method = 'POST', headers = {}, body = {} } = {}) {
 }
 
 function createMockResponse() {
-  const response = {
+  return {
     statusCode: 200,
     payload: null,
     status(code) {
@@ -26,8 +26,6 @@ function createMockResponse() {
       return this;
     },
   };
-
-  return response;
 }
 
 async function callUploadRequest({ headers = {}, body = {} } = {}) {
@@ -60,13 +58,17 @@ async function main() {
       filename: 'm15a-cover.jpg',
       mimeType: 'image/jpeg',
       surface: 'profile-cover',
+      byteLength: 1024,
     },
   });
 
   assertEqual(noCid.statusCode, 401, 'no CID status');
   assertEqual(noCid.payload.code, 'CID_REQUIRED_FOR_UPLOAD', 'no CID code');
   assertFalse(noCid.payload.uploadCreated, 'no CID uploadCreated');
-  assertFalse(noCid.payload.signedUploadUrlCreated, 'no CID signedUploadUrlCreated');
+  assertFalse(
+    noCid.payload.signedUploadUrlCreated,
+    'no CID signedUploadUrlCreated',
+  );
   assertFalse(noCid.payload.mediaMetadataCreated, 'no CID mediaMetadataCreated');
 
   const withCid = await callUploadRequest({
@@ -78,6 +80,7 @@ async function main() {
       filename: 'm15a-cover.jpg',
       mimeType: 'image/jpeg',
       surface: 'profile-cover',
+      byteLength: 1024,
       metadataWriteRequested: false,
       profileWriteRequested: false,
     },
@@ -89,10 +92,16 @@ async function main() {
     'OBJECT_STORAGE_PRESIGNER_DISABLED',
     'CID locked code',
   );
-  assertFalse(withCid.payload.signedUploadUrlCreated, 'CID signedUploadUrlCreated');
+  assertFalse(
+    withCid.payload.signedUploadUrlCreated,
+    'CID signedUploadUrlCreated',
+  );
   assertFalse(withCid.payload.objectStorageWrite, 'CID objectStorageWrite');
   assertFalse(withCid.payload.uploadCreated, 'CID uploadCreated');
-  assertFalse(withCid.payload.mediaMetadataCreated, 'CID mediaMetadataCreated');
+  assertFalse(
+    withCid.payload.mediaMetadataCreated,
+    'CID mediaMetadataCreated',
+  );
   assertFalse(withCid.payload.secretsExposed, 'CID secretsExposed');
 
   console.log(JSON.stringify({

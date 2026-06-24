@@ -1,9 +1,10 @@
-﻿const {
+const {
   createSignedUploadUrl,
 } = require('../../server/media/objectStoragePresignerClient');
 const {
   cidFromUploadRequest,
   uploadCidRequiredBoundary,
+  validateUploadRequestBody,
 } = require('../../server/media/uploadRequestBoundary');
 
 async function readJsonBody(req) {
@@ -88,3 +89,4 @@ module.exports = async function handler(req, res) {
     });
   }
 };
+
