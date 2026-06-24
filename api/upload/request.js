@@ -1,9 +1,10 @@
-﻿const {
+const {
   createSignedUploadUrl,
 } = require('../../server/media/objectStoragePresignerClient');
 const {
   cidFromUploadRequest,
   uploadCidRequiredBoundary,
+  validateUploadRequestBody,
 } = require('../../server/media/uploadRequestBoundary');
 
 async function readJsonBody(req) {
@@ -55,12 +56,18 @@ module.exports = async function handler(req, res) {
     );
   }
 
+  const validation = validateUploadRequestBody(body, '/api/upload/request');
+
+  if (!validation.ok) {
+    return res.status(400).json(validation);
+  }
+
   try {
     const result = await createSignedUploadUrl({
       ownerCid,
-      filename: body.filename,
-      mimeType: body.mimeType,
-      surface: body.surface,
+      filename: validation.filename,
+      mimeType: validation.mimeType,
+      surface: validation.surface,
     });
 
     const status = result.ok ? 200 : 503;
