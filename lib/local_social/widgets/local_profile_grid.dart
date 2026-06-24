@@ -196,6 +196,73 @@ Future<String> _requestProfileReadBoundary(
   }
 }
 
+String _profileCoverMimeType(String filename) {
+  final lower = filename.toLowerCase();
+  if (lower.endsWith('.png')) {
+    return 'image/png';
+  }
+  if (lower.endsWith('.webp')) {
+    return 'image/webp';
+  }
+  if (lower.endsWith('.gif')) {
+    return 'image/gif';
+  }
+  return 'image/jpeg';
+}
+
+Future<String> _requestProfileCoverUploadBoundary({
+  required _ProfileIdentityView identity,
+  required String filename,
+  required int byteLength,
+}) async {
+  if (!identity.hasCid) {
+    return 'CID_REQUIRED_FOR_UPLOAD - Profile cover upload requires verified CID.';
+  }
+
+  final endpoint = Uri.parse('$_profileApiBaseUrl/api/upload/request');
+  final client = HttpClient();
+
+  try {
+    final request = await client.postUrl(endpoint);
+    request.headers.contentType = ContentType.json;
+    request.headers.set('x-cidentia-cid', identity.cidLabel);
+    request.write(
+      jsonEncode({
+        'ownerCid': identity.cidLabel,
+        'ownerEmail': identity.emailLabel,
+        'filename': filename,
+        'mimeType': _profileCoverMimeType(filename),
+        'byteLength': byteLength,
+        'surface': 'profile-cover',
+        'client': 'cidentia-live-profile-cover-preview',
+        'metadataWriteRequested': false,
+        'profileWriteRequested': false,
+      }),
+    );
+
+    final response = await request.close();
+    final body = await response.transform(utf8.decoder).join();
+    final decoded = jsonDecode(body);
+
+    if (decoded is Map<String, dynamic>) {
+      final code = decoded['code']?.toString();
+      final message = decoded['message']?.toString();
+
+      if (message == null || message.isEmpty) {
+        return code ?? 'UPLOAD_ROUTE_DISABLED';
+      }
+
+      return '${code ?? 'UPLOAD_ROUTE_DISABLED'} - $message';
+    }
+
+    return 'UPLOAD_ROUTE_DISABLED';
+  } catch (_) {
+    return 'UPLOAD_BOUNDARY_UNAVAILABLE';
+  } finally {
+    client.close(force: true);
+  }
+}
+
 String _profileInitials(String value) {
   final parts = value
       .trim()
@@ -1991,6 +2058,37 @@ class _ProfileEditPreviewFormState extends State<_ProfileEditPreviewForm> {
       coverBytes: bytes,
       headline: headlineController.text,
       intro: introController.text,
+    );
+
+    final identity = widget.identity;
+    final uploadStatus =
+        await _requestProfileCoverUploadBoundary(
+          identity:
+              identity ??
+              _profileIdentityView(
+                verified: false,
+                rawDisplayName: null,
+                email: null,
+                cid: null,
+              ),
+          filename: picked.name,
+          byteLength: bytes.length,
+        ).timeout(
+          const Duration(seconds: 12),
+          onTimeout: () =>
+              'UPLOAD_BOUNDARY_TIMEOUT - Upload boundary did not answer in time.',
+        );
+
+    if (!mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(uploadStatus),
+        duration: const Duration(seconds: 5),
+      ),
     );
   }
 
