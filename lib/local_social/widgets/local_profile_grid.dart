@@ -210,16 +210,41 @@ String _profileCoverMimeType(String filename) {
   return 'image/jpeg';
 }
 
-Future<String> _requestProfileCoverUploadBoundary({
+class _ProfileCoverUploadBoundaryResult {
+  const _ProfileCoverUploadBoundaryResult({
+    required this.status,
+    required this.signedUploadUrlCreated,
+    required this.uploadUri,
+  });
+
+  final String status;
+  final bool signedUploadUrlCreated;
+  final Uri? uploadUri;
+
+  bool get canPutSignedUpload => signedUploadUrlCreated && uploadUri != null;
+
+  static _ProfileCoverUploadBoundaryResult locked(String status) {
+    return _ProfileCoverUploadBoundaryResult(
+      status: status,
+      signedUploadUrlCreated: false,
+      uploadUri: null,
+    );
+  }
+}
+
+Future<_ProfileCoverUploadBoundaryResult> _requestProfileCoverUploadBoundary({
   required _ProfileIdentityView identity,
   required String filename,
   required int byteLength,
 }) async {
   if (!identity.hasCid) {
-    return 'CID_REQUIRED_FOR_UPLOAD - Profile cover upload requires verified CID.';
+    return _ProfileCoverUploadBoundaryResult.locked(
+      'CID_REQUIRED_FOR_UPLOAD - Profile cover upload requires verified CID.',
+    );
   }
 
   final endpoint = Uri.parse('$_profileApiBaseUrl/api/upload/request');
+  final mimeType = _profileCoverMimeType(filename);
   final client = HttpClient();
 
   try {
@@ -231,7 +256,7 @@ Future<String> _requestProfileCoverUploadBoundary({
         'ownerCid': identity.cidLabel,
         'ownerEmail': identity.emailLabel,
         'filename': filename,
-        'mimeType': _profileCoverMimeType(filename),
+        'mimeType': mimeType,
         'byteLength': byteLength,
         'surface': 'profile-cover',
         'client': 'cidentia-live-profile-cover-preview',
@@ -247,23 +272,85 @@ Future<String> _requestProfileCoverUploadBoundary({
     if (decoded is Map<String, dynamic>) {
       final code = decoded['code']?.toString();
       final message = decoded['message']?.toString();
+      final signedUploadUrlCreated = decoded['signedUploadUrlCreated'] == true;
+      final rawUploadUrl = decoded['uploadUrl'];
 
-      if (message == null || message.isEmpty) {
-        return code ?? 'UPLOAD_ROUTE_DISABLED';
+      Uri? uploadUri;
+      if (signedUploadUrlCreated &&
+          rawUploadUrl is String &&
+          rawUploadUrl.trim().isNotEmpty) {
+        final parsed = Uri.tryParse(rawUploadUrl.trim());
+        if (parsed != null && parsed.hasScheme && parsed.hasAuthority) {
+          uploadUri = parsed;
+        }
       }
 
-      return '${code ?? 'UPLOAD_ROUTE_DISABLED'} - $message';
+      final status = message == null || message.isEmpty
+          ? code ?? 'UPLOAD_ROUTE_DISABLED'
+          : '${code ?? 'UPLOAD_ROUTE_DISABLED'} - $message';
+
+      return _ProfileCoverUploadBoundaryResult(
+        status: status,
+        signedUploadUrlCreated: signedUploadUrlCreated,
+        uploadUri: uploadUri,
+      );
     }
 
-    return 'UPLOAD_ROUTE_DISABLED';
+    return _ProfileCoverUploadBoundaryResult.locked('UPLOAD_ROUTE_DISABLED');
   } catch (_) {
-    return 'UPLOAD_BOUNDARY_UNAVAILABLE';
+    return _ProfileCoverUploadBoundaryResult.locked(
+      'UPLOAD_BOUNDARY_UNAVAILABLE',
+    );
+  } finally {
+    client.close(force: true);
+  }
+}
+
+Future<String?> _putProfileCoverSignedUpload({
+  required Uri uploadUri,
+  required Uint8List bytes,
+  required String mimeType,
+}) async {
+  final client = HttpClient();
+
+  try {
+    final request = await client.putUrl(uploadUri);
+    request.headers.contentType = ContentType.parse(mimeType);
+    request.headers.contentLength = bytes.length;
+    request.add(bytes);
+
+    final response = await request.close();
+    await response.drain<void>();
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return null;
+    }
+
+    return 'SIGNED_UPLOAD_PUT_FAILED_${response.statusCode}';
+  } catch (_) {
+    return 'SIGNED_UPLOAD_PUT_UNAVAILABLE';
   } finally {
     client.close(force: true);
   }
 }
 
 String _profileCoverUploadBoundaryMessage(String status) {
+  if (status == 'SIGNED_UPLOAD_PUT_OK') {
+    return 'Cover uploaded. Metadata write is still locked.';
+  }
+
+  if (status.startsWith('SIGNED_UPLOAD_PUT_FAILED')) {
+    return 'Cover preview saved locally. Signed upload PUT failed safely.';
+  }
+
+  if (status.startsWith('SIGNED_UPLOAD_PUT_TIMEOUT')) {
+    return 'Cover preview saved locally. Signed upload PUT timed out.';
+  }
+
+  if (status.startsWith('SIGNED_UPLOAD_PUT_UNAVAILABLE')) {
+    return 'Cover preview saved locally. Signed upload PUT is unavailable.';
+  }
+
   if (status.startsWith('UPLOAD_ROUTE_DISABLED')) {
     return 'Cover preview saved locally. Upload route is still locked.';
   }
@@ -2085,7 +2172,7 @@ class _ProfileEditPreviewFormState extends State<_ProfileEditPreviewForm> {
     );
 
     final identity = widget.identity;
-    final uploadStatus =
+    final uploadBoundary =
         await _requestProfileCoverUploadBoundary(
           identity:
               identity ??
@@ -2099,9 +2186,26 @@ class _ProfileEditPreviewFormState extends State<_ProfileEditPreviewForm> {
           byteLength: bytes.length,
         ).timeout(
           const Duration(seconds: 12),
-          onTimeout: () =>
-              'UPLOAD_BOUNDARY_TIMEOUT - Upload boundary did not answer in time.',
+          onTimeout: () => _ProfileCoverUploadBoundaryResult.locked(
+            'UPLOAD_BOUNDARY_TIMEOUT - Upload boundary did not answer in time.',
+          ),
         );
+
+    var uploadStatus = uploadBoundary.status;
+
+    if (uploadBoundary.canPutSignedUpload) {
+      final putStatus =
+          await _putProfileCoverSignedUpload(
+            uploadUri: uploadBoundary.uploadUri!,
+            bytes: bytes,
+            mimeType: _profileCoverMimeType(picked.name),
+          ).timeout(
+            const Duration(seconds: 30),
+            onTimeout: () => 'SIGNED_UPLOAD_PUT_TIMEOUT',
+          );
+
+      uploadStatus = putStatus ?? 'SIGNED_UPLOAD_PUT_OK';
+    }
 
     if (!mounted) {
       return;
