@@ -77,14 +77,15 @@ function mapMediaAssetRow(row) {
   return Object.freeze({
     id: row.id,
     ownerCid: row.owner_cid,
-    surface: row.surface,
+    surface: row.media_surface,
     storageBucket: row.storage_bucket,
     storageObjectKey: row.storage_object_key,
     mimeType: row.mime_type,
-    byteLength: Number(row.byte_length || 0),
-    uploadStatus: row.upload_status || '',
+    byteLength: Number(row.byte_size || 0),
+    visibility: row.visibility || '',
+    moderationStatus: row.moderation_status || '',
+    uploadSource: row.upload_source || '',
     createdAt: row.created_at,
-    updatedAt: row.updated_at,
   });
 }
 
@@ -125,26 +126,28 @@ async function createMediaMetadata(draftInput = {}, options = {}) {
     `INSERT INTO cidentia_media_assets (
         id,
         owner_cid,
-        surface,
+        owner_display_name_snapshot,
+        media_surface,
+        mime_type,
+        byte_size,
         storage_bucket,
         storage_object_key,
-        mime_type,
-        byte_length,
-        upload_status,
-        created_at,
-        updated_at
+        visibility,
+        moderation_status,
+        upload_source,
+        created_at
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, now(), now())
-      RETURNING id, owner_cid, surface, storage_bucket, storage_object_key, mime_type, byte_length, upload_status, created_at, updated_at`,
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'private', 'pending', 'm17d_smoke', now())
+      RETURNING id, owner_cid, owner_display_name_snapshot, media_surface, mime_type, byte_size, storage_bucket, storage_object_key, visibility, moderation_status, upload_source, created_at`,
     [
       randomUUID(),
       draft.ownerCid,
+      null,
       draft.surface,
-      nullable(draft.storageBucket),
-      nullable(draft.storageObjectKey),
       nullable(draft.mimeType),
       draft.byteLength,
-      nullable(draft.uploadStatus),
+      nullable(draft.storageBucket),
+      nullable(draft.storageObjectKey),
     ],
   );
 
