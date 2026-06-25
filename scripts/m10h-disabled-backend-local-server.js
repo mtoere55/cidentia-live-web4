@@ -7,6 +7,10 @@ const routes = {
   'POST /api/upload/request': require('../api/upload/request'),
   'GET /api/profile/me': require('../api/profile/me'),
   'POST /api/profile/update': require('../api/profile/update'),
+  'POST /api/social/follow': require('../api/social/follow'),
+  'POST /api/social/unfollow': require('../api/social/unfollow'),
+  'GET /api/social/followers': require('../api/social/followers'),
+  'GET /api/social/following': require('../api/social/following'),
   'GET /api/cidendb/session/status': require('../api/cidendb/session/status'),
 };
 
