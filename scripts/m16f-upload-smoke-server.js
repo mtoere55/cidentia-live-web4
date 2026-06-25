@@ -42,6 +42,33 @@ function sendJson(res, statusCode, payload) {
   res.end(JSON.stringify(payload));
 }
 
+function readJsonBody(req) {
+  return new Promise((resolve) => {
+    let raw = '';
+
+    req.on('data', (chunk) => {
+      raw += chunk;
+    });
+
+    req.on('end', () => {
+      if (!raw) {
+        resolve({});
+        return;
+      }
+
+      try {
+        resolve(JSON.parse(raw));
+      } catch (_) {
+        resolve({});
+      }
+    });
+
+    req.on('error', () => {
+      resolve({});
+    });
+  });
+}
+
 const server = http.createServer(async (req, res) => {
   const route = req.url.split('?')[0];
 
@@ -66,6 +93,7 @@ const server = http.createServer(async (req, res) => {
 
   if (req.method === 'POST' && route === '/api/upload/request') {
     try {
+      req.body = await readJsonBody(req);
       await uploadRequestHandler(req, createResponse(res));
     } catch (error) {
       sendJson(res, 503, {
