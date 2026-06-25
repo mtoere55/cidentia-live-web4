@@ -196,6 +196,99 @@ Future<String> _requestProfileReadBoundary(
   }
 }
 
+const _profileSocialPreviewTargetCid = 'Cid-M18C-Preview-Target';
+
+Future<String> _requestSocialFollowBoundary(
+  _ProfileIdentityView identity,
+) async {
+  if (!identity.hasCid) {
+    return 'SOCIAL_CID_REQUIRED - Verified CID is required before follow actions can be used.';
+  }
+
+  final endpoint = Uri.parse('$_profileApiBaseUrl/api/social/follow');
+  final client = HttpClient();
+
+  try {
+    final request = await client.postUrl(endpoint);
+    request.headers.contentType = ContentType.json;
+    request.headers.set('x-cidentia-cid', identity.cidLabel);
+    request.write(
+      jsonEncode({
+        'ownerCid': identity.cidLabel,
+        'followedCid': _profileSocialPreviewTargetCid,
+        'client': 'cidentia-live-profile-follow-boundary',
+        'fakeFollowRequested': false,
+        'fakeCounterRequested': false,
+      }),
+    );
+
+    final response = await request.close();
+    final body = await response.transform(utf8.decoder).join();
+    final decoded = jsonDecode(body);
+
+    if (decoded is Map<String, dynamic>) {
+      final code = decoded['code']?.toString() ?? 'SOCIAL_ROUTE_DISABLED';
+      final message = decoded['message']?.toString();
+      final repositoryCode = decoded['repositoryCode']?.toString();
+      final suffix = repositoryCode == null ? '' : ' ($repositoryCode)';
+
+      if (message != null && message.isNotEmpty) {
+        return '$code$suffix - $message';
+      }
+
+      return '$code$suffix';
+    }
+
+    return 'SOCIAL_ROUTE_DISABLED';
+  } catch (_) {
+    return 'SOCIAL_BOUNDARY_UNAVAILABLE - Social backend boundary could not be reached.';
+  } finally {
+    client.close(force: true);
+  }
+}
+
+Future<String> _requestSocialListBoundary(
+  _ProfileIdentityView identity, {
+  required bool followers,
+}) async {
+  if (!identity.hasCid) {
+    return 'SOCIAL_CID_REQUIRED';
+  }
+
+  final endpoint = Uri.parse(
+    '$_profileApiBaseUrl/api/social/${followers ? 'followers' : 'following'}',
+  ).replace(queryParameters: {'ownerCid': identity.cidLabel});
+  final client = HttpClient();
+
+  try {
+    final request = await client.getUrl(endpoint);
+    request.headers.set('x-cidentia-cid', identity.cidLabel);
+
+    final response = await request.close();
+    final body = await response.transform(utf8.decoder).join();
+    final decoded = jsonDecode(body);
+
+    if (decoded is Map<String, dynamic>) {
+      final code = decoded['code']?.toString() ?? 'SOCIAL_ROUTE_DISABLED';
+      final countKey = followers ? 'followerCount' : 'followingCount';
+      final count = decoded[countKey];
+
+      if (count is num) {
+        return '$code - $countKey:$count';
+      }
+
+      final repositoryCode = decoded['repositoryCode']?.toString();
+      return repositoryCode == null ? code : '$code ($repositoryCode)';
+    }
+
+    return 'SOCIAL_ROUTE_DISABLED';
+  } catch (_) {
+    return 'SOCIAL_BOUNDARY_UNAVAILABLE';
+  } finally {
+    client.close(force: true);
+  }
+}
+
 String _profileCoverMimeType(String filename) {
   final lower = filename.toLowerCase();
   if (lower.endsWith('.png')) {
@@ -1053,23 +1146,90 @@ class _ProfileBadge extends StatelessWidget {
 class _ProfileStatsRow extends StatelessWidget {
   const _ProfileStatsRow();
 
+  Future<void> _openSocialListBoundary(
+    BuildContext context, {
+    required bool followers,
+  }) async {
+    final session = CidentiaSessionScope.maybeOf(context);
+    final verified = session?.hasVerifiedCid ?? false;
+    final identity = _profileIdentityView(
+      verified: verified,
+      rawDisplayName: session?.displayName,
+      email: session?.email,
+      cid: session?.cid,
+    );
+
+    if (!verified || !identity.hasCid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Verified CID required for social graph boundary.'),
+        ),
+      );
+      return;
+    }
+
+    final label = followers ? 'Followers' : 'Following';
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$label boundary checking...'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+
+    final status =
+        await _requestSocialListBoundary(
+          identity,
+          followers: followers,
+        ).timeout(
+          const Duration(seconds: 6),
+          onTimeout: () => 'SOCIAL_BOUNDARY_TIMEOUT',
+        );
+
+    if (!context.mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+    _openProfileActionSheet(
+      context,
+      title: label,
+      subtitle: 'Social graph boundary',
+      icon: followers
+          ? Icons.groups_2_outlined
+          : Icons.person_add_alt_1_outlined,
+      text:
+          '${identity.cidLabel} social graph boundary returned: $status. Counts stay unchanged until real profile stats are released.',
+      identity: identity,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return const Row(
+    return Row(
       children: [
-        Expanded(
+        const Expanded(
           child: _StatCard(value: '128', label: 'Posts'),
         ),
-        SizedBox(width: 6),
+        const SizedBox(width: 6),
         Expanded(
-          child: _StatCard(value: '24.8K', label: 'Followers'),
+          child: _StatCard(
+            value: '24.8K',
+            label: 'Followers',
+            onTap: () => _openSocialListBoundary(context, followers: true),
+          ),
         ),
-        SizedBox(width: 6),
+        const SizedBox(width: 6),
         Expanded(
-          child: _StatCard(value: '386', label: 'Following'),
+          child: _StatCard(
+            value: '386',
+            label: 'Following',
+            onTap: () => _openSocialListBoundary(context, followers: false),
+          ),
         ),
-        SizedBox(width: 6),
-        Expanded(
+        const SizedBox(width: 6),
+        const Expanded(
           child: _StatCard(value: '98.4', label: 'Trust'),
         ),
       ],
@@ -1078,14 +1238,15 @@ class _ProfileStatsRow extends StatelessWidget {
 }
 
 class _StatCard extends StatelessWidget {
-  const _StatCard({required this.value, required this.label});
+  const _StatCard({required this.value, required this.label, this.onTap});
 
   final String value;
   final String label;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final card = Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [_panel, Colors.white.withValues(alpha: 0.035)],
@@ -1116,11 +1277,55 @@ class _StatCard extends StatelessWidget {
         ],
       ),
     );
+
+    if (onTap == null) {
+      return card;
+    }
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: onTap,
+      child: card,
+    );
   }
 }
 
 class _ProfileActionRow extends StatelessWidget {
   const _ProfileActionRow();
+
+  Future<void> _openFollowBoundary(
+    BuildContext context,
+    _ProfileIdentityView identity,
+  ) async {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Follow boundary checking...'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+
+    final boundaryStatus = await _requestSocialFollowBoundary(identity).timeout(
+      const Duration(seconds: 6),
+      onTimeout: () => 'SOCIAL_BOUNDARY_TIMEOUT',
+    );
+
+    if (!context.mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+    _openProfileActionSheet(
+      context,
+      title: 'Follow',
+      subtitle: 'Social graph boundary',
+      icon: Icons.person_add_alt_1_outlined,
+      text: identity.hasCid
+          ? 'CID ${identity.cidLabel} requested follow boundary for $_profileSocialPreviewTargetCid. $boundaryStatus. No fake follow state or fake counter was applied.'
+          : 'Follow actions require a verified CidenDB session with CID. $boundaryStatus',
+      identity: identity,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1187,6 +1392,24 @@ class _ProfileActionRow extends StatelessWidget {
         SizedBox(width: compact ? 6 : 12),
         Expanded(
           child: _ProfileActionButton(
+            icon: Icons.person_add_alt_1_outlined,
+            label: 'Follow',
+            onTap: () async {
+              if (!verified) {
+                CidentiaProtectedActionNotice.show(
+                  context,
+                  action: CidentiaProtectedAction.editProfile,
+                );
+                return;
+              }
+
+              await _openFollowBoundary(context, identity);
+            },
+          ),
+        ),
+        SizedBox(width: compact ? 6 : 12),
+        Expanded(
+          child: _ProfileActionButton(
             icon: Icons.account_balance_wallet_outlined,
             label: 'Wallet',
             onTap: () {
@@ -1210,7 +1433,7 @@ class _ProfileActionRow extends StatelessWidget {
             },
           ),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: compact ? 6 : 12),
         Expanded(
           child: _ProfileActionButton(
             icon: Icons.verified_user_outlined,
