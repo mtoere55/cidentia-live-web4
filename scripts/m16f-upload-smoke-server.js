@@ -93,8 +93,16 @@ const server = http.createServer(async (req, res) => {
 
   if (req.method === 'POST' && route === '/api/upload/request') {
     try {
-      req.body = await readJsonBody(req);
-      await uploadRequestHandler(req, createResponse(res));
+      const parsedBody = await readJsonBody(req);
+
+      const forwardReq = {
+        method: req.method,
+        url: req.url,
+        headers: req.headers,
+        body: parsedBody,
+      };
+
+      await uploadRequestHandler(forwardReq, createResponse(res));
     } catch (error) {
       sendJson(res, 503, {
         ok: false,
