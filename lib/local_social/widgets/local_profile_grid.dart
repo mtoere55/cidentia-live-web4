@@ -336,7 +336,7 @@ Future<String?> _putProfileCoverSignedUpload({
 
 String _profileCoverUploadBoundaryMessage(String status) {
   if (status == 'SIGNED_UPLOAD_PUT_OK') {
-    return 'Cover uploaded. Metadata write is still locked.';
+    return 'Cover preview updated. Cover uploaded; profile save is still locked.';
   }
 
   if (status.startsWith('SIGNED_UPLOAD_PUT_FAILED')) {
@@ -735,6 +735,12 @@ class _ProfileHero extends StatelessWidget {
                   ),
                 ),
               ),
+              if (draft.coverBytes != null)
+                const Positioned(
+                  right: 18,
+                  top: 18,
+                  child: _ProfileLocalCoverPreviewBadge(),
+                ),
               Positioned(
                 right: -80,
                 top: -90,
@@ -885,6 +891,39 @@ class _ProfileHero extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _ProfileLocalCoverPreviewBadge extends StatelessWidget {
+  const _ProfileLocalCoverPreviewBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.62),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: Colors.white24),
+      ),
+      child: const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.image_outlined, size: 15, color: Colors.white),
+            SizedBox(width: 6),
+            Text(
+              'Local cover preview',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -2215,7 +2254,8 @@ class _ProfileEditPreviewFormState extends State<_ProfileEditPreviewForm> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(_profileCoverUploadBoundaryMessage(uploadStatus)),
-        duration: const Duration(seconds: 5),
+        duration: const Duration(seconds: 8),
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }
