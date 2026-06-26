@@ -81,7 +81,7 @@ _ProfileIdentityView _profileIdentityView({
   final identityLine = verified
       ? hasCid
             ? 'Verified CID: $cleanCid'
-            : 'CidenDB verified · CID onboarding required'
+            : 'CidenDB verified ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· CID onboarding required'
       : 'CID-ready creator identity';
 
   final description = verified
@@ -197,6 +197,56 @@ Future<String> _requestProfileReadBoundary(
 }
 
 const _profileSocialPreviewTargetCid = 'Cid-M18C-Preview-Target';
+
+Future<String> _requestProfileStatsBoundary(
+  _ProfileIdentityView identity,
+) async {
+  if (!identity.hasCid) {
+    return 'PROFILE_CID_REQUIRED';
+  }
+
+  final endpoint = Uri.parse('$_profileApiBaseUrl/api/profile/stats');
+  final client = HttpClient();
+
+  try {
+    final request = await client.getUrl(endpoint);
+    request.headers.set('x-cidentia-cid', identity.cidLabel);
+
+    final response = await request.close();
+    final body = await response.transform(utf8.decoder).join();
+    final decoded = jsonDecode(body);
+
+    if (decoded is Map<String, dynamic>) {
+      final code = decoded['code']?.toString();
+      final repositoryCode = decoded['repositoryCode']?.toString();
+      final postsCount = decoded['postsCount'];
+      final reelsCount = decoded['reelsCount'];
+      final mediaCount = decoded['mediaCount'];
+      final followersCount = decoded['followersCount'];
+      final followingCount = decoded['followingCount'];
+      final trustScore = decoded['trustScore'];
+
+      return [
+        if (code != null && code.isNotEmpty) code,
+        if (repositoryCode != null && repositoryCode.isNotEmpty)
+          'repository=$repositoryCode',
+        'posts=$postsCount',
+        'reels=$reelsCount',
+        'media=$mediaCount',
+        'followers=$followersCount',
+        'following=$followingCount',
+        'trust=$trustScore',
+        'fakeCounters=false',
+      ].join(' - ');
+    }
+
+    return 'PROFILE_STATS_BOUNDARY_UNKNOWN_RESPONSE';
+  } catch (_) {
+    return 'PROFILE_STATS_BOUNDARY_UNAVAILABLE';
+  } finally {
+    client.close(force: true);
+  }
+}
 
 Future<String> _requestSocialFollowBoundary(
   _ProfileIdentityView identity,
@@ -1146,6 +1196,51 @@ class _ProfileBadge extends StatelessWidget {
 class _ProfileStatsRow extends StatelessWidget {
   const _ProfileStatsRow();
 
+  Future<void> _openProfileStatsBoundary(BuildContext context) async {
+    final session = CidentiaSessionScope.maybeOf(context);
+    final verified = session?.hasVerifiedCid ?? false;
+    final identity = _profileIdentityView(
+      verified: verified,
+      rawDisplayName: session?.displayName,
+      email: session?.email,
+      cid: session?.cid,
+    );
+
+    if (!verified || !identity.hasCid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Verified CID required for profile stats boundary.'),
+        ),
+      );
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Profile stats boundary checking...')),
+    );
+
+    final status = await _requestProfileStatsBoundary(identity).timeout(
+      const Duration(seconds: 6),
+      onTimeout: () => 'PROFILE_STATS_BOUNDARY_TIMEOUT',
+    );
+
+    if (!context.mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    _openProfileActionSheet(
+      context,
+      title: 'Profile Stats Boundary',
+      subtitle: '/api/profile/stats',
+      icon: Icons.query_stats_rounded,
+      text:
+          'CID ${identity.cidLabel} requested /api/profile/stats. $status. '
+          'Placeholder stats stay unchanged until real stats release. '
+          'No fake counter was applied.',
+    );
+  }
+
   Future<void> _openSocialListBoundary(
     BuildContext context, {
     required bool followers,
@@ -1209,8 +1304,12 @@ class _ProfileStatsRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Expanded(
-          child: _StatCard(value: '128', label: 'Posts'),
+        Expanded(
+          child: _StatCard(
+            value: '128',
+            label: 'Posts',
+            onTap: () => _openProfileStatsBoundary(context),
+          ),
         ),
         const SizedBox(width: 6),
         Expanded(
@@ -1229,8 +1328,12 @@ class _ProfileStatsRow extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 6),
-        const Expanded(
-          child: _StatCard(value: '98.4', label: 'Trust'),
+        Expanded(
+          child: _StatCard(
+            value: '98.4',
+            label: 'Trust',
+            onTap: () => _openProfileStatsBoundary(context),
+          ),
         ),
       ],
     );
