@@ -1,4 +1,4 @@
-﻿const http = require('http');
+const http = require('http');
 
 const routes = {
   'GET /api/health': require('../api/health'),
@@ -6,6 +6,7 @@ const routes = {
   'GET /api/storage/status': require('../api/storage/status'),
   'POST /api/upload/request': require('../api/upload/request'),
   'GET /api/profile/me': require('../api/profile/me'),
+  'GET /api/profile/stats': require('../api/profile/stats'),
   'POST /api/profile/update': require('../api/profile/update'),
   'POST /api/social/follow': require('../api/social/follow'),
   'POST /api/social/unfollow': require('../api/social/unfollow'),
