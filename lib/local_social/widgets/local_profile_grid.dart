@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:http/http.dart' as http;
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -81,7 +83,7 @@ _ProfileIdentityView _profileIdentityView({
   final identityLine = verified
       ? hasCid
             ? 'Verified CID: $cleanCid'
-            : 'CidenDB verified ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· CID onboarding required'
+            : 'CidenDB verified ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· CID onboarding required'
       : 'CID-ready creator identity';
 
   final description = verified
@@ -556,6 +558,65 @@ String _profileHandle(String value) {
 
 enum _ProfileTabKind { posts, reels, live, proof }
 
+String _profileTabRoute(_ProfileTabKind tab) {
+  return switch (tab) {
+    _ProfileTabKind.posts => '/api/profile/posts',
+    _ProfileTabKind.reels => '/api/profile/reels',
+    _ProfileTabKind.live => '/api/profile/media',
+    _ProfileTabKind.proof => '/api/profile/media',
+  };
+}
+
+String _profileTabLabel(_ProfileTabKind tab) {
+  return switch (tab) {
+    _ProfileTabKind.posts => 'Posts',
+    _ProfileTabKind.reels => 'Reels',
+    _ProfileTabKind.live => 'Live',
+    _ProfileTabKind.proof => 'Proof',
+  };
+}
+
+Future<String> _requestProfileTabBoundary(
+  _ProfileIdentityView identity,
+  _ProfileTabKind tab,
+) async {
+  final route = _profileTabRoute(tab);
+
+  try {
+    final response = await http.get(
+      Uri.parse('$_profileApiBaseUrl$route'),
+      headers: {'x-cidentia-cid': identity.cidLabel},
+    );
+
+    final decoded = jsonDecode(response.body);
+
+    if (decoded is Map<String, dynamic>) {
+      final code = decoded['code']?.toString();
+      final repositoryCode = decoded['repositoryCode']?.toString();
+      final itemsRead = decoded['itemsRead'];
+      final items = decoded['items'];
+      final itemsLength = items is List ? items.length : 0;
+      final publicMediaUrlsCreated = decoded['publicMediaUrlsCreated'];
+      final fakeItemsCreated = decoded['fakeItemsCreated'];
+
+      return [
+        if (code != null && code.isNotEmpty) code,
+        if (repositoryCode != null && repositoryCode.isNotEmpty)
+          'repository=$repositoryCode',
+        'route=$route',
+        'itemsRead=$itemsRead',
+        'items=$itemsLength',
+        'publicMediaUrlsCreated=$publicMediaUrlsCreated',
+        'fakeItemsCreated=$fakeItemsCreated',
+      ].join(' - ');
+    }
+
+    return 'PROFILE_TAB_BOUNDARY_UNKNOWN_RESPONSE';
+  } catch (_) {
+    return 'PROFILE_TAB_BOUNDARY_UNAVAILABLE';
+  }
+}
+
 class _ProfileHeroDraft {
   const _ProfileHeroDraft({this.coverBytes, this.headline, this.intro});
 
@@ -611,8 +672,55 @@ class _OriginalInspiredProfilePageState
     });
   }
 
-  void _setTab(_ProfileTabKind tab) {
+  Future<void> _setTab(_ProfileTabKind tab) async {
     setState(() => activeTab = tab);
+
+    if (tab != _ProfileTabKind.posts && tab != _ProfileTabKind.reels) {
+      return;
+    }
+
+    final session = CidentiaSessionScope.maybeOf(context);
+    final verified = session?.hasVerifiedCid ?? false;
+    final identity = _profileIdentityView(
+      verified: verified,
+      rawDisplayName: session?.displayName,
+      email: session?.email,
+      cid: session?.cid,
+    );
+
+    if (!identity.hasCid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Profile tab boundary requires a verified CidenDB session with CID.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    final status = await _requestProfileTabBoundary(identity, tab).timeout(
+      const Duration(seconds: 5),
+      onTimeout: () => 'PROFILE_TAB_BOUNDARY_TIMEOUT',
+    );
+
+    if (!context.mounted) {
+      return;
+    }
+
+    _openProfileActionSheet(
+      context,
+      title: '${_profileTabLabel(tab)} Boundary',
+      subtitle: _profileTabRoute(tab),
+      icon: tab == _ProfileTabKind.posts
+          ? Icons.grid_on_rounded
+          : Icons.play_circle_outline,
+      text:
+          'CID ${identity.cidLabel} requested ${_profileTabRoute(tab)}. '
+          '$status. Placeholder grid stays unchanged. '
+          'No fake item or public media URL was applied.',
+      identity: identity,
+    );
   }
 
   @override
