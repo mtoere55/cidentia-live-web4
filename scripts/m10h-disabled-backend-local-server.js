@@ -4,6 +4,7 @@ const routes = {
   'GET /api/health': require('../api/health'),
   'GET /api/status': require('../api/status'),
   'GET /api/storage/status': require('../api/storage/status'),
+  'POST /api/media/url': require('../api/media/url'),
   'POST /api/upload/request': require('../api/upload/request'),
   'GET /api/profile/me': require('../api/profile/me'),
   'GET /api/profile/stats': require('../api/profile/stats'),
