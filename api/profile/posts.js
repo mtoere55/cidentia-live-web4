@@ -1,21 +1,12 @@
-﻿const { mediaBridgeGuard, sendJson } = require('../../server/media/mediaBridgeGuard');
+﻿const { handleProfileTabRead } = require('./profileTabBoundary');
+const {
+  readProfilePostsByCid,
+} = require('../../server/profile/profileTabsRepository');
 
 module.exports = async function handler(req, res) {
-  if (req.method !== 'GET') {
-    return res.status(405).json({
-      ok: false,
-      code: 'METHOD_NOT_ALLOWED',
-      message: 'Use GET.',
-      liveUpload: false,
-      storageWrite: false,
-      postCreated: false,
-    });
-  }
-
-  return sendJson(res, {
-    ...mediaBridgeGuard(),
+  return handleProfileTabRead(req, res, {
     route: '/api/profile/posts',
-    items: [],
-    nextCursor: null,
+    tab: 'posts',
+    read: readProfilePostsByCid,
   });
 };
