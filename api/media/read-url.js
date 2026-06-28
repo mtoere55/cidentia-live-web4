@@ -2,6 +2,9 @@
   createSignedMediaReadUrl,
 } = require('../../server/media/objectStorageReadPresignerClient');
 const {
+  readMediaAssetForSignedReadUrl,
+} = require('../../server/media/mediaMetadataRepository');
+const {
   loadCidentiaEnvContract,
 } = require('../../server/runtime/envContract');
 
@@ -19,19 +22,46 @@ module.exports = async function handler(req, res) {
   }
 
   const body = req.body || {};
+  const cid = body.ownerCid || req.headers['x-cidentia-cid'] || '';
   const contract = loadCidentiaEnvContract(process.env);
 
-  const result = await createSignedMediaReadUrl({
-    mediaAsset: {
-      id: body.id || 'read-signed-url-check',
-      ownerCid: body.ownerCid || req.headers['x-cidentia-cid'] || '',
-      surface: body.surface || 'profile_cover',
-      storageBucket: body.storageBucket || '',
-      storageObjectKey: body.storageObjectKey || '',
-      mimeType: body.mimeType || '',
-      visibility: body.visibility || 'private',
-      moderationStatus: body.moderationStatus || 'pending',
+  const assetRead = await readMediaAssetForSignedReadUrl(
+    {
+      id: body.id || '',
+      ownerCid: cid,
     },
+    {
+      env: process.env,
+    },
+  );
+
+  if (!assetRead.ok) {
+    return res.status(assetRead.code === 'MEDIA_ASSET_NOT_FOUND' ? 404 : 503).json({
+      ok: false,
+      code: assetRead.code,
+      route: '/api/media/read-url',
+      ownerCid: cid || null,
+      mediaAssetId: body.id || null,
+      signedMediaReadUrl: null,
+      signedMediaReadUrlCreated: false,
+      publicMediaUrl: null,
+      publicMediaUrlsCreated: false,
+      dbConnected: assetRead.dbConnected === true,
+      queryEnabled: assetRead.queryEnabled === true,
+      envContractRead: true,
+      mediaUrlGenerationLocked: contract.locked.mediaUrlGenerationLocked,
+      objectStorageReadLocked: contract.locked.objectStorageReadLocked,
+      signedMediaReadUrlLocked: contract.locked.signedMediaReadUrlLocked,
+      storageBucketExposed: false,
+      storageObjectKeyExposed: false,
+      uploadPresignerTouched: false,
+      flutterOpened: false,
+      secretsExposed: false,
+    });
+  }
+
+  const result = await createSignedMediaReadUrl({
+    mediaAsset: assetRead.mediaAsset,
     env: process.env,
   });
 
@@ -44,6 +74,8 @@ module.exports = async function handler(req, res) {
     mediaUrlGenerationLocked: contract.locked.mediaUrlGenerationLocked,
     objectStorageReadLocked: contract.locked.objectStorageReadLocked,
     signedMediaReadUrlLocked: contract.locked.signedMediaReadUrlLocked,
+    storageBucketExposed: false,
+    storageObjectKeyExposed: false,
     uploadPresignerTouched: false,
     flutterOpened: false,
   });

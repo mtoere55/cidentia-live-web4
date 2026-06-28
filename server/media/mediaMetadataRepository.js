@@ -164,10 +164,94 @@ async function createMediaMetadata(draftInput = {}, options = {}) {
   });
 }
 
+async function readMediaAssetForSignedReadUrl(input = {}, options = {}) {
+  const db = options.db || createDatabaseClient(options.env);
+  const id = normalizeText(input.id);
+  const ownerCid = normalizeText(input.ownerCid || input.owner_cid);
+
+  if (!id) {
+    return Object.freeze({
+      ok: false,
+      code: 'MEDIA_ASSET_ID_REQUIRED',
+      mediaAsset: null,
+      dbConnected: false,
+      queryEnabled: db.queryEnabled === true,
+      secretsExposed: false,
+    });
+  }
+
+  if (!ownerCid) {
+    return Object.freeze({
+      ok: false,
+      code: 'OWNER_CID_REQUIRED',
+      mediaAsset: null,
+      dbConnected: false,
+      queryEnabled: db.queryEnabled === true,
+      secretsExposed: false,
+    });
+  }
+
+  if (!db.queryEnabled) {
+    return Object.freeze({
+      ok: false,
+      code: db.code || 'DATABASE_QUERY_DISABLED',
+      mediaAsset: null,
+      dbConnected: db.dbConnected === true,
+      queryEnabled: db.queryEnabled === true,
+      secretsExposed: false,
+    });
+  }
+
+  const result = await db.query(
+    `SELECT
+        id,
+        owner_cid,
+        owner_display_name_snapshot,
+        media_surface,
+        mime_type,
+        byte_size,
+        storage_bucket,
+        storage_object_key,
+        visibility,
+        moderation_status,
+        upload_source,
+        created_at
+       FROM cidentia_media_assets
+      WHERE id = $1
+        AND owner_cid = $2
+      LIMIT 1`,
+    [id, ownerCid],
+  );
+
+  const mediaAsset = mapMediaAssetRow(result.rows[0]);
+
+  if (!mediaAsset) {
+    return Object.freeze({
+      ok: false,
+      code: 'MEDIA_ASSET_NOT_FOUND',
+      mediaAsset: null,
+      dbConnected: result.dbConnected === true,
+      queryEnabled: db.queryEnabled === true,
+      secretsExposed: false,
+    });
+  }
+
+  return Object.freeze({
+    ok: true,
+    code: 'MEDIA_ASSET_READ_FOR_SIGNED_URL_OK',
+    mediaAsset,
+    dbConnected: result.dbConnected === true,
+    queryEnabled: db.queryEnabled === true,
+    secretsExposed: false,
+  });
+}
+
 module.exports = {
   ALLOWED_MEDIA_METADATA_SURFACES,
   sanitizeMediaMetadataDraft,
   validateMediaMetadataDraft,
   mapMediaAssetRow,
   createMediaMetadata,
+  readMediaAssetForSignedReadUrl,
 };
+
