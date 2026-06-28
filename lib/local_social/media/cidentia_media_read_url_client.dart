@@ -41,10 +41,14 @@ class CidentiaSignedMediaReadUrlResult {
 
   @override
   String toString() {
+    final signedMediaReadUrlPresentHidden =
+        signedMediaReadUrl != null && signedMediaReadUrl!.isNotEmpty;
+
     return 'CidentiaSignedMediaReadUrlResult('
         'ok: $ok, '
         'code: $code, '
-        'signedMediaReadUrlPresentHidden: ${signedMediaReadUrl != null && signedMediaReadUrl!.isNotEmpty}, '
+        'signedMediaReadUrlPresentHidden: '
+        '$signedMediaReadUrlPresentHidden, '
         'signedMediaReadUrlCreated: $signedMediaReadUrlCreated, '
         'expiresInSeconds: $expiresInSeconds, '
         'httpStatus: $httpStatus, '
