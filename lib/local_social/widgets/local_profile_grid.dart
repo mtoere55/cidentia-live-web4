@@ -3205,6 +3205,26 @@ class _ProfileGridPreviewFrame extends StatelessWidget {
       _ProfileTabKind.proof => 'PROOF',
     };
 
+    final boundaryLabel = switch (tab) {
+      _ProfileTabKind.posts => 'MEDIA LOCKED',
+      _ProfileTabKind.reels => 'PLAYBACK READY',
+      _ProfileTabKind.live => 'STUDIO LOCKED',
+      _ProfileTabKind.proof => 'PROOF LOCKED',
+    };
+
+    final boundaryText = switch (tab) {
+      _ProfileTabKind.posts =>
+        'Post media playback remains locked for this profile surface.',
+      _ProfileTabKind.reels =>
+        'Controlled playback preview requires user tap. '
+            'Autoplay is off. Signed URL remains hidden.',
+      _ProfileTabKind.live =>
+        'Live Studio boundary. Camera, microphone, stream key and '
+            'RTMP broadcast remain locked.',
+      _ProfileTabKind.proof =>
+        'Proof preview stays locked. Document and audit routes open later.',
+    };
+
     return AspectRatio(
       aspectRatio: 4 / 3,
       child: Container(
@@ -3230,17 +3250,39 @@ class _ProfileGridPreviewFrame extends StatelessWidget {
             ),
             Positioned(left: 16, top: 16, child: _ProfilePill(label: label)),
             Positioned(
+              right: 16,
+              top: 16,
+              child: _ProfilePill(label: boundaryLabel),
+            ),
+            Positioned(
               left: 16,
               right: 16,
               bottom: 16,
-              child: Text(
-                post.caption,
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w800,
-                  height: 1.35,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    post.caption,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      height: 1.35,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    boundaryText,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: _textSoft,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      height: 1.25,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
