@@ -73,8 +73,6 @@ function mapMediaRow(row) {
     mediaSurface: row.media_surface,
     mimeType: row.mime_type,
     byteSize: Number(row.byte_size || 0),
-    storageBucket: row.storage_bucket,
-    storageObjectKey: row.storage_object_key,
     visibility: row.visibility,
     moderationStatus: row.moderation_status,
     uploadSource: row.upload_source,
@@ -209,3 +207,4 @@ module.exports = {
   readProfileReelsByCid,
   readProfileMediaByCid,
 };
+
