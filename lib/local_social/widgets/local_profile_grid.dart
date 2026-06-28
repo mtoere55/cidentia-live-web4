@@ -576,7 +576,46 @@ String _profileTabLabel(_ProfileTabKind tab) {
   };
 }
 
-Future<String> _requestProfileTabBoundary(
+class _ProfileTabBoundaryResult {
+  const _ProfileTabBoundaryResult({required this.status, this.mediaAssetId});
+
+  final String status;
+  final String? mediaAssetId;
+
+  bool get hasMediaAssetId =>
+      mediaAssetId != null && mediaAssetId!.trim().isNotEmpty;
+}
+
+String? _profileMediaAssetIdFromItems(Object? items) {
+  if (items is! List) {
+    return null;
+  }
+
+  const idKeys = [
+    'id',
+    'mediaAssetId',
+    'media_asset_id',
+    'assetId',
+    'asset_id',
+  ];
+
+  for (final item in items) {
+    if (item is! Map) {
+      continue;
+    }
+
+    for (final key in idKeys) {
+      final value = item[key]?.toString().trim();
+      if (value != null && value.isNotEmpty) {
+        return value;
+      }
+    }
+  }
+
+  return null;
+}
+
+Future<_ProfileTabBoundaryResult> _requestProfileTabBoundary(
   _ProfileIdentityView identity,
   _ProfileTabKind tab,
 ) async {
@@ -598,22 +637,31 @@ Future<String> _requestProfileTabBoundary(
       final itemsLength = items is List ? items.length : 0;
       final publicMediaUrlsCreated = decoded['publicMediaUrlsCreated'];
       final fakeItemsCreated = decoded['fakeItemsCreated'];
+      final mediaAssetId = _profileMediaAssetIdFromItems(items);
 
-      return [
-        if (code != null && code.isNotEmpty) code,
-        if (repositoryCode != null && repositoryCode.isNotEmpty)
-          'repository=$repositoryCode',
-        'route=$route',
-        'itemsRead=$itemsRead',
-        'items=$itemsLength',
-        'publicMediaUrlsCreated=$publicMediaUrlsCreated',
-        'fakeItemsCreated=$fakeItemsCreated',
-      ].join(' - ');
+      return _ProfileTabBoundaryResult(
+        status: [
+          if (code != null && code.isNotEmpty) code,
+          if (repositoryCode != null && repositoryCode.isNotEmpty)
+            'repository=$repositoryCode',
+          'route=$route',
+          'itemsRead=$itemsRead',
+          'items=$itemsLength',
+          'mediaAssetIdPresent=${mediaAssetId != null}',
+          'publicMediaUrlsCreated=$publicMediaUrlsCreated',
+          'fakeItemsCreated=$fakeItemsCreated',
+        ].join(' - '),
+        mediaAssetId: mediaAssetId,
+      );
     }
 
-    return 'PROFILE_TAB_BOUNDARY_UNKNOWN_RESPONSE';
+    return const _ProfileTabBoundaryResult(
+      status: 'PROFILE_TAB_BOUNDARY_UNKNOWN_RESPONSE',
+    );
   } catch (_) {
-    return 'PROFILE_TAB_BOUNDARY_UNAVAILABLE';
+    return const _ProfileTabBoundaryResult(
+      status: 'PROFILE_TAB_BOUNDARY_UNAVAILABLE',
+    );
   }
 }
 
@@ -699,10 +747,14 @@ class _OriginalInspiredProfilePageState
       return;
     }
 
-    final status = await _requestProfileTabBoundary(identity, tab).timeout(
+    final boundary = await _requestProfileTabBoundary(identity, tab).timeout(
       const Duration(seconds: 5),
-      onTimeout: () => 'PROFILE_TAB_BOUNDARY_TIMEOUT',
+      onTimeout: () => const _ProfileTabBoundaryResult(
+        status: 'PROFILE_TAB_BOUNDARY_TIMEOUT',
+      ),
     );
+
+    final status = boundary.status;
 
     if (!context.mounted) {
       return;
