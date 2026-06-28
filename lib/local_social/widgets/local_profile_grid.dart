@@ -690,6 +690,7 @@ class _OriginalInspiredProfilePageState
   _ProfileTabKind activeTab = _ProfileTabKind.posts;
   String? _lastProfileReadCid;
   String? _profileReadBoundaryCode;
+  String? _lastProfileTabBoundaryStatus;
 
   @override
   void didChangeDependencies() {
@@ -799,6 +800,10 @@ class _OriginalInspiredProfilePageState
 
     status = '$status - $readUrlStatus';
 
+    if (mounted) {
+      setState(() => _lastProfileTabBoundaryStatus = status);
+    }
+
     if (!context.mounted) {
       return;
     }
@@ -844,7 +849,10 @@ class _OriginalInspiredProfilePageState
         const SizedBox(height: 10),
         _ProfileTabs(activeTab: activeTab, onChanged: _setTab),
         const SizedBox(height: 10),
-        _ProfileGrid(activeTab: activeTab),
+        _ProfileGrid(
+          activeTab: activeTab,
+          safeBoundaryStatus: _lastProfileTabBoundaryStatus,
+        ),
       ],
     );
   }
@@ -2252,9 +2260,10 @@ class _ProfileTab extends StatelessWidget {
 }
 
 class _ProfileGrid extends StatelessWidget {
-  const _ProfileGrid({required this.activeTab});
+  const _ProfileGrid({required this.activeTab, this.safeBoundaryStatus});
 
   final _ProfileTabKind activeTab;
+  final String? safeBoundaryStatus;
 
   @override
   Widget build(BuildContext context) {
@@ -2276,7 +2285,12 @@ class _ProfileGrid extends StatelessWidget {
       ),
       itemBuilder: (context, index) {
         final post = localPosts[index % localPosts.length];
-        return _GridTile(post: post, index: index, activeTab: activeTab);
+        return _GridTile(
+          post: post,
+          index: index,
+          activeTab: activeTab,
+          safeBoundaryStatus: safeBoundaryStatus,
+        );
       },
     );
   }
@@ -2287,11 +2301,13 @@ class _GridTile extends StatelessWidget {
     required this.post,
     required this.index,
     required this.activeTab,
+    this.safeBoundaryStatus,
   });
 
   final LocalPost post;
   final int index;
   final _ProfileTabKind activeTab;
+  final String? safeBoundaryStatus;
 
   @override
   Widget build(BuildContext context) {
@@ -2301,7 +2317,8 @@ class _GridTile extends StatelessWidget {
 
     return InkWell(
       borderRadius: BorderRadius.circular(22),
-      onTap: () => _openGridPreview(context, post, index, activeTab),
+      onTap: () =>
+          _openGridPreview(context, post, index, activeTab, safeBoundaryStatus),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(22),
@@ -2484,6 +2501,7 @@ void _openGridPreview(
   LocalPost post,
   int index,
   _ProfileTabKind tab,
+  String? safeBoundaryStatus,
 ) {
   final title = switch (tab) {
     _ProfileTabKind.posts => 'Profile post',
@@ -2518,6 +2536,16 @@ void _openGridPreview(
             text:
                 'This item opens the creator content surface. Publishing, playback and proof actions remain protected by the creator release flow.',
           ),
+          if (safeBoundaryStatus != null &&
+              safeBoundaryStatus.trim().isNotEmpty) ...[
+            const SizedBox(height: 10),
+            _ProfileInfoCard(
+              icon: Icons.lock_outline_rounded,
+              title: 'Safe media boundary status',
+              text:
+                  '$safeBoundaryStatus. Signed URL remains hidden. Playback is not opened from this sheet.',
+            ),
+          ],
         ],
       );
     },
