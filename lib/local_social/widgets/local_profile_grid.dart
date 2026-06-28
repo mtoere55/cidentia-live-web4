@@ -11,6 +11,7 @@ import '../auth/cidentia_auth_gate_contract.dart';
 import '../auth/cidentia_protected_action_notice.dart';
 import '../auth/cidentia_session_scope.dart';
 import '../local_social_data.dart';
+import '../media/cidentia_media_read_url_client.dart';
 
 const _panel = Color(0xFF101114);
 const _panelSoft = Color(0xFF181A20);
@@ -754,7 +755,49 @@ class _OriginalInspiredProfilePageState
       ),
     );
 
-    final status = boundary.status;
+    var status = boundary.status;
+    var readUrlStatus = 'readUrlBoundary=not_requested';
+
+    if (tab != _ProfileTabKind.posts && boundary.hasMediaAssetId) {
+      final readUrl =
+          await const CidentiaMediaReadUrlClient(baseUrl: _profileApiBaseUrl)
+              .requestSignedReadUrl(
+                mediaAssetId: boundary.mediaAssetId!,
+                cid: identity.cidLabel,
+              )
+              .timeout(
+                const Duration(seconds: 6),
+                onTimeout: () => const CidentiaSignedMediaReadUrlResult(
+                  ok: false,
+                  code: 'SIGNED_MEDIA_READ_URL_CLIENT_TIMEOUT',
+                  signedMediaReadUrl: null,
+                  signedMediaReadUrlCreated: false,
+                  expiresInSeconds: null,
+                  httpStatus: null,
+                  storageBucketExposed: false,
+                  storageObjectKeyExposed: false,
+                  secretsExposed: false,
+                ),
+              );
+
+      final signedMediaReadUrlPresentHidden =
+          readUrl.signedMediaReadUrl != null &&
+          readUrl.signedMediaReadUrl!.isNotEmpty;
+
+      readUrlStatus = [
+        'readUrlCode=${readUrl.code}',
+        'signedMediaReadUrlCreated=${readUrl.signedMediaReadUrlCreated}',
+        'signedMediaReadUrlPresentHidden=$signedMediaReadUrlPresentHidden',
+        'storageBucketExposed=${readUrl.storageBucketExposed}',
+        'storageObjectKeyExposed=${readUrl.storageObjectKeyExposed}',
+        'canPlay=${readUrl.canPlay}',
+        'playbackOpened=false',
+      ].join(' - ');
+    } else if (tab != _ProfileTabKind.posts) {
+      readUrlStatus = 'readUrlBoundary=no_media_asset_id';
+    }
+
+    status = '$status - $readUrlStatus';
 
     if (!context.mounted) {
       return;
@@ -770,6 +813,7 @@ class _OriginalInspiredProfilePageState
       text:
           'CID ${identity.cidLabel} requested ${_profileTabRoute(tab)}. '
           '$status. Placeholder grid stays unchanged. '
+          'Signed URL hidden. Playback was not opened. '
           'No fake item or public media URL was applied.',
       identity: identity,
     );
