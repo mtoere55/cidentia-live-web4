@@ -1,5 +1,5 @@
 ﻿const {
-  evaluateSignedMediaReadUrlPolicy,
+  createSignedMediaReadUrl,
 } = require('../../server/media/objectStorageReadPresignerClient');
 const {
   loadCidentiaEnvContract,
@@ -21,38 +21,29 @@ module.exports = async function handler(req, res) {
   const body = req.body || {};
   const contract = loadCidentiaEnvContract(process.env);
 
-  const result = evaluateSignedMediaReadUrlPolicy(
-    {
-      mediaAsset: {
-        id: body.id || 'read-signed-url-disabled-check',
-        ownerCid: body.ownerCid || req.headers['x-cidentia-cid'] || '',
-        surface: body.surface || 'profile_cover',
-        storageBucket: body.storageBucket || 'private-bucket',
-        storageObjectKey: body.storageObjectKey || 'disabled/read-object.png',
-        visibility: body.visibility || 'public',
-        moderationStatus: body.moderationStatus || 'approved',
-      },
+  const result = await createSignedMediaReadUrl({
+    mediaAsset: {
+      id: body.id || 'read-signed-url-check',
+      ownerCid: body.ownerCid || req.headers['x-cidentia-cid'] || '',
+      surface: body.surface || 'profile_cover',
+      storageBucket: body.storageBucket || '',
+      storageObjectKey: body.storageObjectKey || '',
+      mimeType: body.mimeType || '',
+      visibility: body.visibility || 'private',
+      moderationStatus: body.moderationStatus || 'pending',
     },
-    {
-      policy: {
-        mediaUrlGenerationEnabled:
-          contract.gates.CIDENTIA_MEDIA_URL_GENERATION_ENABLED,
-        objectStorageReadEnabled:
-          contract.gates.CIDENTIA_OBJECT_STORAGE_READ_ENABLED,
-        signedMediaReadUrlEnabled:
-          contract.gates.CIDENTIA_SIGNED_MEDIA_READ_URL_ENABLED,
-      },
-    },
-  );
+    env: process.env,
+  });
 
-  return res.status(503).json({
+  const statusCode = result.ok ? 200 : 503;
+
+  return res.status(statusCode).json({
     ...result,
     route: '/api/media/read-url',
     envContractRead: true,
     mediaUrlGenerationLocked: contract.locked.mediaUrlGenerationLocked,
     objectStorageReadLocked: contract.locked.objectStorageReadLocked,
     signedMediaReadUrlLocked: contract.locked.signedMediaReadUrlLocked,
-    objectStorageCalled: false,
     uploadPresignerTouched: false,
     flutterOpened: false,
   });

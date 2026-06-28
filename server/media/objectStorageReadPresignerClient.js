@@ -322,15 +322,49 @@ async function createSignedMediaReadUrl({
     );
   }
 
-  return signedMediaReadUrlDisabledResult(
-    'SIGNED_MEDIA_READ_URL_SIGNER_NOT_IMPLEMENTED',
-    normalizedMediaAsset,
-    {
-      mediaUrlGenerationEnabled: true,
-      objectStorageReadEnabled: true,
-      signedMediaReadUrlEnabled: true,
+  const client = new driver.S3Client({
+    region: config.region,
+    endpoint: config.endpoint,
+    forcePathStyle: config.forcePathStyle,
+    credentials: {
+      accessKeyId: config.accessKeyId,
+      secretAccessKey: config.secretAccessKey,
     },
-  );
+  });
+
+  const command = new driver.GetObjectCommand({
+    Bucket: normalizedMediaAsset.storageBucket || config.bucket,
+    Key: normalizedMediaAsset.storageObjectKey,
+    ResponseContentType: normalizedMediaAsset.mimeType || undefined,
+  });
+
+  const signedMediaReadUrl = await driver.getSignedUrl(client, command, {
+    expiresIn: config.expiresInSeconds,
+  });
+
+  return Object.freeze({
+    ok: true,
+    code: 'SIGNED_MEDIA_READ_URL_CREATED',
+    mediaAsset: Object.freeze({
+      id: normalizedMediaAsset.id,
+      ownerCid: normalizedMediaAsset.ownerCid,
+      surface: normalizedMediaAsset.surface,
+      mimeType: normalizedMediaAsset.mimeType,
+      visibility: normalizedMediaAsset.visibility,
+      moderationStatus: normalizedMediaAsset.moderationStatus,
+    }),
+    signedMediaReadUrl,
+    signedMediaReadUrlCreated: true,
+    expiresInSeconds: config.expiresInSeconds,
+    mediaUrlGenerationEnabled: true,
+    objectStorageReadEnabled: true,
+    signedMediaReadUrlEnabled: true,
+    objectStorageRead: false,
+    objectStorageCalled: false,
+    uploadPresignerTouched: false,
+    flutterOpened: false,
+    secretsExposed: false,
+  });
 }
 
 module.exports = {
@@ -344,3 +378,5 @@ module.exports = {
   normalizeReadMediaAsset,
   signedMediaReadUrlDisabledResult,
 };
+
+
