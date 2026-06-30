@@ -775,6 +775,7 @@ Future<_ProfileTabBoundaryResult> _requestProfileTabBoundary(
       final publicMediaUrlsCreated = decoded['publicMediaUrlsCreated'];
       final fakeItemsCreated = decoded['fakeItemsCreated'];
       final mediaAssetId = _profileMediaAssetIdFromItems(items);
+      final safeItems = _safeProfileMediaItemsFromItems(items, tab);
 
       return _ProfileTabBoundaryResult(
         status: [
@@ -785,6 +786,8 @@ Future<_ProfileTabBoundaryResult> _requestProfileTabBoundary(
           'itemsRead=$itemsRead',
           'items=$itemsLength',
           'mediaAssetIdPresent=${mediaAssetId != null}',
+          'safeItems=${safeItems.length}',
+          'safeFirstCanRequestReadUrl=${safeItems.isNotEmpty ? safeItems.first.canRequestReadUrl : false}',
           'publicMediaUrlsCreated=$publicMediaUrlsCreated',
           'fakeItemsCreated=$fakeItemsCreated',
         ].join(' - '),
