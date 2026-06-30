@@ -577,6 +577,34 @@ String _profileTabLabel(_ProfileTabKind tab) {
   };
 }
 
+class _SafeProfileMediaItem {
+  const _SafeProfileMediaItem({
+    required this.mediaAssetId,
+    required this.kind,
+    required this.caption,
+    required this.visibility,
+    required this.createdAt,
+    this.mimeType,
+    this.byteSize,
+    this.moderationStatus,
+    this.uploadSource,
+  });
+
+  final String mediaAssetId;
+  final String kind;
+  final String caption;
+  final String visibility;
+  final String createdAt;
+  final String? mimeType;
+  final int? byteSize;
+  final String? moderationStatus;
+  final String? uploadSource;
+
+  bool get canRequestReadUrl => mediaAssetId.trim().isNotEmpty;
+
+  bool get hasCaption => caption.trim().isNotEmpty;
+}
+
 class _ProfileTabBoundaryResult {
   const _ProfileTabBoundaryResult({required this.status, this.mediaAssetId});
 
@@ -593,11 +621,13 @@ String? _profileMediaAssetIdFromItems(Object? items) {
   }
 
   const idKeys = [
-    'id',
+    'mediaId',
+    'media_id',
     'mediaAssetId',
     'media_asset_id',
     'assetId',
     'asset_id',
+    'id',
   ];
 
   for (final item in items) {
@@ -614,6 +644,112 @@ String? _profileMediaAssetIdFromItems(Object? items) {
   }
 
   return null;
+}
+
+String _safeProfileTabKind(_ProfileTabKind tab) {
+  return switch (tab) {
+    _ProfileTabKind.posts => 'post',
+    _ProfileTabKind.reels => 'reel',
+    _ProfileTabKind.live => 'live',
+    _ProfileTabKind.proof => 'proof',
+  };
+}
+
+String _safeProfileStringFromMap(
+  Map item,
+  List<String> keys, {
+  String fallback = '',
+}) {
+  for (final key in keys) {
+    final value = item[key]?.toString().trim();
+    if (value != null && value.isNotEmpty) {
+      return value;
+    }
+  }
+
+  return fallback;
+}
+
+int? _safeProfileIntFromMap(Map item, List<String> keys) {
+  for (final key in keys) {
+    final value = item[key];
+    if (value is int) {
+      return value;
+    }
+
+    final parsed = int.tryParse(value?.toString() ?? '');
+    if (parsed != null) {
+      return parsed;
+    }
+  }
+
+  return null;
+}
+
+List<_SafeProfileMediaItem> _safeProfileMediaItemsFromItems(
+  Object? items,
+  _ProfileTabKind tab,
+) {
+  if (items is! List) {
+    return const <_SafeProfileMediaItem>[];
+  }
+
+  final safeItems = <_SafeProfileMediaItem>[];
+
+  for (final item in items) {
+    if (item is! Map) {
+      continue;
+    }
+
+    final mediaAssetId = _safeProfileStringFromMap(item, const [
+      'mediaId',
+      'media_id',
+      'mediaAssetId',
+      'media_asset_id',
+      'assetId',
+      'asset_id',
+      'id',
+    ]);
+
+    if (mediaAssetId.isEmpty) {
+      continue;
+    }
+
+    safeItems.add(
+      _SafeProfileMediaItem(
+        mediaAssetId: mediaAssetId,
+        kind: _safeProfileStringFromMap(item, const [
+          'mediaSurface',
+          'media_surface',
+          'kind',
+          'type',
+        ], fallback: _safeProfileTabKind(tab)),
+        caption: _safeProfileStringFromMap(item, const ['caption', 'title']),
+        visibility: _safeProfileStringFromMap(item, const [
+          'visibility',
+        ], fallback: 'unknown'),
+        createdAt: _safeProfileStringFromMap(item, const [
+          'createdAt',
+          'created_at',
+        ]),
+        mimeType: _safeProfileStringFromMap(item, const [
+          'mimeType',
+          'mime_type',
+        ]),
+        byteSize: _safeProfileIntFromMap(item, const ['byteSize', 'byte_size']),
+        moderationStatus: _safeProfileStringFromMap(item, const [
+          'moderationStatus',
+          'moderation_status',
+        ]),
+        uploadSource: _safeProfileStringFromMap(item, const [
+          'uploadSource',
+          'upload_source',
+        ]),
+      ),
+    );
+  }
+
+  return List<_SafeProfileMediaItem>.unmodifiable(safeItems);
 }
 
 Future<_ProfileTabBoundaryResult> _requestProfileTabBoundary(
