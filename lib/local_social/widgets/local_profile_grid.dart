@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:video_player/video_player.dart';
 
 import '../auth/cidentia_auth_gate_contract.dart';
 import '../auth/cidentia_protected_action_notice.dart';
@@ -2769,7 +2770,7 @@ void _openGridPreview(
   );
 }
 
-class _ControlledPlaybackReadinessCard extends StatelessWidget {
+class _ControlledPlaybackReadinessCard extends StatefulWidget {
   const _ControlledPlaybackReadinessCard({
     required this.mediaItem,
     required this.identity,
@@ -2781,22 +2782,288 @@ class _ControlledPlaybackReadinessCard extends StatelessWidget {
   final _ProfileTabKind tab;
 
   @override
+  State<_ControlledPlaybackReadinessCard> createState() =>
+      _ControlledPlaybackReadinessCardState();
+}
+
+class _ControlledPlaybackReadinessCardState
+    extends State<_ControlledPlaybackReadinessCard> {
+  var _requesting = false;
+  var _status = 'Playback is ready. Tap to request a hidden signed URL.';
+
+  Future<void> _openControlledPlayback() async {
+    if (_requesting) {
+      return;
+    }
+
+    setState(() {
+      _requesting = true;
+      _status = 'Requesting hidden signed media read URL...';
+    });
+
+    final result =
+        await const CidentiaMediaReadUrlClient(
+          baseUrl: _profileApiBaseUrl,
+        ).requestSignedReadUrl(
+          mediaAssetId: widget.mediaItem.mediaAssetId,
+          cid: widget.identity.cidLabel,
+        );
+
+    if (!mounted) {
+      return;
+    }
+
+    if (!result.canPlay || result.signedMediaReadUrl == null) {
+      setState(() {
+        _requesting = false;
+        _status =
+            'Playback blocked by safe media boundary: ${result.code}. '
+            'Signed URL was not opened.';
+      });
+      return;
+    }
+
+    setState(() {
+      _requesting = false;
+      _status =
+          'Hidden signed URL received. Opening controlled preview. '
+          'URL, bucket and object key remain hidden.';
+    });
+
+    final signedUri = Uri.parse(result.signedMediaReadUrl!);
+
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      useSafeArea: true,
+      isScrollControlled: true,
+      builder: (context) {
+        return _ControlledPlaybackPreviewPlayer(
+          signedMediaReadUri: signedUri,
+          title: 'Controlled media preview',
+          subtitle:
+              'Autoplay is off. Signed URL, bucket and object key are hidden.',
+        );
+      },
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _status =
+          'Controlled preview closed. Playback opened=true. '
+          'Signed URL was not displayed.';
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final surfaceLabel = switch (tab) {
+    final surfaceLabel = switch (widget.tab) {
       _ProfileTabKind.posts => 'Post media',
       _ProfileTabKind.reels => 'Reel media',
       _ProfileTabKind.live => 'Live media',
       _ProfileTabKind.proof => 'Proof media',
     };
 
-    return _ProfileInfoCard(
-      icon: Icons.play_circle_outline_rounded,
-      title: 'Controlled playback ready',
-      text:
-          '$surfaceLabel has a safe media asset. CID ${identity.cidLabel} '
-          'can request a hidden signed read URL. Autoplay is off. Signed URL, '
-          'bucket and object key stay hidden. Playback is not opened yet. '
-          'Media asset id is present but not displayed.',
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: _panelSoft,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.white12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.play_circle_outline_rounded),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Controlled playback ready',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w900),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '$surfaceLabel has a safe media asset. CID '
+            '${widget.identity.cidLabel} can request a hidden signed read URL. '
+            'Autoplay is off. Signed URL, bucket and object key stay hidden.',
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: _textSoft, height: 1.35),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            _status,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: _textSoft,
+              fontWeight: FontWeight.w700,
+              height: 1.35,
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: _requesting ? null : _openControlledPlayback,
+              icon: _requesting
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.play_arrow_rounded),
+              label: Text(
+                _requesting ? 'Requesting...' : 'Open controlled preview',
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ControlledPlaybackPreviewPlayer extends StatefulWidget {
+  const _ControlledPlaybackPreviewPlayer({
+    required this.signedMediaReadUri,
+    required this.title,
+    required this.subtitle,
+  });
+
+  final Uri signedMediaReadUri;
+  final String title;
+  final String subtitle;
+
+  @override
+  State<_ControlledPlaybackPreviewPlayer> createState() =>
+      _ControlledPlaybackPreviewPlayerState();
+}
+
+class _ControlledPlaybackPreviewPlayerState
+    extends State<_ControlledPlaybackPreviewPlayer> {
+  late final VideoPlayerController _controller;
+  late final Future<void> _initialize;
+  var _playbackStarted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.networkUrl(widget.signedMediaReadUri);
+    _initialize = _controller.initialize();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _togglePlay() async {
+    if (_controller.value.isPlaying) {
+      await _controller.pause();
+      if (mounted) {
+        setState(() {});
+      }
+      return;
+    }
+
+    await _controller.play();
+    if (mounted) {
+      setState(() {
+        _playbackStarted = true;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _ProfilePreviewSheet(
+      title: widget.title,
+      subtitle: widget.subtitle,
+      icon: Icons.play_circle_fill_rounded,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.black,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: Colors.white12),
+          ),
+          child: FutureBuilder<void>(
+            future: _initialize,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState != ConnectionState.done) {
+                return const SizedBox(
+                  height: 260,
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+
+              if (!_controller.value.isInitialized) {
+                return const _ProfileInfoCard(
+                  icon: Icons.lock_outline_rounded,
+                  title: 'Playback unavailable',
+                  text:
+                      'The signed media URL could not be initialized. '
+                      'No URL, bucket or object key is displayed.',
+                );
+              }
+
+              final aspectRatio = _controller.value.aspectRatio <= 0
+                  ? 16 / 9
+                  : _controller.value.aspectRatio;
+
+              return Column(
+                children: [
+                  AspectRatio(
+                    aspectRatio: aspectRatio,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: VideoPlayer(_controller),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: _togglePlay,
+                      icon: Icon(
+                        _controller.value.isPlaying
+                            ? Icons.pause_rounded
+                            : Icons.play_arrow_rounded,
+                      ),
+                      label: Text(
+                        _controller.value.isPlaying
+                            ? 'Pause preview'
+                            : _playbackStarted
+                            ? 'Resume preview'
+                            : 'Play preview',
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 10),
+        const _ProfileInfoCard(
+          icon: Icons.security_rounded,
+          title: 'Safe playback boundary',
+          text:
+              'The signed read URL is used only inside the video controller. '
+              'It is not printed, logged or displayed. Autoplay stays off.',
+        ),
+      ],
     );
   }
 }
