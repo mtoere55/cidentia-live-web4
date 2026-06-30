@@ -1002,6 +1002,7 @@ class _OriginalInspiredProfilePageState
         _ProfileGrid(
           activeTab: activeTab,
           safeBoundaryStatus: _lastProfileTabBoundaryStatus,
+          safeMediaItems: _lastSafeProfileMediaItems,
         ),
       ],
     );
@@ -2410,10 +2411,15 @@ class _ProfileTab extends StatelessWidget {
 }
 
 class _ProfileGrid extends StatelessWidget {
-  const _ProfileGrid({required this.activeTab, this.safeBoundaryStatus});
+  const _ProfileGrid({
+    required this.activeTab,
+    this.safeBoundaryStatus,
+    this.safeMediaItems = const <_SafeProfileMediaItem>[],
+  });
 
   final _ProfileTabKind activeTab;
   final String? safeBoundaryStatus;
+  final List<_SafeProfileMediaItem> safeMediaItems;
 
   @override
   Widget build(BuildContext context) {
@@ -2435,11 +2441,16 @@ class _ProfileGrid extends StatelessWidget {
       ),
       itemBuilder: (context, index) {
         final post = localPosts[index % localPosts.length];
+        final safeMediaItem = index < safeMediaItems.length
+            ? safeMediaItems[index]
+            : null;
+
         return _GridTile(
           post: post,
           index: index,
           activeTab: activeTab,
           safeBoundaryStatus: safeBoundaryStatus,
+          safeMediaItem: safeMediaItem,
         );
       },
     );
@@ -2452,18 +2463,21 @@ class _GridTile extends StatelessWidget {
     required this.index,
     required this.activeTab,
     this.safeBoundaryStatus,
+    this.safeMediaItem,
   });
 
   final LocalPost post;
   final int index;
   final _ProfileTabKind activeTab;
   final String? safeBoundaryStatus;
+  final _SafeProfileMediaItem? safeMediaItem;
 
   @override
   Widget build(BuildContext context) {
     final isReel = activeTab == _ProfileTabKind.reels || index % 4 == 1;
     final isTagged = activeTab == _ProfileTabKind.proof;
     final isLive = activeTab == _ProfileTabKind.live;
+    final hasRealMediaItem = safeMediaItem?.canRequestReadUrl == true;
 
     return InkWell(
       borderRadius: BorderRadius.circular(22),
@@ -2516,6 +2530,30 @@ class _GridTile extends StatelessWidget {
                 ),
               ),
             ),
+            if (hasRealMediaItem)
+              Positioned(
+                right: 10,
+                top: 42,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 7,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: Colors.white24),
+                  ),
+                  child: const Text(
+                    'REAL MEDIA',
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ),
+              ),
             Positioned(
               left: 10,
               right: 10,
