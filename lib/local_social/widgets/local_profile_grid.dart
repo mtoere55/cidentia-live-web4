@@ -84,7 +84,7 @@ _ProfileIdentityView _profileIdentityView({
   final identityLine = verified
       ? hasCid
             ? 'Verified CID: $cleanCid'
-            : 'CidenDB verified ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· CID onboarding required'
+            : 'CidenDB verified session - CID onboarding required'
       : 'CID-ready creator identity';
 
   final description = verified
@@ -2481,8 +2481,25 @@ class _GridTile extends StatelessWidget {
 
     return InkWell(
       borderRadius: BorderRadius.circular(22),
-      onTap: () =>
-          _openGridPreview(context, post, index, activeTab, safeBoundaryStatus),
+      onTap: () {
+        final session = CidentiaSessionScope.maybeOf(context);
+        final verified = session?.hasVerifiedCid ?? false;
+        final identity = _profileIdentityView(
+          verified: verified,
+          email: session?.email,
+          cid: session?.cid,
+        );
+
+        _openGridPreview(
+          context,
+          post,
+          index,
+          activeTab,
+          safeBoundaryStatus,
+          safeMediaItem,
+          identity,
+        );
+      },
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(22),
@@ -2690,6 +2707,8 @@ void _openGridPreview(
   int index,
   _ProfileTabKind tab,
   String? safeBoundaryStatus,
+  _SafeProfileMediaItem? safeMediaItem,
+  _ProfileIdentityView identity,
 ) {
   final title = switch (tab) {
     _ProfileTabKind.posts => 'Profile post',
@@ -2717,6 +2736,16 @@ void _openGridPreview(
         icon: icon,
         children: [
           _ProfileGridPreviewFrame(post: post, icon: icon, tab: tab),
+          if (safeMediaItem?.canRequestReadUrl == true &&
+              identity.hasCid &&
+              tab != _ProfileTabKind.live) ...[
+            const SizedBox(height: 12),
+            _ControlledPlaybackReadinessCard(
+              mediaItem: safeMediaItem!,
+              identity: identity,
+              tab: tab,
+            ),
+          ],
           const SizedBox(height: 12),
           _ProfileInfoCard(
             icon: Icons.info_outline_rounded,
@@ -2738,6 +2767,38 @@ void _openGridPreview(
       );
     },
   );
+}
+
+class _ControlledPlaybackReadinessCard extends StatelessWidget {
+  const _ControlledPlaybackReadinessCard({
+    required this.mediaItem,
+    required this.identity,
+    required this.tab,
+  });
+
+  final _SafeProfileMediaItem mediaItem;
+  final _ProfileIdentityView identity;
+  final _ProfileTabKind tab;
+
+  @override
+  Widget build(BuildContext context) {
+    final surfaceLabel = switch (tab) {
+      _ProfileTabKind.posts => 'Post media',
+      _ProfileTabKind.reels => 'Reel media',
+      _ProfileTabKind.live => 'Live media',
+      _ProfileTabKind.proof => 'Proof media',
+    };
+
+    return _ProfileInfoCard(
+      icon: Icons.play_circle_outline_rounded,
+      title: 'Controlled playback ready',
+      text:
+          '$surfaceLabel has a safe media asset. CID ${identity.cidLabel} '
+          'can request a hidden signed read URL. Autoplay is off. Signed URL, '
+          'bucket and object key stay hidden. Playback is not opened yet. '
+          'Media asset id is present but not displayed.',
+    );
+  }
 }
 
 class _ProfileGatewayStatusCard extends StatelessWidget {
