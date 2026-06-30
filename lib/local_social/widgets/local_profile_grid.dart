@@ -606,10 +606,15 @@ class _SafeProfileMediaItem {
 }
 
 class _ProfileTabBoundaryResult {
-  const _ProfileTabBoundaryResult({required this.status, this.mediaAssetId});
+  const _ProfileTabBoundaryResult({
+    required this.status,
+    this.mediaAssetId,
+    this.safeItems = const <_SafeProfileMediaItem>[],
+  });
 
   final String status;
   final String? mediaAssetId;
+  final List<_SafeProfileMediaItem> safeItems;
 
   bool get hasMediaAssetId =>
       mediaAssetId != null && mediaAssetId!.trim().isNotEmpty;
@@ -792,6 +797,7 @@ Future<_ProfileTabBoundaryResult> _requestProfileTabBoundary(
           'fakeItemsCreated=$fakeItemsCreated',
         ].join(' - '),
         mediaAssetId: mediaAssetId,
+        safeItems: safeItems,
       );
     }
 
@@ -830,6 +836,8 @@ class _OriginalInspiredProfilePageState
   String? _lastProfileReadCid;
   String? _profileReadBoundaryCode;
   String? _lastProfileTabBoundaryStatus;
+  List<_SafeProfileMediaItem> _lastSafeProfileMediaItems =
+      const <_SafeProfileMediaItem>[];
 
   @override
   void didChangeDependencies() {
@@ -940,7 +948,10 @@ class _OriginalInspiredProfilePageState
     status = '$status - $readUrlStatus';
 
     if (mounted) {
-      setState(() => _lastProfileTabBoundaryStatus = status);
+      setState(() {
+        _lastProfileTabBoundaryStatus = status;
+        _lastSafeProfileMediaItems = boundary.safeItems;
+      });
     }
 
     if (!context.mounted) {
