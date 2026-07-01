@@ -812,19 +812,6 @@ class _DraftTrayCard extends StatelessWidget {
                       fontWeight: FontWeight.w800,
                     ),
                   ),
-                  if (draft.storageObjectKey != null) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      'Object: ${draft.storageObjectKey}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: _textSoft,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
                 ],
               ],
             ),
@@ -867,7 +854,10 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
 
   String? mediaPickerStatus;
   String? lastUploadStatusCode;
+  String? lastStorageBucket;
   String? lastStorageObjectKey;
+  String? lastUploadMimeType;
+  int? lastUploadByteLength;
   bool lastSignedUploadReady = false;
   final TextEditingController captionController = TextEditingController();
 
@@ -1126,6 +1116,86 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
     }
   }
 
+  Future<void> _publishUploadedDraft() async {
+    final session = widget.session;
+    final cid = session.hasVerifiedCid ? session.cid?.trim() : null;
+
+    if (cid == null || cid.isEmpty) {
+      setState(() {
+        mediaPickerStatus = 'CID_REQUIRED_FOR_POST_PUBLISH - Sign in first.';
+      });
+      return;
+    }
+
+    if (!lastSignedUploadReady ||
+        lastStorageObjectKey == null ||
+        lastStorageObjectKey!.trim().isEmpty ||
+        lastUploadMimeType == null ||
+        lastUploadByteLength == null ||
+        lastUploadByteLength! <= 0) {
+      setState(() {
+        mediaPickerStatus =
+            'UPLOAD_REQUIRED_BEFORE_PUBLISH - Upload media first.';
+      });
+      return;
+    }
+
+    setState(() {
+      mediaPickerStatus = 'Publishing verified media to Cidentia social...';
+    });
+
+    final endpoint = Uri.parse('$_uploadRequestEndpoint/api/posts/publish');
+    final client = HttpClient();
+
+    try {
+      final request = await client.postUrl(endpoint);
+      request.headers.contentType = ContentType.json;
+      request.headers.add('x-cidentia-cid', cid);
+
+      request.write(
+        jsonEncode({
+          'mode': selectedMode,
+          'mediaType': selectedMediaType,
+          'caption': captionController.text,
+          if (lastStorageBucket != null) 'storageBucket': lastStorageBucket,
+          'storageObjectKey': lastStorageObjectKey,
+          'mimeType': lastUploadMimeType,
+          'byteLength': lastUploadByteLength,
+          'client': 'cidentia-live-m25b-real-social-publish',
+        }),
+      );
+
+      final response = await request.close();
+      final body = await response.transform(utf8.decoder).join();
+      final decoded = jsonDecode(body);
+      final data = decoded is Map<String, dynamic> ? decoded : null;
+      final ok = response.statusCode == 200 && data?['ok'] == true;
+      final code = data?['code']?.toString() ?? 'POST_PUBLISH_UNKNOWN';
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        lastUploadStatusCode = code;
+        mediaPickerStatus = ok
+            ? '$code - Published to Cidentia social. Profile/Reels can now read the media record.'
+            : '$code - Publish failed safely.';
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        lastUploadStatusCode = 'POST_PUBLISH_UNAVAILABLE';
+        mediaPickerStatus = 'POST_PUBLISH_UNAVAILABLE - $error';
+      });
+    } finally {
+      client.close(force: true);
+    }
+  }
+
   Future<void> _reviewCreatorPolicyThenShowPublishNotice() async {
     final accepted = await showModalBottomSheet<bool>(
       context: context,
@@ -1233,8 +1303,7 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
                         const SizedBox(width: 10),
                         Expanded(
                           child: FilledButton.icon(
-                            onPressed:
-                                _reviewCreatorPolicyThenShowPublishNotice,
+                            onPressed: _publishUploadedDraft,
                             icon: const Icon(Icons.publish_outlined),
                             label: const Text('Publish'),
                           ),
