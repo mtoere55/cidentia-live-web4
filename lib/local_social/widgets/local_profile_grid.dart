@@ -6,7 +6,8 @@ import 'package:http/http.dart' as http;
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:video_player/video_player.dart';
+import 'package:media_kit/media_kit.dart';
+import 'package:media_kit_video/media_kit_video.dart';
 
 import '../auth/cidentia_auth_gate_contract.dart';
 import '../auth/cidentia_protected_action_notice.dart';
@@ -561,12 +562,10 @@ String _profileHandle(String value) {
 enum _ProfileTabKind { posts, reels, live, proof }
 
 String _profileTabRoute(_ProfileTabKind tab) {
-  return switch (tab) {
-    _ProfileTabKind.posts => '/api/profile/posts',
-    _ProfileTabKind.reels => '/api/profile/reels',
-    _ProfileTabKind.live => '/api/profile/media',
-    _ProfileTabKind.proof => '/api/profile/media',
-  };
+  // M24H-1: Read-only media grid bridge.
+  // Until dedicated posts/reels routes are opened, all creator tabs read
+  // the guarded profile media route. No publish, no bucket/object key exposure.
+  return '/api/profile/media';
 }
 
 String _profileTabLabel(_ProfileTabKind tab) {
@@ -872,10 +871,6 @@ class _OriginalInspiredProfilePageState
 
   Future<void> _setTab(_ProfileTabKind tab) async {
     setState(() => activeTab = tab);
-
-    if (tab != _ProfileTabKind.posts && tab != _ProfileTabKind.reels) {
-      return;
-    }
 
     final session = CidentiaSessionScope.maybeOf(context);
     final verified = session?.hasVerifiedCid ?? false;
@@ -2950,36 +2945,53 @@ class _ControlledPlaybackPreviewPlayer extends StatefulWidget {
 
 class _ControlledPlaybackPreviewPlayerState
     extends State<_ControlledPlaybackPreviewPlayer> {
-  late final VideoPlayerController _controller;
-  late final Future<void> _initialize;
+  late final Player _player;
+  late final VideoController _controller;
+  late final Future<void> _openMedia;
   var _playbackStarted = false;
+  var _isPlaying = false;
+  String? _safePlaybackError;
 
   @override
   void initState() {
     super.initState();
-    _controller = VideoPlayerController.networkUrl(widget.signedMediaReadUri);
-    _initialize = _controller.initialize();
+    _player = Player();
+    _controller = VideoController(_player);
+    _openMedia = _openSignedMedia();
+  }
+
+  Future<void> _openSignedMedia() async {
+    try {
+      await _player.open(
+        Media(widget.signedMediaReadUri.toString()),
+        play: false,
+      );
+    } catch (error) {
+      _safePlaybackError = error.toString();
+      rethrow;
+    }
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _player.dispose();
     super.dispose();
   }
 
   Future<void> _togglePlay() async {
-    if (_controller.value.isPlaying) {
-      await _controller.pause();
+    if (_isPlaying) {
+      await _player.pause();
       if (mounted) {
-        setState(() {});
+        setState(() => _isPlaying = false);
       }
       return;
     }
 
-    await _controller.play();
+    await _player.play();
     if (mounted) {
       setState(() {
         _playbackStarted = true;
+        _isPlaying = true;
       });
     }
   }
@@ -2999,7 +3011,7 @@ class _ControlledPlaybackPreviewPlayerState
             border: Border.all(color: Colors.white12),
           ),
           child: FutureBuilder<void>(
-            future: _initialize,
+            future: _openMedia,
             builder: (context, snapshot) {
               if (snapshot.connectionState != ConnectionState.done) {
                 return const SizedBox(
@@ -3008,27 +3020,30 @@ class _ControlledPlaybackPreviewPlayerState
                 );
               }
 
-              if (!_controller.value.isInitialized) {
-                return const _ProfileInfoCard(
+              if (snapshot.hasError) {
+                final safeReason = _safePlaybackError?.trim().isNotEmpty == true
+                    ? _safePlaybackError!.trim()
+                    : snapshot.error?.toString() ??
+                          'MEDIA_KIT_PLAYER_INITIALIZE_FAILED';
+
+                return _ProfileInfoCard(
                   icon: Icons.lock_outline_rounded,
-                  title: 'Playback unavailable',
+                  title: 'Playback unavailable on this device',
                   text:
-                      'The signed media URL could not be initialized. '
-                      'No URL, bucket or object key is displayed.',
+                      'The media object is reachable, but the local media_kit '
+                      'player could not initialize it. Safe reason: '
+                      '$safeReason. No signed URL, bucket or object key is '
+                      'displayed.',
                 );
               }
-
-              final aspectRatio = _controller.value.aspectRatio <= 0
-                  ? 16 / 9
-                  : _controller.value.aspectRatio;
 
               return Column(
                 children: [
                   AspectRatio(
-                    aspectRatio: aspectRatio,
+                    aspectRatio: 16 / 9,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(16),
-                      child: VideoPlayer(_controller),
+                      child: Video(controller: _controller),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -3037,12 +3052,12 @@ class _ControlledPlaybackPreviewPlayerState
                     child: FilledButton.icon(
                       onPressed: _togglePlay,
                       icon: Icon(
-                        _controller.value.isPlaying
+                        _isPlaying
                             ? Icons.pause_rounded
                             : Icons.play_arrow_rounded,
                       ),
                       label: Text(
-                        _controller.value.isPlaying
+                        _isPlaying
                             ? 'Pause preview'
                             : _playbackStarted
                             ? 'Resume preview'
@@ -3060,7 +3075,7 @@ class _ControlledPlaybackPreviewPlayerState
           icon: Icons.security_rounded,
           title: 'Safe playback boundary',
           text:
-              'The signed read URL is used only inside the video controller. '
+              'The signed read URL is used only inside the media_kit player. '
               'It is not printed, logged or displayed. Autoplay stays off.',
         ),
       ],
