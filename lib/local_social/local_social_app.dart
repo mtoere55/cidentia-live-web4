@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'auth/cidentia_session_scope.dart';
 import 'auth/cidentia_session_state.dart';
@@ -522,8 +523,10 @@ Future<void> _showLocalCreatePreviewSheet(BuildContext context) async {
     SnackBar(
       behavior: SnackBarBehavior.floating,
       content: Text(
-        'Local draft saved: ${draft.mode} ${draft.mediaType} - '
-        '${draft.mediaSource} - ${draft.mediaLabel} - $captionPreview',
+        draft.signedUploadReady
+            ? 'Server upload presign ready: ${draft.mode} ${draft.mediaType} - ${draft.storageObjectKey ?? draft.mediaLabel}'
+            : 'Local draft saved: ${draft.mode} ${draft.mediaType} - '
+                  '${draft.mediaSource} - ${draft.mediaLabel} - $captionPreview',
       ),
     ),
   );
@@ -536,6 +539,9 @@ class _LocalDraftPreview {
     required this.mediaLabel,
     required this.mediaSource,
     required this.caption,
+    this.uploadStatusCode,
+    this.storageObjectKey,
+    this.signedUploadReady = false,
   });
 
   final String mode;
@@ -543,6 +549,9 @@ class _LocalDraftPreview {
   final String mediaLabel;
   final String mediaSource;
   final String caption;
+  final String? uploadStatusCode;
+  final String? storageObjectKey;
+  final bool signedUploadReady;
 }
 
 final ValueNotifier<List<_LocalDraftPreview>> _localDraftTray =
@@ -608,7 +617,7 @@ class _LocalDraftTraySheet extends StatelessWidget {
                             ),
                             SizedBox(height: 3),
                             Text(
-                              'Local-only saved create drafts',
+                              'Server presign drafts / metadata pending',
                               style: TextStyle(
                                 color: _textSoft,
                                 fontWeight: FontWeight.w700,
@@ -679,7 +688,7 @@ class _DraftTrayInfoNotice extends StatelessWidget {
           SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Drafts are saved locally for now. You can prepare media and captions before publishing is connected.',
+              'Drafts can now keep the server upload presign result. Metadata/profile publishing remains locked until the next safe milestone.',
               style: TextStyle(color: _textSoft, height: 1.35),
             ),
           ),
@@ -793,11 +802,43 @@ class _DraftTrayCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(height: 1.25),
                 ),
+                if (draft.signedUploadReady) ...[
+                  const SizedBox(height: 5),
+                  Text(
+                    '${draft.uploadStatusCode ?? 'SIGNED_UPLOAD_URL_CREATED'} / metadata pending',
+                    style: const TextStyle(
+                      color: Colors.lightGreenAccent,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  if (draft.storageObjectKey != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      'Object: ${draft.storageObjectKey}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: _textSoft,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ],
               ],
             ),
           ),
           const SizedBox(width: 8),
-          const Icon(Icons.lock_outline_rounded, color: _textSoft, size: 18),
+          Icon(
+            draft.signedUploadReady
+                ? Icons.cloud_done_outlined
+                : Icons.lock_outline_rounded,
+            color: draft.signedUploadReady
+                ? Colors.lightGreenAccent
+                : _textSoft,
+            size: 18,
+          ),
         ],
       ),
     );
@@ -825,6 +866,9 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
   );
 
   String? mediaPickerStatus;
+  String? lastUploadStatusCode;
+  String? lastStorageObjectKey;
+  bool lastSignedUploadReady = false;
   final TextEditingController captionController = TextEditingController();
 
   String get _selectedUploadMimeType {
@@ -872,9 +916,96 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
     }
   }
 
+  String _mimeTypeForPickedFile(String filename) {
+    final lower = filename.toLowerCase();
+
+    if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) {
+      return 'image/jpeg';
+    }
+
+    if (lower.endsWith('.webp')) {
+      return 'image/webp';
+    }
+
+    if (lower.endsWith('.gif')) {
+      return 'image/gif';
+    }
+
+    if (lower.endsWith('.mov')) {
+      return 'video/quicktime';
+    }
+
+    if (lower.endsWith('.webm')) {
+      return 'video/webm';
+    }
+
+    if (lower.endsWith('.mp4')) {
+      return 'video/mp4';
+    }
+
+    return _selectedUploadMimeType;
+  }
+
+  Future<XFile?> _pickUploadFile() async {
+    final picker = ImagePicker();
+
+    if (selectedMediaType == 'Video') {
+      return picker.pickVideo(source: ImageSource.gallery);
+    }
+
+    if (selectedMediaType == 'Photo') {
+      return picker.pickImage(source: ImageSource.gallery);
+    }
+
+    return null;
+  }
+
   Future<void> _pickDeviceMedia() async {
     setState(() {
-      mediaPickerStatus = 'Requesting upload permission from backend...';
+      lastUploadStatusCode = null;
+      lastStorageObjectKey = null;
+      lastSignedUploadReady = false;
+      mediaPickerStatus = 'Choose a real media file from device gallery...';
+    });
+
+    if (selectedMediaType == 'Audio') {
+      setState(() {
+        lastUploadStatusCode = 'AUDIO_PICKER_NOT_CONNECTED';
+        mediaPickerStatus =
+            'Audio file picking is not connected yet. Use Photo or Video first.';
+      });
+      return;
+    }
+
+    final pickedFile = await _pickUploadFile();
+
+    if (pickedFile == null) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        lastUploadStatusCode = 'MEDIA_PICK_CANCELLED';
+        mediaPickerStatus = 'Media selection cancelled.';
+      });
+      return;
+    }
+
+    final pickedName = pickedFile.name.trim().isEmpty
+        ? _selectedUploadFilename
+        : pickedFile.name.trim();
+    final pickedMimeType = _mimeTypeForPickedFile(pickedName);
+    final pickedBytes = await pickedFile.readAsBytes();
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      selectedMediaLabel = pickedName;
+      selectedMediaSource = 'Device gallery';
+      mediaPickerStatus =
+          'Selected $pickedName (${pickedBytes.length} bytes). Requesting signed upload URL...';
     });
 
     final endpoint = Uri.parse('$_uploadRequestEndpoint/api/upload/request');
@@ -884,6 +1015,7 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
 
     try {
       final client = HttpClient();
+
       final request = await client.postUrl(endpoint);
       request.headers.contentType = ContentType.json;
 
@@ -896,11 +1028,11 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
           'mode': selectedMode,
           'mediaType': selectedMediaType,
           'mediaSource': selectedMediaSource,
-          'mediaLabel': selectedMediaLabel,
-          'filename': _selectedUploadFilename,
-          'mimeType': _selectedUploadMimeType,
+          'mediaLabel': pickedName,
+          'filename': pickedName,
+          'mimeType': pickedMimeType,
           'surface': _selectedUploadSurface,
-          'client': 'cidentia-live-local-create-preview',
+          'client': 'cidentia-live-m24f-real-device-upload',
           if (hasCid) 'ownerCid': cid,
           if (session.email != null) 'ownerEmail': session.email,
         }),
@@ -908,7 +1040,6 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
 
       final response = await request.close();
       final body = await response.transform(utf8.decoder).join();
-      client.close(force: true);
 
       final decoded = jsonDecode(body);
       final data = decoded is Map<String, dynamic> ? decoded : null;
@@ -916,29 +1047,81 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
       final message = data?['message'];
       final signedUrlCreated = data?['signedUploadUrlCreated'] == true;
       final objectKey = data?['storageObjectKey'];
+      final uploadUrl = data?['uploadUrl'];
       final expires = data?['expiresInSeconds'];
 
-      if (!mounted) {
-        return;
-      }
+      if (!signedUrlCreated || uploadUrl is! String || uploadUrl.isEmpty) {
+        client.close(force: true);
 
-      setState(() {
-        if (signedUrlCreated) {
-          mediaPickerStatus =
-              'SIGNED_UPLOAD_URL_CREATED - Upload permission ready. Object: ${objectKey ?? _selectedUploadFilename}. Expires: ${expires ?? 0}s.';
-        } else {
+        if (!mounted) {
+          return;
+        }
+
+        setState(() {
+          lastUploadStatusCode = code?.toString();
+          lastStorageObjectKey = null;
+          lastSignedUploadReady = false;
           mediaPickerStatus =
               '${code ?? 'UPLOAD_REQUEST_PENDING'} - ${message ?? 'Upload request did not return a signed URL yet.'}';
-        }
+        });
+        return;
+      }
+
+      if (!mounted) {
+        client.close(force: true);
+        return;
+      }
+
+      setState(() {
+        lastUploadStatusCode = '${code ?? 'SIGNED_UPLOAD_URL_CREATED'}';
+        lastStorageObjectKey = objectKey is String ? objectKey : null;
+        lastSignedUploadReady = true;
+        mediaPickerStatus =
+            'SIGNED_UPLOAD_URL_CREATED - Uploading selected file to Object Storage. Object: ${objectKey ?? pickedName}. Expires: ${expires ?? 0}s.';
       });
-    } catch (_) {
+
+      final putRequest = await client.openUrl('PUT', Uri.parse(uploadUrl));
+      putRequest.headers.contentType = ContentType.parse(pickedMimeType);
+      putRequest.contentLength = pickedBytes.length;
+      putRequest.add(pickedBytes);
+
+      final putResponse = await putRequest.close();
+      await putResponse.drain<void>();
+      client.close(force: true);
+
+      final putOk =
+          putResponse.statusCode >= 200 && putResponse.statusCode < 300;
+
       if (!mounted) {
         return;
       }
 
       setState(() {
+        if (putOk) {
+          lastUploadStatusCode = 'SIGNED_UPLOAD_PUT_COMPLETED';
+          lastStorageObjectKey = objectKey is String ? objectKey : null;
+          lastSignedUploadReady = true;
+          mediaPickerStatus =
+              'SIGNED_UPLOAD_PUT_COMPLETED - Real file uploaded. Object: ${objectKey ?? pickedName}. Metadata/profile write remains locked.';
+        } else {
+          lastUploadStatusCode = 'SIGNED_UPLOAD_PUT_FAILED';
+          lastStorageObjectKey = objectKey is String ? objectKey : null;
+          lastSignedUploadReady = false;
+          mediaPickerStatus =
+              'SIGNED_UPLOAD_PUT_FAILED - Object Storage PUT returned HTTP ${putResponse.statusCode}. Metadata/profile write remains locked.';
+        }
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        lastUploadStatusCode = 'UPLOAD_REQUEST_UNAVAILABLE';
+        lastStorageObjectKey = null;
+        lastSignedUploadReady = false;
         mediaPickerStatus =
-            'Upload request unavailable. Backend connection did not answer.';
+            'Upload request unavailable or PUT failed safely. $error';
       });
     }
   }
@@ -1070,6 +1253,9 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
                               mediaLabel: selectedMediaLabel,
                               mediaSource: selectedMediaSource,
                               caption: captionController.text,
+                              uploadStatusCode: lastUploadStatusCode,
+                              storageObjectKey: lastStorageObjectKey,
+                              signedUploadReady: lastSignedUploadReady,
                             ),
                           );
                         },
