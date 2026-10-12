@@ -1,0 +1,29 @@
+name: Flutter Reels rescue
+
+on:
+  push:
+    branches:
+      - rescue/instagram-reels-20261012
+  pull_request:
+    paths:
+      - "lib/local_social/**"
+      - "pubspec.yaml"
+      - ".github/workflows/flutter-reels-rescue.yml"
+  workflow_dispatch:
+
+jobs:
+  analyze-reels:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.35.7"
+          channel: stable
+          cache: true
+      - name: Resolve dependencies
+        run: flutter pub get
+      - name: Analyze changed Reels files
+        run: flutter analyze --no-fatal-infos lib/local_social/widgets/cidentia_reels_page.dart lib/local_social/local_social_app.dart
+      - name: Build Android debug app
+        run: flutter build apk --debug -t lib/main_local.dart
