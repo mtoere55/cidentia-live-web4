@@ -46,6 +46,7 @@ dependencies:
   go_router: ^14.2.7
   google_sign_in: ^6.3.0
   hydrated_bloc: ^10.1.1
+  http: ^1.4.0
   image_picker: ^1.1.2
   insta_blocks:
     path: packages/insta_blocks
@@ -96,6 +97,7 @@ dependencies:
   user_repository:
     path: packages/user_repository
   vector_math: ^2.1.4
+  video_player: ^2.8.2
   visibility_detector: ^0.4.0+2
 
 dependency_overrides:
