@@ -633,7 +633,7 @@ class _ReelCommentsSheetState extends State<_ReelCommentsSheet> {
       setState(() {
         _comments
           ..clear()
-          ..addAll((data['comments'] as List).whereType<Map>().map(
+          ..addAll((data['comments'] as List).whereType<Map<String, dynamic>>().map(
             (comment) => Map<String, dynamic>.from(comment),
           ));
       });
