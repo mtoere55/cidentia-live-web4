@@ -368,17 +368,6 @@ class _CidentiaEcosystemEntryGateState
         _result = result;
       });
 
-      if (result.kind == _EntryResultKind.verified) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            if (result.session != null && widget.onVerifiedEnter != null) {
-              widget.onVerifiedEnter!(result.session!);
-            } else {
-              widget.onEnter();
-            }
-          }
-        });
-      }
     } on Object catch (error) {
       if (!mounted) {
         return;
@@ -679,7 +668,6 @@ class _EntryResult {
     required this.code,
     required this.kind,
     this.details = '',
-    this.session,
   });
 
   factory _EntryResult.idle() => const _EntryResult(
@@ -848,7 +836,6 @@ class _EntryResult {
   final String code;
   final String details;
   final _EntryResultKind kind;
-  final CidentiaSessionState? session;
 }
 
 enum _EntryResultKind {
@@ -1575,6 +1562,8 @@ class _EntryTextLink extends StatelessWidget {
   }
 }
 
+// Retained as a dormant legacy preview component for the later Feed redesign.
+// ignore: unused_element
 class _VisualCard extends StatelessWidget {
   const _VisualCard({
     required this.width,
