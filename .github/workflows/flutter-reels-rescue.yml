@@ -38,7 +38,7 @@ jobs:
           sed -i '/id "com.google.gms.google-services"/d' android/app/build.gradle
           ! grep -q 'id "com.google.gms.google-services"' android/app/build.gradle
       - name: Build Android development debug app
-        run: flutter build apk --debug --flavor development -t lib/main_local.dart
+        run: flutter build apk --debug --flavor development -t lib/main_local.dart --dart-define=CIDENDB_ENTRY_BRIDGE_BASE_URL=https://web4-preview.cidentia.live
       - name: Preserve test APK
         if: success()
         uses: actions/upload-artifact@v4
