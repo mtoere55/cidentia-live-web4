@@ -158,6 +158,39 @@ class _CidentiaReelsPageState extends State<CidentiaReelsPage> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
+  Future<String?> _requestCaption() async {
+    final controller = TextEditingController();
+    try {
+      return await showDialog<String>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Reel yayinla'),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            maxLength: 2200,
+            maxLines: 3,
+            decoration: const InputDecoration(
+              hintText: 'Videonu anlat...',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Vazgec'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, controller.text.trim()),
+              child: const Text('Devam'),
+            ),
+          ],
+        ),
+      );
+    } finally {
+      controller.dispose();
+    }
+  }
+
   Future<void> _publish(_ReelSource reel) async {
     final file = reel.localFile;
     if (file == null || _uploading) return;
@@ -169,6 +202,8 @@ class _CidentiaReelsPageState extends State<CidentiaReelsPage> {
       _notice('Ilk surumde MP4 destekleniyor. Diger bicimler icin donusturme gerekli.');
       return;
     }
+    final caption = await _requestCaption();
+    if (caption == null || !mounted) return;
     setState(() => _uploading = true);
     try {
       final size = await file.length();
@@ -219,7 +254,7 @@ class _CidentiaReelsPageState extends State<CidentiaReelsPage> {
           'storageBucket': bucket,
           'mimeType': 'video/mp4',
           'byteLength': size,
-          'caption': reel.caption,
+          'caption': caption,
         }),
       );
       final published = jsonDecode(publishResponse.body);
