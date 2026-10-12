@@ -685,8 +685,8 @@ class _EntryResult {
   );
   factory _EntryResult.otpSent(CidentiaUiLanguage language) {
     return const _EntryResult(
-      title: 'OTP sent',
-      message: 'Enter the code from CidenDB to continue.',
+      title: 'Code request accepted',
+      message: 'CidenDB accepted the email-code request. Check your inbox and spam folder; delivery can take a moment.',
       code: 'CIDENDB_OTP_SENT',
       kind: _EntryResultKind.pending,
     );
@@ -782,6 +782,20 @@ class _EntryResult {
         message: 'OTP/CID was returned, but an authenticated mobile backend session is not yet established. Protected actions remain unavailable.',
         code: 'CIDENDB_MOBILE_SESSION_HANDOFF_REQUIRED',
         kind: _EntryResultKind.unavailable,
+        details: details,
+      );
+    }
+
+    // The staging OTP bridge can confirm an email, but cannot create
+    // the cookie-backed CID session required by protected backend routes.
+    if (code == 'CIDENDB_EMAIL_VERIFIED_SESSION_PENDING' &&
+        decoded['emailVerified'] == true &&
+        decoded['sessionCreated'] != true) {
+      return _EntryResult(
+        title: 'Email confirmed - CID sign-in still required',
+        message: 'Your CidenDB code was accepted. A verified Cidentia.Live CID session is not connected yet. Continue through CidentiaApp for identity setup; uploads remain locked.',
+        code: code,
+        kind: _EntryResultKind.onboarding,
         details: details,
       );
     }
