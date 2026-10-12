@@ -2,12 +2,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../auth/cidentia_session_state.dart';
 
 const cidentiaEntryBridgeBaseUrl = String.fromEnvironment(
   'CIDENDB_ENTRY_BRIDGE_BASE_URL',
-  defaultValue: 'http://localhost:3000',
+  defaultValue: '',
 );
 const cidentiaAppOnboardingUrl = 'https://cidentiaapp.com';
 
@@ -308,22 +309,38 @@ class _CidentiaEcosystemEntryGateState
     required String route,
     required Map<String, String> payload,
   }) async {
+    final base = cidentiaEntryBridgeBaseUrl.trim();
+    final uri = Uri.tryParse(base);
+    final mobile = Platform.isAndroid || Platform.isIOS;
+    if (uri == null ||
+        base.isEmpty ||
+        !uri.hasAuthority ||
+        (mobile && uri.scheme != 'https') ||
+        (mobile && {'localhost', '127.0.0.1', '10.0.2.2'}.contains(uri.host))) {
+      setState(() {
+        _result = _EntryResult.bridgeNotConfigured(text);
+      });
+      return;
+    }
     setState(() {
       _busy = true;
       _result = _EntryResult.pending(route);
     });
 
     try {
-      final uri = Uri.parse('$cidentiaEntryBridgeBaseUrl$route');
-      final client = HttpClient()
-        ..connectionTimeout = const Duration(seconds: 6);
-      final request = await client.postUrl(uri);
-      request.headers.contentType = ContentType.json;
-      request.write(jsonEncode(payload));
-
-      final response = await request.close();
-      final body = await response.transform(utf8.decoder).join();
-      client.close(force: true);
+      final client = HttpClient()..connectionTimeout = const Duration(seconds: 6);
+      late int statusCode;
+      late String body;
+      try {
+        final request = await client.postUrl(uri.resolve(route));
+        request.headers.contentType = ContentType.json;
+        request.write(jsonEncode(payload));
+        final response = await request.close();
+        statusCode = response.statusCode;
+        body = await response.transform(utf8.decoder).join();
+      } finally {
+        client.close(force: true);
+      }
 
       final decoded = jsonDecode(body) as Object;
 
@@ -331,11 +348,17 @@ class _CidentiaEcosystemEntryGateState
         return;
       }
 
-      final result = route.endsWith('/send')
+      final validOtpSend = statusCode >= 200 &&
+          statusCode < 300 &&
+          decoded is Map<String, dynamic> &&
+          decoded['ok'] == true &&
+          decoded['liveCidenDbCall'] == true &&
+          decoded['fakeSuccess'] != true;
+      final result = route.endsWith('/send') && validOtpSend
           ? _EntryResult.otpSent(text)
           : _EntryResult.fromBridgeResponse(
               language: text,
-              statusCode: response.statusCode,
+              statusCode: statusCode,
               decoded: decoded,
               rawBody: body,
             );
@@ -370,18 +393,9 @@ class _CidentiaEcosystemEntryGateState
 
   Future<void> _openExternalUrl(String url) async {
     try {
-      if (Platform.isWindows) {
-        await Process.run('rundll32', [
-          'url.dll,FileProtocolHandler',
-          url,
-        ], runInShell: true);
-      } else if (Platform.isMacOS) {
-        await Process.run('open', [url]);
-      } else {
-        await Process.run('xdg-open', [url]);
-      }
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
     } catch (_) {
-      // Local preview only: keep UI responsive even if opening browser fails.
+      // A missing external browser must not bypass CID verification.
     }
   }
 
@@ -690,6 +704,16 @@ class _EntryResult {
     );
   }
 
+  factory _EntryResult.bridgeNotConfigured(CidentiaUiLanguage language) {
+    return const _EntryResult(
+      title: 'CID sign-in not connected',
+      message: 'This Android test build does not yet have a verified CidenDB session bridge. Reels local preview is available; publishing and other protected actions stay locked.',
+      code: 'CIDENDB_MOBILE_BRIDGE_NOT_CONFIGURED',
+      kind: _EntryResultKind.unavailable,
+      details: 'Set CIDENDB_ENTRY_BRIDGE_BASE_URL to an explicitly verified HTTPS bridge during the test build. OTP is not a substitute for an authenticated backend session.',
+    );
+  }
+
   factory _EntryResult.unavailable(CidentiaUiLanguage language, String error) {
     return _EntryResult(
       title: language.serviceUnavailableTitle,
@@ -759,31 +783,18 @@ class _EntryResult {
       'cidenId',
     ]);
 
-    final displayName = readText(user, ['display_name', 'full_name', 'name']);
-
-    final email = readText(user, ['email', 'mail', 'contact']);
-
-    final hasSafeSession =
-        decoded['sessionCreated'] == true ||
+    // An OTP response or a CID field is not a backend-authorized session.
+    // A verified CID state may only be enabled after the mobile client proves
+    // a real session to the same backend that enforces protected operations.
+    if (decoded['sessionCreated'] == true ||
         code == 'CIDENDB_SAFE_SESSION_CREATED' ||
-        (code == 'CIDENDB_UPSTREAM_OK' && cid != null);
-
-    if (hasSafeSession && cid != null) {
-      final cidLine = '\nCID: $cid';
-      final nameLine = displayName == null ? '' : '\nUser: $displayName';
-
+        (code == 'CIDENDB_UPSTREAM_OK' && cid != null)) {
       return _EntryResult(
-        title: language.verifiedTitle,
-        message: '${language.verifiedBody}$cidLine$nameLine',
-        code: code,
-        kind: _EntryResultKind.verified,
+        title: language.serviceUnavailableTitle,
+        message: 'OTP/CID was returned, but an authenticated mobile backend session is not yet established. Protected actions remain unavailable.',
+        code: 'CIDENDB_MOBILE_SESSION_HANDOFF_REQUIRED',
+        kind: _EntryResultKind.unavailable,
         details: details,
-        session: CidentiaSessionState.verified(
-          cid: cid,
-          displayName: displayName,
-          email: email,
-          message: language.verifiedBody,
-        ),
       );
     }
 
