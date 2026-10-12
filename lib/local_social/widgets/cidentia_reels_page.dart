@@ -272,22 +272,33 @@ class _CidentiaReelsPageState extends State<CidentiaReelsPage> {
     }
   }
 
-  Future<void> _like(_ReelSource reel) async {
-    if (reel.isLocal) return;
+  Future<bool> _sendAction(_ReelSource reel, String action) async {
+    if (reel.isLocal) return false;
     try {
       final response = await http.post(
         _uri('/api/social/reel-action'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'reelId': reel.id, 'action': 'like'}),
+        body: jsonEncode({'reelId': reel.id, 'action': action}),
       );
-      if (response.statusCode == 200) {
-        _notice('Begenildi.');
-      } else {
-        _notice('Begenmek icin oturum acmaniz veya sunucuyu etkinlestirmeniz gerekiyor.');
-      }
+      if (response.statusCode == 200) return true;
+      _notice('Bu islem icin dogrulanmis sunucu oturumu gerekli.');
     } catch (_) {
-      _notice('Begeni gonderilemedi.');
+      _notice('Islem sunucuya iletilemedi.');
     }
+    return false;
+  }
+
+  void _openComments(_ReelSource reel) {
+    if (reel.isLocal) {
+      _notice('Yerel onizleme henuz yayinlanmadi.');
+      return;
+    }
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (_) => _ReelCommentsSheet(reelId: reel.id),
+    );
   }
 
   @override
@@ -338,7 +349,9 @@ class _CidentiaReelsPageState extends State<CidentiaReelsPage> {
                       active: index == _current,
                       uploading: _uploading,
                       onPublish: () => _publish(reel),
-                      onLike: () => _like(reel),
+                      onLike: (liked) => _sendAction(reel, liked ? 'like' : 'unlike'),
+                      onSave: (saved) => _sendAction(reel, saved ? 'save' : 'unsave'),
+                      onComments: () => _openComments(reel),
                     );
                   },
                 ),
@@ -380,13 +393,17 @@ class _ReelVideo extends StatefulWidget {
     required this.uploading,
     required this.onPublish,
     required this.onLike,
+    required this.onSave,
+    required this.onComments,
   });
 
   final _ReelSource reel;
   final bool active;
   final bool uploading;
   final VoidCallback onPublish;
-  final VoidCallback onLike;
+  final Future<bool> Function(bool) onLike;
+  final Future<bool> Function(bool) onSave;
+  final VoidCallback onComments;
 
   @override
   State<_ReelVideo> createState() => _ReelVideoState();
@@ -397,6 +414,8 @@ class _ReelVideoState extends State<_ReelVideo> {
   bool _ready = false;
   bool _mute = false;
   bool _failed = false;
+  bool _liked = false;
+  bool _saved = false;
 
   @override
   void initState() {
@@ -453,6 +472,18 @@ class _ReelVideoState extends State<_ReelVideo> {
     _mute = !_mute;
     await _video.setVolume(_mute ? 0 : 1);
     if (mounted) setState(() {});
+  }
+
+  Future<void> _toggleLike() async {
+    if (await widget.onLike(!_liked) && mounted) {
+      setState(() => _liked = !_liked);
+    }
+  }
+
+  Future<void> _toggleSave() async {
+    if (await widget.onSave(!_saved) && mounted) {
+      setState(() => _saved = !_saved);
+    }
   }
 
   @override
@@ -519,9 +550,24 @@ class _ReelVideoState extends State<_ReelVideo> {
           child: Column(
             children: [
               IconButton(
-                onPressed: widget.reel.isLocal ? null : widget.onLike,
-                icon: const Icon(Icons.favorite_border, color: Colors.white, size: 30),
+                onPressed: widget.reel.isLocal ? null : _toggleLike,
+                icon: Icon(_liked ? Icons.favorite : Icons.favorite_border,
+                    color: _liked ? Colors.redAccent : Colors.white, size: 30),
                 tooltip: 'Begen',
+              ),
+              const SizedBox(height: 12),
+              IconButton(
+                onPressed: widget.reel.isLocal ? null : widget.onComments,
+                icon: const Icon(Icons.mode_comment_outlined,
+                    color: Colors.white, size: 29),
+                tooltip: 'Yorumlar',
+              ),
+              const SizedBox(height: 12),
+              IconButton(
+                onPressed: widget.reel.isLocal ? null : _toggleSave,
+                icon: Icon(_saved ? Icons.bookmark : Icons.bookmark_border,
+                    color: Colors.white, size: 29),
+                tooltip: 'Kaydet',
               ),
               const SizedBox(height: 12),
               IconButton(
@@ -540,6 +586,135 @@ class _ReelVideoState extends State<_ReelVideo> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _ReelCommentsSheet extends StatefulWidget {
+  const _ReelCommentsSheet({required this.reelId});
+
+  final String reelId;
+
+  @override
+  State<_ReelCommentsSheet> createState() => _ReelCommentsSheetState();
+}
+
+class _ReelCommentsSheetState extends State<_ReelCommentsSheet> {
+  final TextEditingController _input = TextEditingController();
+  final List<Map<String, dynamic>> _comments = [];
+  bool _working = false;
+  String? _error;
+
+  Uri _uri(String route) => Uri.parse(_apiBase.replaceFirst(RegExp(r'/+$'), '') + route);
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  @override
+  void dispose() {
+    _input.dispose();
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    setState(() { _working = true; _error = null; });
+    try {
+      final response = await http.get(_uri(
+        '/api/social/reel-comments?reelId=' + Uri.encodeComponent(widget.reelId),
+      ));
+      final data = jsonDecode(response.body);
+      if (response.statusCode != 200 || data is! Map || data['comments'] is! List) {
+        throw const FormatException('Yorumlar yuklenemedi.');
+      }
+      if (!mounted) return;
+      setState(() {
+        _comments
+          ..clear()
+          ..addAll((data['comments'] as List).whereType<Map>().map(
+            (comment) => Map<String, dynamic>.from(comment),
+          ));
+      });
+    } catch (_) {
+      if (mounted) setState(() => _error = 'Yorumlar sunucudan okunamadi.');
+    } finally {
+      if (mounted) setState(() => _working = false);
+    }
+  }
+
+  Future<void> _post() async {
+    final text = _input.text.trim();
+    if (text.isEmpty || _working) return;
+    setState(() => _working = true);
+    try {
+      final response = await http.post(
+        _uri('/api/social/reel-action'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'reelId': widget.reelId,
+          'action': 'comment',
+          'comment': text,
+        }),
+      );
+      if (response.statusCode != 200) {
+        throw const FormatException('Yorum icin oturum acmaniz gerekiyor.');
+      }
+      _input.clear();
+      await _load();
+    } catch (_) {
+      if (mounted) setState(() => _error = 'Yorum gonderilemedi. Sunucu oturumunu kontrol edin.');
+    } finally {
+      if (mounted) setState(() => _working = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(16, 8, 16,
+          MediaQuery.viewInsetsOf(context).bottom + 16),
+        child: SizedBox(
+          height: MediaQuery.sizeOf(context).height * 0.6,
+          child: Column(
+            children: [
+              const Text('Yorumlar', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              if (_error != null) Text(_error!, style: const TextStyle(color: Colors.redAccent)),
+              Expanded(
+                child: _working && _comments.isEmpty
+                    ? const Center(child: CircularProgressIndicator())
+                    : ListView.builder(
+                        itemCount: _comments.length,
+                        itemBuilder: (context, index) {
+                          final item = _comments[index];
+                          return ListTile(
+                            title: Text((item['displayName'] ?? item['actorCid'] ?? '').toString()),
+                            subtitle: Text((item['body'] ?? '').toString()),
+                          );
+                        },
+                      ),
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _input,
+                      maxLength: 500,
+                      decoration: const InputDecoration(hintText: 'Yorum yaz...'),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: _working ? null : _post,
+                    icon: const Icon(Icons.send),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
