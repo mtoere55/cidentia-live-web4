@@ -29,6 +29,14 @@ jobs:
         run: |
           yes | "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
           "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" --install "ndk;28.0.12433566" "build-tools;36.0.0" "platforms;android-36"
+      - name: Disable Google Services plugin for offline-only dev APK
+        run: |
+          # lib/main_local.dart does not initialize Firebase. The clone's
+          # original Firebase google-services.json is intentionally absent.
+          # Change only this disposable GitHub runner checkout, never source
+          # or production Firebase settings.
+          sed -i '/id "com.google.gms.google-services"/d' android/app/build.gradle
+          ! grep -q 'id "com.google.gms.google-services"' android/app/build.gradle
       - name: Build Android development debug app
         run: flutter build apk --debug --flavor development -t lib/main_local.dart
       - name: Preserve test APK
