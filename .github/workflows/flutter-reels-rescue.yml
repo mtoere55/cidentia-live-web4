@@ -24,7 +24,7 @@ jobs:
       - name: Resolve dependencies
         run: flutter pub get
       - name: Analyze changed Reels files
-        run: flutter analyze --no-fatal-infos lib/local_social/widgets/cidentia_reels_page.dart lib/local_social/local_social_app.dart
+        run: flutter analyze --no-fatal-infos lib/local_social/widgets/cidentia_reels_page.dart lib/local_social/local_social_app.dart lib/local_social/widgets/cidentia_ecosystem_entry_gate.dart
       - name: Accept Android SDK licenses and install required NDK
         run: |
           yes | "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
