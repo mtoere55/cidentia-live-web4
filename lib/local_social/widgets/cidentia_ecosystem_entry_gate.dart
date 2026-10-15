@@ -367,6 +367,15 @@ class _CidentiaEcosystemEntryGateState
         _busy = false;
         _result = result;
       });
+      if (route.endsWith('/verify') &&
+          result.kind != _EntryResultKind.pending) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result.message),
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
 
     } on Object catch (error) {
       if (!mounted) {
@@ -487,7 +496,7 @@ class _CidentiaEcosystemEntryGateState
                 onCidenDbInfo: _showCidenDbInfo,
               ),
             ],
-            if (showResult) ...[
+            if (wide && showResult) ...[
               const SizedBox(height: 20),
               _ResultGrid(
                 language: text,
@@ -636,6 +645,19 @@ class _CidentiaEcosystemEntryGateState
                             SizedBox(width: 168, child: verifyButton),
                           ],
                         ),
+                  if (MediaQuery.sizeOf(context).width < 980 &&
+                      _result.kind != _EntryResultKind.idle) ...[
+                    const SizedBox(height: 14),
+                    _ResultGrid(
+                      language: text,
+                      result: _result,
+                      showDetails: _showDetails,
+                      onToggleDetails: () =>
+                          setState(() => _showDetails = !_showDetails),
+                      onCidentiaApp: _openCidentiaApp,
+                      onEnter: widget.onEnter,
+                    ),
+                  ],
                   if (MediaQuery.sizeOf(context).width >= 720) ...[
                     const SizedBox(height: 22),
                     const _EntryHowItWorksPanel(),
@@ -763,6 +785,28 @@ class _EntryResult {
     final user = asMap(decoded['user']) ?? asMap(upstream?['user']);
     final details = const JsonEncoder.withIndent('  ').convert(decoded);
 
+    if (statusCode == 429 ||
+        code == 'CIDENDB_RATE_LIMITED' ||
+        code == 'OTP_RATE_LIMITED') {
+      return const _EntryResult(
+        title: 'Too many verification attempts',
+        message: 'CidenDB is temporarily limiting OTP requests. Wait before trying again. Do not repeatedly request new codes.',
+        code: 'CIDENDB_RATE_LIMITED',
+        kind: _EntryResultKind.invalid,
+      );
+    }
+
+    if (code == 'CIDENDB_OTP_UPSTREAM_REJECTED' ||
+        code == 'CIDENDB_OTP_REJECTED') {
+      return _EntryResult(
+        title: language.invalidCodeTitle,
+        message: language.invalidCodeBody,
+        code: code,
+        kind: _EntryResultKind.invalid,
+        details: details,
+      );
+    }
+
     final cid = readText(user, [
       'cid',
       'cid_number',
@@ -795,7 +839,7 @@ class _EntryResult {
         title: 'Email confirmed - CID sign-in still required',
         message: 'Your CidenDB code was accepted. A verified Cidentia.Live CID session is not connected yet. Continue through CidentiaApp for identity setup; uploads remain locked.',
         code: code,
-        kind: _EntryResultKind.onboarding,
+        kind: _EntryResultKind.emailConfirmed,
         details: details,
       );
     }
@@ -857,6 +901,7 @@ enum _EntryResultKind {
   pending,
   verified,
   onboarding,
+  emailConfirmed,
   invalid,
   unavailable,
 }
@@ -1732,6 +1777,7 @@ class _ResultGrid extends StatelessWidget {
     final color = switch (result.kind) {
       _EntryResultKind.verified => const Color(0xFF22C55E),
       _EntryResultKind.onboarding => const Color(0xFFF59E0B),
+      _EntryResultKind.emailConfirmed => const Color(0xFF22C55E),
       _EntryResultKind.invalid => const Color(0xFFEF4444),
       _EntryResultKind.unavailable => const Color(0xFF3B82F6),
       _ => const Color(0xFF8B5CF6),
@@ -1754,16 +1800,15 @@ class _ResultGrid extends StatelessWidget {
             code: result.code,
             actionLabel: result.kind == _EntryResultKind.verified
                 ? 'Go to Feed'
-                : result.kind == _EntryResultKind.onboarding
-                ? language.continueCidentiaApp
-                : result.kind == _EntryResultKind.invalid
-                ? language.requestOtp
-                : 'Try Again',
-            onAction: result.kind == _EntryResultKind.verified
+                : result.kind == _EntryResultKind.emailConfirmed
+                ? 'Explore Reels as guest'
+                : language.continueCidentiaApp,
+            onAction: result.kind == _EntryResultKind.verified ||
+                    result.kind == _EntryResultKind.emailConfirmed
                 ? onEnter
                 : result.kind == _EntryResultKind.onboarding
                 ? onCidentiaApp
-                : () {},
+                : null,
           ),
           TextButton.icon(
             onPressed: onToggleDetails,
@@ -1941,7 +1986,7 @@ class _StatusCard extends StatelessWidget {
   final String body;
   final String code;
   final String actionLabel;
-  final VoidCallback onAction;
+  final VoidCallback? onAction;
 
   @override
   Widget build(BuildContext context) {
@@ -1953,25 +1998,42 @@ class _StatusCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: color.withValues(alpha: 0.6)),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.verified_user_outlined, color: color),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(color: color, fontWeight: FontWeight.w900),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.verified_user_outlined, color: color),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        color: color,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(body),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Text(body),
-              ],
-            ),
+              ),
+            ],
           ),
-          const SizedBox(width: 12),
-          OutlinedButton(onPressed: onAction, child: Text(actionLabel)),
+          if (onAction != null) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: onAction,
+                child: Text(actionLabel),
+              ),
+            ),
+          ],
         ],
       ),
     );
