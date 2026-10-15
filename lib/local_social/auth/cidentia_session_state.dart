@@ -23,10 +23,8 @@ class CidentiaSessionState {
     String? displayName,
     String? email,
     String? message,
-    bool backendAuthorized = false,
   }) : this._(
          hasVerifiedCid: true,
-         backendAuthorized: backendAuthorized,
          backendAuthorized: false,
          cid: cid,
          displayName: displayName,
@@ -39,8 +37,10 @@ class CidentiaSessionState {
     String? displayName,
     String? email,
     String? message,
+    bool backendAuthorized = false,
   }) : this._(
          hasVerifiedCid: true,
+         backendAuthorized: backendAuthorized,
          cid: cid,
          displayName: displayName,
          email: email,
