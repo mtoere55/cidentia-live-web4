@@ -194,7 +194,7 @@ class _CidentiaReelsPageState extends State<CidentiaReelsPage> {
   Future<void> _publish(_ReelSource reel) async {
     final file = reel.localFile;
     if (file == null || _uploading) return;
-    if (CidentiaSessionScope.maybeOf(context)?.hasVerifiedCid != true) {
+    if (CidentiaSessionScope.maybeOf(context)?.canPerformProtectedAction() != true) {
       _notice('Video yayinlamak icin dogrulanmis CID oturumu gerekiyor.');
       return;
     }
