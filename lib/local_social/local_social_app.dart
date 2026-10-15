@@ -101,14 +101,14 @@ class _SessionLifecycleCard extends StatelessWidget {
     final verified = session.hasVerifiedCid;
     final action = CidentiaSessionScope.onSignInRequestedOf(context);
 
-    final title = verified ? 'Verified CID active' : 'Guest preview';
+    final title = verified ? (session.backendAuthorized ? 'Verified CID active' : 'CID verified - preview only') : 'Guest preview';
     final identity = verified
         ? session.cid ?? 'CID verified'
         : 'No verified CID';
     final subtitle = verified
         ? session.email == null
-              ? 'Runtime session only. Not persisted.'
-              : 'Signed in as ${session.email}'
+              ? 'Verified preview identity. No publishing authorization.'
+              : 'CidenDB verified ${session.email} (preview only)'
         : 'Public Feed, Search and Reels stay open. Protected actions require CID.';
 
     return Container(
@@ -879,7 +879,7 @@ class _LocalCreatePreviewSheetState extends State<_LocalCreatePreviewSheet> {
 
     final endpoint = Uri.parse('$_uploadRequestEndpoint/api/upload/request');
     final session = widget.session;
-    final cid = session.hasVerifiedCid ? session.cid?.trim() : null;
+    final cid = session.canPerformProtectedAction() ? session.cid?.trim() : null;
     final hasCid = cid != null && cid.isNotEmpty;
 
     try {
