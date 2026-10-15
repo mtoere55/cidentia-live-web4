@@ -133,7 +133,7 @@ class _OriginalInspiredLiveStudioPageState
 
   void _requestStartLivePreview() {
     final session = CidentiaSessionScope.maybeOf(context);
-    final verified = session?.hasVerifiedCid ?? false;
+    final verified = session?.canPerformProtectedAction() ?? false;
 
     if (!verified) {
       CidentiaProtectedActionNotice.show(
