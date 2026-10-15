@@ -6,6 +6,8 @@ import '../auth/cidentia_auth_gate_contract.dart';
 import '../auth/cidentia_protected_action_notice.dart';
 import '../auth/cidentia_session_scope.dart';
 
+// Legacy preview palette retained for upcoming UI consolidation.
+// ignore: unused_element
 const _bg = Color(0xFF09090B);
 const _panel = Color(0xFF101114);
 const _panelSoft = Color(0xFF181A20);
@@ -133,7 +135,7 @@ class _OriginalInspiredLiveStudioPageState
 
   void _requestStartLivePreview() {
     final session = CidentiaSessionScope.maybeOf(context);
-    final verified = session?.hasVerifiedCid ?? false;
+    final verified = session?.canPerformProtectedAction() ?? false;
 
     if (!verified) {
       CidentiaProtectedActionNotice.show(
@@ -1025,6 +1027,8 @@ class _SubtitleOverlay extends StatelessWidget {
   }
 }
 
+// Preview-only visual, not yet placed in the Android shell.
+// ignore: unused_element
 class _WaveLine extends StatelessWidget {
   const _WaveLine();
 
@@ -2996,6 +3000,8 @@ class _DestinationSafetyNote extends StatelessWidget {
   }
 }
 
+// Dormant integration point, kept for the future translation module.
+// ignore: unused_element
 void _openLiveTranslationHub(BuildContext context) {
   final compact = MediaQuery.sizeOf(context).width < 720;
 

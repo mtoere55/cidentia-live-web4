@@ -2,12 +2,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../auth/cidentia_session_state.dart';
 
 const cidentiaEntryBridgeBaseUrl = String.fromEnvironment(
   'CIDENDB_ENTRY_BRIDGE_BASE_URL',
-  defaultValue: 'http://localhost:3000',
+  defaultValue: '',
 );
 const cidentiaAppOnboardingUrl = 'https://cidentiaapp.com';
 
@@ -304,63 +305,167 @@ class _CidentiaEcosystemEntryGateState
     );
   }
 
+  Future<CidentiaSessionState?> _provePreviewSession(
+    HttpClient client,
+    Uri baseUri,
+    Cookie cookie,
+    String claimedCid,
+  ) async {
+    final req = await client.getUrl(
+      baseUri.resolve('/api/cidendb/session/mobile-status'),
+    );
+    req.cookies.add(cookie);
+    final res = await req.close();
+    final raw = await res.transform(utf8.decoder).join();
+    if (res.statusCode != 200) return null;
+    final proof = jsonDecode(raw);
+    if (proof is! Map<String, dynamic> ||
+        proof['ok'] != true ||
+        proof['authenticated'] != true ||
+        proof['session'] is! Map<String, dynamic>) {
+      return null;
+    }
+    final data = proof['session'] as Map<String, dynamic>;
+    final cid = data['cid'];
+    final expires = DateTime.tryParse(data['expiresAt']?.toString() ?? '');
+    if (cid is! String ||
+        !RegExp(r'^[A-Z0-9._:-]{3,120}$').hasMatch(cid) ||
+        cid != claimedCid ||
+        data['source'] != 'CidenDB' ||
+        data['scope'] != 'preview-read-only' ||
+        data['backendPublishAuthorized'] != false ||
+        expires == null ||
+        !expires.isAfter(DateTime.now())) {
+      return null;
+    }
+    return CidentiaSessionState.previewVerified(
+      cid: cid,
+      displayName: data['displayName'] is String
+          ? data['displayName'] as String
+          : null,
+      email: data['email'] is String
+          ? data['email'] as String
+          : null,
+    );
+  }
+
   Future<void> _callBridge({
     required String route,
     required Map<String, String> payload,
   }) async {
+    final base = cidentiaEntryBridgeBaseUrl.trim();
+    final uri = Uri.tryParse(base);
+    final mobile = Platform.isAndroid || Platform.isIOS;
+    if (uri == null ||
+        base.isEmpty ||
+        !uri.hasAuthority ||
+        (mobile && uri.scheme != 'https') ||
+        (mobile && {'localhost', '127.0.0.1', '10.0.2.2'}.contains(uri.host))) {
+      setState(() {
+        _result = _EntryResult.bridgeNotConfigured(text);
+      });
+      return;
+    }
+
     setState(() {
       _busy = true;
       _result = _EntryResult.pending(route);
     });
 
     try {
-      final uri = Uri.parse('$cidentiaEntryBridgeBaseUrl$route');
       final client = HttpClient()
         ..connectionTimeout = const Duration(seconds: 6);
-      final request = await client.postUrl(uri);
-      request.headers.contentType = ContentType.json;
-      request.write(jsonEncode(payload));
-
-      final response = await request.close();
-      final body = await response.transform(utf8.decoder).join();
-      client.close(force: true);
-
-      final decoded = jsonDecode(body) as Object;
-
-      if (!mounted) {
-        return;
+      late int statusCode;
+      late String body;
+      CidentiaSessionState? confirmed;
+      try {
+        final request = await client.postUrl(uri.resolve(route));
+        request.headers.contentType = ContentType.json;
+        request.write(jsonEncode(payload));
+        final response = await request.close();
+        statusCode = response.statusCode;
+        Cookie? previewCookie;
+        for (final cookie in response.cookies) {
+          if (cookie.name == '__Host-cidentia_otp_preview') {
+            previewCookie = cookie;
+            break;
+          }
+        }
+        body = await response.transform(utf8.decoder).join();
+        if (route.endsWith('/verify') &&
+            statusCode == 200 &&
+            previewCookie != null) {
+          final candidate = jsonDecode(body);
+          if (candidate is Map<String, dynamic> &&
+              candidate['ok'] == true &&
+              candidate['code'] == 'CIDENDB_PREVIEW_SESSION_CREATED' &&
+              candidate['previewSessionCreated'] == true &&
+              candidate['sessionCreated'] == false &&
+              candidate['backendPublishAuthorized'] == false &&
+              candidate['cid'] is String) {
+            confirmed = await _provePreviewSession(
+              client, uri, previewCookie, candidate['cid'] as String,
+            );
+          }
+        }
+      } finally {
+        client.close(force: true);
       }
 
-      final result = route.endsWith('/send')
-          ? _EntryResult.otpSent(text)
-          : _EntryResult.fromBridgeResponse(
-              language: text,
-              statusCode: response.statusCode,
-              decoded: decoded,
-              rawBody: body,
-            );
+      final decoded = jsonDecode(body) as Object;
+      if (!mounted) return;
+
+      final accepted = statusCode >= 200 &&
+          statusCode < 300 &&
+          decoded is Map<String, dynamic> &&
+          decoded['ok'] == true &&
+          decoded['liveCidenDbCall'] == true &&
+          decoded['fakeSuccess'] != true;
+
+      final result = confirmed != null
+          ? const _EntryResult(
+              title: 'CID confirmed - preview session ready',
+              message: 'CidenDB verified your CID and the server session was confirmed. You can browse Feed and Reels. Publishing remains locked.',
+              code: 'CIDENDB_PREVIEW_SESSION_VERIFIED',
+              kind: _EntryResultKind.verified,
+            )
+          : route.endsWith('/send') && accepted
+              ? _EntryResult.otpSent(text)
+              : decoded is Map<String, dynamic> &&
+                      decoded['code'] == 'CIDENDB_PREVIEW_SESSION_CREATED'
+                  ? const _EntryResult(
+                      title: 'Session verification failed',
+                      message: 'The OTP was accepted, but Cidentia could not confirm the signed preview session. You are not signed in.',
+                      code: 'CIDENDB_PREVIEW_SESSION_PROOF_FAILED',
+                      kind: _EntryResultKind.unavailable,
+                    )
+                  : _EntryResult.fromBridgeResponse(
+                      language: text,
+                      statusCode: statusCode,
+                      decoded: decoded,
+                      rawBody: body,
+                    );
 
       setState(() {
         _busy = false;
         _result = result;
       });
 
-      if (result.kind == _EntryResultKind.verified) {
+      if (confirmed != null) {
+        final authenticated = confirmed;
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            if (result.session != null && widget.onVerifiedEnter != null) {
-              widget.onVerifiedEnter!(result.session!);
-            } else {
-              widget.onEnter();
-            }
-          }
+          if (mounted) widget.onVerifiedEnter?.call(authenticated);
         });
+      } else if (route.endsWith('/verify')) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result.message),
+            duration: const Duration(seconds: 5),
+          ),
+        );
       }
     } on Object catch (error) {
-      if (!mounted) {
-        return;
-      }
-
+      if (!mounted) return;
       setState(() {
         _busy = false;
         _result = _EntryResult.unavailable(text, '$error');
@@ -370,18 +475,9 @@ class _CidentiaEcosystemEntryGateState
 
   Future<void> _openExternalUrl(String url) async {
     try {
-      if (Platform.isWindows) {
-        await Process.run('rundll32', [
-          'url.dll,FileProtocolHandler',
-          url,
-        ], runInShell: true);
-      } else if (Platform.isMacOS) {
-        await Process.run('open', [url]);
-      } else {
-        await Process.run('xdg-open', [url]);
-      }
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
     } catch (_) {
-      // Local preview only: keep UI responsive even if opening browser fails.
+      // A missing external browser must not bypass CID verification.
     }
   }
 
@@ -484,7 +580,7 @@ class _CidentiaEcosystemEntryGateState
                 onCidenDbInfo: _showCidenDbInfo,
               ),
             ],
-            if (showResult) ...[
+            if (wide && showResult) ...[
               const SizedBox(height: 20),
               _ResultGrid(
                 language: text,
@@ -633,6 +729,19 @@ class _CidentiaEcosystemEntryGateState
                             SizedBox(width: 168, child: verifyButton),
                           ],
                         ),
+                  if (MediaQuery.sizeOf(context).width < 980 &&
+                      _result.kind != _EntryResultKind.idle) ...[
+                    const SizedBox(height: 14),
+                    _ResultGrid(
+                      language: text,
+                      result: _result,
+                      showDetails: _showDetails,
+                      onToggleDetails: () =>
+                          setState(() => _showDetails = !_showDetails),
+                      onCidentiaApp: _openCidentiaApp,
+                      onEnter: widget.onEnter,
+                    ),
+                  ],
                   if (MediaQuery.sizeOf(context).width >= 720) ...[
                     const SizedBox(height: 22),
                     const _EntryHowItWorksPanel(),
@@ -665,7 +774,6 @@ class _EntryResult {
     required this.code,
     required this.kind,
     this.details = '',
-    this.session,
   });
 
   factory _EntryResult.idle() => const _EntryResult(
@@ -683,10 +791,20 @@ class _EntryResult {
   );
   factory _EntryResult.otpSent(CidentiaUiLanguage language) {
     return const _EntryResult(
-      title: 'OTP sent',
-      message: 'Enter the code from CidenDB to continue.',
+      title: 'Code request accepted',
+      message: 'CidenDB accepted the email-code request. Check your inbox and spam folder; delivery can take a moment.',
       code: 'CIDENDB_OTP_SENT',
       kind: _EntryResultKind.pending,
+    );
+  }
+
+  factory _EntryResult.bridgeNotConfigured(CidentiaUiLanguage language) {
+    return const _EntryResult(
+      title: 'CID sign-in not connected',
+      message: 'This Android test build does not yet have a verified CidenDB session bridge. Reels local preview is available; publishing and other protected actions stay locked.',
+      code: 'CIDENDB_MOBILE_BRIDGE_NOT_CONFIGURED',
+      kind: _EntryResultKind.unavailable,
+      details: 'Set CIDENDB_ENTRY_BRIDGE_BASE_URL to an explicitly verified HTTPS bridge during the test build. OTP is not a substitute for an authenticated backend session.',
     );
   }
 
@@ -751,6 +869,28 @@ class _EntryResult {
     final user = asMap(decoded['user']) ?? asMap(upstream?['user']);
     final details = const JsonEncoder.withIndent('  ').convert(decoded);
 
+    if (statusCode == 429 ||
+        code == 'CIDENDB_RATE_LIMITED' ||
+        code == 'OTP_RATE_LIMITED') {
+      return const _EntryResult(
+        title: 'Too many verification attempts',
+        message: 'CidenDB is temporarily limiting OTP requests. Wait before trying again. Do not repeatedly request new codes.',
+        code: 'CIDENDB_RATE_LIMITED',
+        kind: _EntryResultKind.invalid,
+      );
+    }
+
+    if (code == 'CIDENDB_OTP_UPSTREAM_REJECTED' ||
+        code == 'CIDENDB_OTP_REJECTED') {
+      return _EntryResult(
+        title: language.invalidCodeTitle,
+        message: language.invalidCodeBody,
+        code: code,
+        kind: _EntryResultKind.invalid,
+        details: details,
+      );
+    }
+
     final cid = readText(user, [
       'cid',
       'cid_number',
@@ -759,31 +899,32 @@ class _EntryResult {
       'cidenId',
     ]);
 
-    final displayName = readText(user, ['display_name', 'full_name', 'name']);
-
-    final email = readText(user, ['email', 'mail', 'contact']);
-
-    final hasSafeSession =
-        decoded['sessionCreated'] == true ||
+    // An OTP response or a CID field is not a backend-authorized session.
+    // A verified CID state may only be enabled after the mobile client proves
+    // a real session to the same backend that enforces protected operations.
+    if (decoded['sessionCreated'] == true ||
         code == 'CIDENDB_SAFE_SESSION_CREATED' ||
-        (code == 'CIDENDB_UPSTREAM_OK' && cid != null);
-
-    if (hasSafeSession && cid != null) {
-      final cidLine = '\nCID: $cid';
-      final nameLine = displayName == null ? '' : '\nUser: $displayName';
-
+        (code == 'CIDENDB_UPSTREAM_OK' && cid != null)) {
       return _EntryResult(
-        title: language.verifiedTitle,
-        message: '${language.verifiedBody}$cidLine$nameLine',
-        code: code,
-        kind: _EntryResultKind.verified,
+        title: language.serviceUnavailableTitle,
+        message: 'OTP/CID was returned, but an authenticated mobile backend session is not yet established. Protected actions remain unavailable.',
+        code: 'CIDENDB_MOBILE_SESSION_HANDOFF_REQUIRED',
+        kind: _EntryResultKind.unavailable,
         details: details,
-        session: CidentiaSessionState.verified(
-          cid: cid,
-          displayName: displayName,
-          email: email,
-          message: language.verifiedBody,
-        ),
+      );
+    }
+
+    // The staging OTP bridge can confirm an email, but cannot create
+    // the cookie-backed CID session required by protected backend routes.
+    if (code == 'CIDENDB_EMAIL_VERIFIED_SESSION_PENDING' &&
+        decoded['emailVerified'] == true &&
+        decoded['sessionCreated'] != true) {
+      return _EntryResult(
+        title: 'Email confirmed - CID sign-in still required',
+        message: 'Your CidenDB code was accepted. A verified Cidentia.Live CID session is not connected yet. Continue through CidentiaApp for identity setup; uploads remain locked.',
+        code: code,
+        kind: _EntryResultKind.emailConfirmed,
+        details: details,
       );
     }
 
@@ -837,7 +978,6 @@ class _EntryResult {
   final String code;
   final String details;
   final _EntryResultKind kind;
-  final CidentiaSessionState? session;
 }
 
 enum _EntryResultKind {
@@ -845,6 +985,7 @@ enum _EntryResultKind {
   pending,
   verified,
   onboarding,
+  emailConfirmed,
   invalid,
   unavailable,
 }
@@ -1564,6 +1705,8 @@ class _EntryTextLink extends StatelessWidget {
   }
 }
 
+// Retained as a dormant legacy preview component for the later Feed redesign.
+// ignore: unused_element
 class _VisualCard extends StatelessWidget {
   const _VisualCard({
     required this.width,
@@ -1718,6 +1861,7 @@ class _ResultGrid extends StatelessWidget {
     final color = switch (result.kind) {
       _EntryResultKind.verified => const Color(0xFF22C55E),
       _EntryResultKind.onboarding => const Color(0xFFF59E0B),
+      _EntryResultKind.emailConfirmed => const Color(0xFF22C55E),
       _EntryResultKind.invalid => const Color(0xFFEF4444),
       _EntryResultKind.unavailable => const Color(0xFF3B82F6),
       _ => const Color(0xFF8B5CF6),
@@ -1740,16 +1884,15 @@ class _ResultGrid extends StatelessWidget {
             code: result.code,
             actionLabel: result.kind == _EntryResultKind.verified
                 ? 'Go to Feed'
-                : result.kind == _EntryResultKind.onboarding
-                ? language.continueCidentiaApp
-                : result.kind == _EntryResultKind.invalid
-                ? language.requestOtp
-                : 'Try Again',
-            onAction: result.kind == _EntryResultKind.verified
+                : result.kind == _EntryResultKind.emailConfirmed
+                ? 'Explore Reels as guest'
+                : language.continueCidentiaApp,
+            onAction: result.kind == _EntryResultKind.verified ||
+                    result.kind == _EntryResultKind.emailConfirmed
                 ? onEnter
                 : result.kind == _EntryResultKind.onboarding
                 ? onCidentiaApp
-                : () {},
+                : null,
           ),
           TextButton.icon(
             onPressed: onToggleDetails,
@@ -1927,7 +2070,7 @@ class _StatusCard extends StatelessWidget {
   final String body;
   final String code;
   final String actionLabel;
-  final VoidCallback onAction;
+  final VoidCallback? onAction;
 
   @override
   Widget build(BuildContext context) {
@@ -1939,25 +2082,42 @@ class _StatusCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: color.withValues(alpha: 0.6)),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.verified_user_outlined, color: color),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(color: color, fontWeight: FontWeight.w900),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.verified_user_outlined, color: color),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        color: color,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(body),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Text(body),
-              ],
-            ),
+              ),
+            ],
           ),
-          const SizedBox(width: 12),
-          OutlinedButton(onPressed: onAction, child: Text(actionLabel)),
+          if (onAction != null) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: onAction,
+                child: Text(actionLabel),
+              ),
+            ),
+          ],
         ],
       ),
     );

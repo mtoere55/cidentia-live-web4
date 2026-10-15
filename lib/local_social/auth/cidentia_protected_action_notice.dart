@@ -9,7 +9,7 @@ class CidentiaProtectedActionNotice {
   static bool canPerform(BuildContext context, CidentiaProtectedAction action) {
     final session = CidentiaSessionScope.maybeOf(context);
 
-    if (session?.hasVerifiedCid ?? false) {
+    if (session?.canPerformProtectedAction() ?? false) {
       return true;
     }
 

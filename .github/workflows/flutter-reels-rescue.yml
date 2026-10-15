@@ -1,0 +1,49 @@
+name: Flutter Reels rescue
+
+on:
+  push:
+    branches:
+      - rescue/instagram-reels-20261012
+  pull_request:
+    paths:
+      - "lib/local_social/**"
+      - "pubspec.yaml"
+      - ".github/workflows/flutter-reels-rescue.yml"
+  workflow_dispatch:
+
+jobs:
+  analyze-reels:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.35.7"
+          channel: stable
+          cache: true
+      - name: Resolve dependencies
+        run: flutter pub get
+      - name: Analyze changed Reels files
+        run: flutter analyze --no-fatal-infos lib/local_social/widgets/cidentia_reels_page.dart lib/local_social/local_social_app.dart lib/local_social/widgets/cidentia_ecosystem_entry_gate.dart lib/local_social/auth/cidentia_session_state.dart lib/local_social/auth/cidentia_protected_action_notice.dart lib/local_social/widgets/local_live_studio_page.dart
+      - name: Accept Android SDK licenses and install required NDK
+        run: |
+          yes | "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
+          "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" --install "ndk;28.0.12433566" "build-tools;36.0.0" "platforms;android-36"
+      - name: Disable Google Services plugin for offline-only dev APK
+        run: |
+          # lib/main_local.dart does not initialize Firebase. The clone's
+          # original Firebase google-services.json is intentionally absent.
+          # Change only this disposable GitHub runner checkout, never source
+          # or production Firebase settings.
+          sed -i '/id "com.google.gms.google-services"/d' android/app/build.gradle
+          ! grep -q 'id "com.google.gms.google-services"' android/app/build.gradle
+      - name: Build Android development debug app
+        run: flutter build apk --debug --flavor development -t lib/main_local.dart --dart-define=CIDENDB_ENTRY_BRIDGE_BASE_URL=https://web4-preview.cidentia.live
+      - name: Preserve test APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cidentia-flutter-development-apk
+          path: build/app/outputs/flutter-apk/app-development-debug.apk
+          if-no-files-found: error
+          retention-days: 7
